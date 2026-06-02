@@ -192,6 +192,18 @@ function jsonp(params){
     document.body.appendChild(s);
   });
 }
+// รหัสผ่านบันทึก: เก็บในเครื่อง (localStorage) ไม่อยู่ในไฟล์ — ถามครั้งแรกครั้งเดียว
+function getKey(){
+  let k=localStorage.getItem('sf_key');
+  if(!k){ k=prompt('🔒 ใส่รหัสผ่านสำหรับบันทึกข้อมูล (สอบถามผู้ดูแลระบบ)')||''; if(k) localStorage.setItem('sf_key',k); }
+  return k;
+}
+async function writeAction(params){
+  params.key=getKey();
+  const r=await jsonp(params);
+  if(r&&r.needKey){ localStorage.removeItem('sf_key'); throw new Error('รหัสผ่านไม่ถูกต้อง — กดบันทึกอีกครั้งแล้วใส่รหัสใหม่'); }
+  return r;
+}
 function toast(msg,type){
   const t=document.getElementById('toast');
   t.textContent=msg; t.className='show'+(type?' '+type:'');
@@ -264,7 +276,7 @@ document.getElementById('eggSave').onclick=async()=>{
     let total=0;
     for(let k=0;k<entries.length;k+=15){
       const chunk=entries.slice(k,k+15).join(';');
-      const r=await jsonp({action:'eggBatch',date,v:chunk});
+      const r=await writeAction({action:'eggBatch',date,v:chunk});
       if(!r.ok) throw new Error(r.error||'บันทึกไม่สำเร็จ');
       total+=r.updated||0;
     }
@@ -296,7 +308,7 @@ document.getElementById('hSave').onclick=async()=>{
   if(!g('hEggset')||!g('hChick')){ toast('กรอกไข่เข้าฟัก + ลูกไก่ก่อน','err'); return; }
   const btn=document.getElementById('hSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
   try{
-    const res=await jsonp({action:'addHatch',pa:r.pa,mo:r.mo,ch:r.ch,sec:r.sec,fam:r.fam,
+    const res=await writeAction({action:'addHatch',pa:r.pa,mo:r.mo,ch:r.ch,sec:r.sec,fam:r.fam,
       set:toDM(g('hSet')),pull:toDM(g('hPull')),
       eggset:g('hEggset'),wind:g('hWind'),crack:g('hCrack'),rot:g('hRot'),
       fert:g('hFert'),chick:g('hChick'),dis:g('hDis'),cdead:g('hCdead'),cull:g('hCull'),
@@ -327,7 +339,7 @@ document.getElementById('bSave').onclick=async()=>{
     let res;
     if(birdMode==='one'){
       if(!g('bCode')){ throw new Error('กรอกรหัสไก่ก่อน'); }
-      res=await jsonp({action:'addBird',section:g('bSec'),family:g('bFam'),fc:g('bFc'),mc:g('bMc'),
+      res=await writeAction({action:'addBird',section:g('bSec'),family:g('bFam'),fc:g('bFc'),mc:g('bMc'),
         sex:g('bSex'),idx:g('bIdx'),code:g('bCode'),band:g('bBand')});
       if(!res.ok) throw new Error(res.error||'ล้มเหลว');
       toast('✅ เพิ่มไก่ '+g('bCode'),'ok');
@@ -335,7 +347,7 @@ document.getElementById('bSave').onclick=async()=>{
     }else{
       const fcodes=g('bFcodes').split(/\n/).map(s=>s.trim()).filter(Boolean);
       if(!fcodes.length && !g('bMcode')){ throw new Error('ใส่รหัสแม่หรือพ่ออย่างน้อย 1'); }
-      res=await jsonp({action:'addFamily',section:g('bSec'),family:g('bFam'),fc:g('bFc'),mc:g('bMc'),
+      res=await writeAction({action:'addFamily',section:g('bSec'),family:g('bFam'),fc:g('bFc'),mc:g('bMc'),
         fcodes:fcodes.map(encodeURIComponent).join(','), mcode:g('bMcode')});
       if(!res.ok) throw new Error(res.error||'ล้มเหลว');
       toast(`✅ เพิ่ม Family ${g('bFam')} · ${res.added} ตัว`,'ok');

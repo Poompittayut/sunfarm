@@ -144,8 +144,15 @@ function doGet(e){
 function doPost(e){ return doGet(e); }  // เผื่อ POST
 
 /* ================= เขียนข้อมูลกลับ (จากฟอร์มกรอก) ================= */
+/* 🔒 รหัสลับสำหรับ "บันทึกข้อมูล" — เปลี่ยนเป็นรหัสของคุณเองในหน้า Apps Script
+ *    (อย่า commit รหัสจริงขึ้น GitHub! ไฟล์นี้ขึ้น repo public — ให้แก้รหัสเฉพาะใน Google) */
+var WRITE_KEY = "เปลี่ยนรหัสนี้";
+
 function handleAction_(a,e){
   if(a==='ping') return {ok:true, t:new Date().toString()};
+  // ต้องมีรหัสถูกต้องถึงจะเขียนได้ (อ่านข้อมูลไม่ต้องใช้รหัส)
+  if(String((e.parameter&&e.parameter.key)||'') !== WRITE_KEY)
+    return {ok:false, error:'รหัสผ่านไม่ถูกต้อง', needKey:true};
   var lock=LockService.getScriptLock();
   try{ lock.waitLock(20000); }catch(err){ return {ok:false,error:'ระบบกำลังถูกใช้งาน ลองใหม่อีกครั้ง'}; }
   try{

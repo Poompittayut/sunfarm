@@ -171,6 +171,15 @@ ws = wb['ชื่อชีท']
 
 ---
 
+## 8.7 ระบบรหัสกันคนนอก + โฮสต์ GitHub Pages — ทำแล้ว
+
+- **รหัสเขียน (WRITE_KEY):** Apps Script ตรวจ `e.parameter.key === WRITE_KEY` ก่อนทุก action เขียน (อ่านไม่ต้องใช้รหัส) · ฟอร์มเก็บรหัสใน `localStorage('sf_key')` ถามครั้งแรกครั้งเดียว ส่งแนบทุกครั้งที่เขียน · รหัสผิด → `needKey` → ฟอร์มล้าง+ถามใหม่
+- ⚠️ **WRITE_KEY อยู่ใน `.gs` เท่านั้น (ฝั่ง Google) ห้าม commit รหัสจริง** — ไฟล์ `.gs` ใน repo มีค่า placeholder `"เปลี่ยนรหัสนี้"` · ตั้งรหัสจริงเฉพาะในหน้า Apps Script แล้ว redeploy
+- **`index.html`:** หน้าแรก (landing) มี 2 ปุ่ม → ฟอร์ม / ภาพรวม · เป็นไฟล์ที่ GitHub Pages เปิดเป็นหน้าแรก
+- **โฮสต์:** GitHub Pages (repo ต้องเป็น public) · URL = `https://poompittayut.github.io/sunfarm/`
+
+---
+
 ## 9. Next steps (ยังไม่ได้ทำ)
 
 - [ ] แท็บ/หน้า `P2` (ผังเล้าหลังที่ 2 — SPL ชุด 4-9, ประดู่ดำ ชุด 3)

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunfarm — ระบบจัดการผสมสายพันธุ์ไก่</title>
+<style>
+  :root{
+    --head:#15324f; --primary:#1f8a8a; --primary-d:#176f6f; --accent:#f26b4e;
+    --ink:#2a3136; --muted:#7e858b; --line:#e4e7ea;
+    --shadow:0 1px 3px rgba(28,33,40,.06),0 8px 28px rgba(28,33,40,.10);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(160deg,#15324f 0%,#1f8a8a 100%);color:var(--ink);
+    font-family:"Sukhumvit Set","Noto Sans Thai",-apple-system,"Segoe UI",sans-serif;padding:24px}
+  .logo{font-size:54px;margin-bottom:6px}
+  h1{color:#fff;font-size:23px;margin:0 0 4px;text-align:center;font-weight:800}
+  .sub{color:#cfe6e6;font-size:14px;margin-bottom:30px;text-align:center;max-width:440px}
+  .cards{display:grid;gap:16px;width:100%;max-width:420px}
+  .card{display:flex;align-items:center;gap:16px;background:#fff;border-radius:16px;padding:20px 22px;
+    box-shadow:var(--shadow);text-decoration:none;color:var(--ink);transition:.18s;border:2px solid transparent}
+  .card:hover{transform:translateY(-3px);border-color:#fff}
+  .card .ic{font-size:38px;flex:none;width:58px;height:58px;display:flex;align-items:center;justify-content:center;
+    border-radius:14px}
+  .card.form .ic{background:#e8f2f2}
+  .card.view .ic{background:#fde7e1}
+  .card .tx{flex:1}
+  .card .tx .t{font-size:17px;font-weight:800;color:var(--head)}
+  .card .tx .d{font-size:13px;color:var(--muted);margin-top:2px}
+  .card .arr{font-size:22px;color:var(--primary);flex:none}
+  footer{margin-top:30px;color:#bfe3e3;font-size:12px;text-align:center}
+  footer a{color:#fff}
+</style>
+</head>
+<body>
+  <div class="logo">🐔</div>
+  <h1>Sunfarm</h1>
+  <div class="sub">ระบบจัดการการทดลองผสมสายพันธุ์ไก่ — เลือกเมนูที่ต้องการ</div>
+
+  <div class="cards">
+    <a class="card form" href="SunFarm_Form.html">
+      <div class="ic">📝</div>
+      <div class="tx"><div class="t">กรอกข้อมูล</div><div class="d">บันทึกไข่รายวัน · ผลฟัก · เพิ่มไก่ (สำหรับผู้ทดลอง)</div></div>
+      <div class="arr">→</div>
+    </a>
+    <a class="card view" href="SunFarm_CoopModel.html">
+      <div class="ic">📊</div>
+      <div class="tx"><div class="t">ดูภาพรวม</div><div class="d">แผนทดลอง · ผังเล้า · ทะเบียน · ไข่ · ตู้ฟัก · เมทริกซ์ผสม</div></div>
+      <div class="arr">→</div>
+    </a>
+  </div>
+
+  <footer>ฟาร์มทดลองผสมพันธุ์ไก่ · ข้อมูลจาก Google Sheet</footer>
+</body>
+</html>
