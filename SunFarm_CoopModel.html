@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>โมเดลเล้าทดลอง — ระบบผสมสายพันธุ์ไก่ (Sunfarm)</title>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#ffffff; --panel2:#f4f5f6;
+    --ink:#2a3136; --muted:#7e858b; --line:#e4e7ea;
+    --female:#d97a8f; --male:#5b8fc7; --good:#3bb38a;
+    --primary:#1f8a8a; --primary-d:#176f6f; --accent:#f26b4e; --head:#15324f;
+    --shadow:0 1px 3px rgba(28,33,40,.06),0 4px 16px rgba(28,33,40,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Sukhumvit Set","Noto Sans Thai",-apple-system,"Segoe UI",sans-serif;line-height:1.5;font-size:14px}
+  header{padding:11px 30px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:20}
+  header h1{margin:0;font-size:16px;font-weight:700;color:var(--head)}
+  .wrap{padding:24px 30px 70px;max-width:1600px;margin:0 auto}
+
+  .tabs{display:flex;gap:8px;margin-bottom:20px}
+  .tab{padding:9px 18px;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+    color:var(--muted);cursor:pointer;font-size:14px;font-weight:600;transition:.15s}
+  .tab:hover{border-color:var(--primary);color:var(--ink)}
+  .tab.active{background:#fff;color:var(--ink);border-color:var(--primary);box-shadow:0 0 0 3px rgba(31,138,138,.18)}
+
+  .side{display:none}
+  .side.active{display:block}
+
+  /* ===== เมทริกซ์ผสมไขว้ ===== */
+  .mxwrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);padding:6px;margin-bottom:20px}
+  .mxtable{border-collapse:separate;border-spacing:6px;width:100%}
+  .mxtable th,.mxtable td{vertical-align:middle}
+  .mxtable .corner{background:var(--head);color:#fff;border-radius:10px;font-size:12px;
+    font-weight:700;text-align:center;padding:8px;line-height:1.3;min-width:96px}
+  .mxtable .corner small{display:block;font-weight:500;opacity:.8}
+  .mxtable .dam-h{background:var(--female);color:#fff;border-radius:10px;font-weight:700;
+    text-align:center;padding:9px 10px;min-width:120px;white-space:nowrap}
+  .mxtable .sire-h{background:var(--male);color:#fff;border-radius:10px;font-weight:700;
+    text-align:center;padding:9px 10px;white-space:nowrap}
+  .mxtable .dam-h small,.mxtable .sire-h small{display:block;font-weight:500;opacity:.85;font-size:11px}
+  .mxcell{border-radius:10px;padding:9px 10px;min-width:120px;background:#fafbfb;
+    border:1px solid var(--line);text-align:center;transition:.15s}
+  .mxcell.empty{color:#c4c9cd;font-size:18px}
+  .mxcell.pure{background:#e8f2f2;border:1px solid var(--primary);cursor:pointer}
+  .mxcell.cross{background:#fde7e1;border:1px solid var(--accent);cursor:pointer}
+  .mxcell.pure:hover,.mxcell.cross:hover{box-shadow:0 0 0 3px rgba(31,138,138,.16);transform:translateY(-1px)}
+  .mxcell .ch{font-weight:700;font-size:13px;color:var(--ink)}
+  .mxcell .ch+.ch{margin-top:3px}
+  .mxcell .fam{display:inline-block;margin-top:5px;font-size:11px;font-weight:700;color:#fff;
+    background:var(--accent);border-radius:20px;padding:1px 9px}
+  .mxcell.pure .fam{background:var(--primary)}
+  .mxcell .cnt{font-size:11px;color:var(--muted);margin-top:4px}
+  .mxnote{font-size:12px;color:var(--muted);margin-top:2px}
+  #mxlist .mxitem{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:9px 12px;
+    border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--panel)}
+  #mxlist .mxitem .tag{font-size:11px;font-weight:700;border-radius:20px;padding:2px 10px;color:#fff}
+  #mxlist .mxitem .tag.pure{background:var(--primary)}
+  #mxlist .mxitem .tag.cross{background:var(--accent)}
+  #mxlist .mxitem .ar{color:var(--muted)}
+
+  .subtoggle{display:inline-flex;gap:4px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:11px;padding:4px;margin-bottom:18px}
+  .subtab{padding:7px 16px;border-radius:8px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
+  .subtab:hover{color:var(--ink)}
+  .subtab.active{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(28,33,40,.1)}
+  .coopview{display:none}
+  .coopview.active{display:block}
+
+  .legends{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:18px}
+  .legbox{display:flex;flex-direction:column;gap:8px}
+  .legtitle{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .legrow{display:flex;gap:13px;flex-wrap:wrap;max-width:1050px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:#3b4248}
+  .sw{width:15px;height:15px;border-radius:5px;border:1px solid rgba(0,0,0,.12)}
+  .sexbadge{width:18px;height:18px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 22px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 18px;min-width:120px;box-shadow:var(--shadow)}
+  .stat .k{font-size:11.5px;color:var(--muted)}
+  .stat .v{font-size:21px;font-weight:700;margin-top:2px}
+  .stat .v small{font-size:12px;color:var(--muted);font-weight:400}
+
+  .coop{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;overflow-x:auto;box-shadow:var(--shadow)}
+  .row{display:flex;align-items:stretch;gap:12px;margin-bottom:16px}
+  .row:last-child{margin-bottom:0}
+  .rowlabel{flex:0 0 96px;display:flex;flex-direction:column;justify-content:center;
+    border-radius:12px;padding:10px 12px;border:1px solid var(--line);background:var(--panel2)}
+  .rowlabel .name{font-size:16px;font-weight:800}
+  .rowlabel .sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+  .pair{display:flex;flex-direction:column;gap:5px;flex:1}
+  .cnav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+  .cpage{font-family:inherit;font-size:12.5px;font-weight:600;padding:7px 14px;border:1px solid var(--line);
+    border-radius:9px;background:var(--panel2);color:var(--muted);cursor:pointer;transition:.15s}
+  .cpage:hover{border-color:var(--primary);color:var(--ink)}
+  .cpage.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .strip{display:flex;gap:5px;align-items:center}
+  .striplabel{flex:0 0 34px;display:flex;align-items:center;justify-content:center;height:46px;border-radius:8px;font-size:15px;font-weight:700;color:#fff}
+  .striplabel.f{background:var(--female)}
+  .striplabel.m{background:var(--male)}
+
+  .cage{width:44px;min-width:44px;height:46px;border-radius:9px;border:1px solid var(--line);background:#f3f4f5;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;font-weight:700;position:relative;transition:.12s}
+  .cage .cn{position:absolute;top:2px;left:5px;font-size:8px;color:#838b91;font-weight:600}
+  .cage .sx{position:absolute;top:1px;right:4px;font-size:9px;font-weight:700}
+  .cage .sx.f{color:var(--female)}
+  .cage .sx.m{color:var(--male)}
+  .cage.empty{opacity:.5}
+  .cage.empty .ct{color:#b4babf;font-weight:400;font-size:11px}
+  .cage.noval .ct{font-weight:400;color:#8a8378;font-size:11px}
+  .cage:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(28,33,40,.16);z-index:5;cursor:default;filter:saturate(1.4)}
+
+  .total{flex:0 0 60px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:#fff;border:1px dashed var(--line);border-radius:9px;height:46px;font-size:15px;font-weight:800}
+  .total small{font-size:9px;color:var(--muted);font-weight:500}
+
+  .breeds{margin-top:26px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+  .breeds h3{margin:0 0 14px;font-size:15px;color:var(--head)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .breeddot{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+  .breeddot .d{width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.12)}
+  .note{color:var(--primary);font-size:12.5px}
+  .questions{margin-top:20px;background:#f3f4f6;border:1px solid #dfe2e6;border-radius:14px;padding:16px 20px;font-size:13px}
+  .questions h4{margin:0 0 8px;color:var(--primary);font-size:13.5px}
+  .questions li{margin:3px 0;color:#4b5258}
+  .hint{font-size:12px;color:var(--muted);margin:2px 0 0}
+
+  /* ===== tooltip รายละเอียดกรง ===== */
+  #tip{position:fixed;z-index:100;pointer-events:none;opacity:0;transform:translateY(4px);
+    transition:opacity .12s,transform .12s;
+    background:#ffffff;border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 8px 28px rgba(40,32,18,.18);padding:0;min-width:208px;max-width:260px;overflow:hidden}
+  #tip.show{opacity:1;transform:translateY(0)}
+  #tip .tiphead{display:flex;align-items:center;gap:9px;padding:11px 14px;color:#fff;font-weight:700}
+  #tip .tiphead .dotc{width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,.5);background:#fff}
+  #tip .tipbody{padding:10px 14px 12px}
+  #tip .tr{display:flex;justify-content:space-between;gap:14px;font-size:12.5px;padding:3px 0}
+  #tip .tr .lab{color:var(--muted)}
+  #tip .tr .val{font-weight:600;text-align:right}
+  #tip .sexpill{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:20px;font-size:11.5px;font-weight:700;color:#fff}
+
+  /* ===== Lockbook ===== */
+  code{background:#eef0f2;padding:1px 6px;border-radius:5px;font-size:12px}
+  .lbfilter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .lbchip{padding:7px 15px;border:1px solid var(--line);border-radius:20px;background:var(--panel);
+    color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
+  .lbchip:hover{border-color:var(--primary);color:var(--ink)}
+  .lbchip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .lbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
+  .fcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .fcard .fhead{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;background:var(--head)}
+  .fhead .ftitle{font-weight:800;font-size:15px;color:#fff}
+  .fhead .fsec{font-size:11px;font-weight:600;color:rgba(255,255,255,.72)}
+  .fhead .fcount{font-size:12px;font-weight:700;display:flex;gap:8px}
+  .fbody{padding:6px 0 8px}
+  .frow{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center;padding:3px 14px;font-size:12px}
+  .frow:hover{background:var(--panel2)}
+  .frow .tag{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.18)}
+  .frow .fcode{font-family:ui-monospace,monospace;font-size:11px;color:#4a463e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .frow .fcode.empty{color:#a8b6b6;font-style:italic;font-family:inherit}
+  .frow .fband{color:var(--muted);font-size:11px;white-space:nowrap}
+  .fdivider{border-top:1px dashed var(--line);margin:5px 0}
+  .fbadge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;color:#fff}
+  .eggfoot{margin-top:auto;border-top:1px solid var(--line);padding:8px 14px;display:flex;align-items:center;
+    justify-content:space-between;font-size:12px;cursor:pointer;background:#f7f8f9}
+  .eggfoot:hover{background:#edeff2}
+  .eggfoot .eggn{font-weight:700;color:var(--primary)}
+  .eggfoot .arrow{color:var(--muted);font-size:11px}
+
+  /* ===== ไข่รายวัน ===== */
+  .egggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .ecard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);transition:.18s;overflow:hidden}
+  .ecard.hl{box-shadow:0 0 0 3px rgba(242,107,78,.45);border-color:var(--accent)}
+  .ecard .ehead{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin:-14px -16px 12px;padding:11px 16px;background:var(--head)}
+  .ecard .ech{font-weight:800;font-size:15px;color:#fff}
+  .ecard .eline{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;color:#fff;white-space:nowrap}
+  .ecard .epair{font-family:ui-monospace,monospace;font-size:10.5px;color:#6a655c;line-height:1.5;margin-bottom:10px}
+  .ecard .epair .pl{color:var(--muted);font-family:inherit}
+  .emetrics{display:flex;gap:16px;margin-bottom:10px}
+  .emetrics .em .v{font-size:18px;font-weight:800}
+  .emetrics .em .k{font-size:10px;color:var(--muted)}
+  .spark{display:flex;align-items:flex-end;gap:1.5px;height:46px;padding-top:4px}
+  .spark .bar{flex:1;min-width:2px;background:var(--accent);border-radius:2px 2px 0 0;opacity:.85;transition:.1s}
+  .spark .bar:hover{opacity:1;background:#d8492c}
+  .spark .bar.nodata{background:#e4e7ea;opacity:.5}
+  .sparkx{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px}
+
+  /* ===== ตู้ฟัก / ลูกไก่ (funnel) ===== */
+  .ecard .edates{font-size:11px;color:var(--muted);margin-bottom:10px}
+  .ecard .edates b{color:#3b4248;font-weight:600}
+  .funnel{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+  .fnl{display:grid;grid-template-columns:62px 1fr 38px;align-items:center;gap:7px;font-size:11px}
+  .fnl .fl{color:var(--muted);text-align:right}
+  .fnl .fbar{height:16px;border-radius:4px;min-width:3px}
+  .fnl .fv{font-weight:700;font-variant-numeric:tabular-nums}
+  .fnl.s1 .fbar{background:#d6dade}
+  .fnl.s2 .fbar{background:var(--accent)}
+  .fnl.s3 .fbar{background:var(--good)}
+  .kpirow{display:flex;gap:7px;flex-wrap:wrap}
+  .kpi{flex:1;min-width:64px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 4px}
+  .kpi .kv{font-size:15px;font-weight:800}
+  .kpi .kk{font-size:9px;color:var(--muted)}
+  .lossrow{font-size:10.5px;color:var(--muted);margin:8px 0 2px;display:flex;flex-wrap:wrap;gap:8px}
+  .lossrow span b{color:#c4502f;font-weight:700}
+  .ohnote{margin-top:8px;font-size:11px;color:var(--primary);background:#f3f4f6;border-radius:7px;padding:5px 9px}
+  .ohbanner{display:flex;align-items:center;gap:10px;background:#edeff2;border:1px solid #d4d8dd;border-radius:10px;padding:9px 14px;margin-bottom:12px;font-size:13px}
+  .ohbanner b{color:var(--primary)}
+  .ohbanner .x{margin-left:auto;cursor:pointer;color:var(--muted);font-weight:700;padding:2px 8px;border-radius:6px}
+  .ohbanner .x:hover{background:#d4d8dd;color:#343b41}
+  .hatchfoot{margin-top:10px;border-top:1px solid var(--line);padding-top:8px;display:flex;align-items:center;justify-content:space-between;font-size:12px;cursor:pointer}
+  .hatchfoot:hover{color:var(--ink)}
+  .hatchfoot .hn{font-weight:700;color:var(--good)}
+  .hatchfoot .arrow{color:var(--muted);font-size:11px}
+
+  /* ===== แผนทดลอง ===== */
+  .pcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:0;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  .pcard .phead{padding:12px 15px;background:var(--head)}
+  .pcard .pname{font-weight:800;font-size:15px;color:#fff}
+  .pcard .pmethod{display:inline-block;margin-top:5px;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:10px}
+  .pm-fam{background:#e7f0e5;color:#4a7a3e}
+  .pm-bulk{background:#fde8e2;color:#c4502f}
+  .pm-none{background:#edeef0;color:#8a8378}
+  .pbody{padding:13px 15px}
+  .pcross{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:12px;flex-wrap:wrap}
+  .pcross .gene{padding:3px 10px;border-radius:8px;background:#fff;border:1px solid var(--line)}
+  .pcross .gene.f{color:var(--male)} .pcross .gene.m{color:var(--female)}
+  .pcross .gene.ch{color:#2b2820;font-weight:800}
+  .pcross .ar{color:var(--muted);font-weight:400}
+  .pnums{display:flex;gap:8px;margin-bottom:12px}
+  .pnums .pn{flex:1;text-align:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 4px}
+  .pnums .pn .v{font-size:17px;font-weight:800}
+  .pnums .pn .k{font-size:9.5px;color:var(--muted)}
+  .ploc{font-size:11.5px;color:var(--muted);margin-bottom:10px}
+  .ploc b{color:#3b4248}
+  .pbatch{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+  .pbatch .bt{font-size:10px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:#3b4248}
+  .pbatch .btlabel{font-size:10px;color:var(--muted);align-self:center;margin-right:2px}
+  .plinks{margin-top:auto;border-top:1px solid var(--line);display:flex}
+  .plink{flex:1;text-align:center;padding:9px 6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--primary);background:#f7f8f9}
+  .plink:hover{background:#edeff2}
+  .plink+.plink{border-left:1px solid var(--line)}
+  .plink.disabled{color:#bdb6a8;cursor:default;background:var(--panel)}
+  #planfuture h3{margin:0 0 12px}
+  .pfgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .pfbox{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:13px 15px;font-size:12.5px}
+  .pfbox h4{margin:0 0 7px;font-size:13px;color:var(--head)}
+  .pfbox .ln{margin:3px 0;color:#3b4248}
+  .pfbox .ln b{color:#2b2820}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<header>
+  <h1>🐔 โมเดลเล้าทดลอง — ระบบผสมสายพันธุ์ไก่</h1>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab active" data-side="plan">🗺️ แผนทดลอง</div>
+    <div class="tab" data-side="coop">🏠 ผังเล้า</div>
+    <div class="tab" data-side="lockbook">📒 Lockbook · ทะเบียน Family</div>
+    <div class="tab" data-side="eggs">🥚 ไข่รายวัน</div>
+    <div class="tab" data-side="onhand">🐤 ตู้ฟัก / ลูกไก่</div>
+    <div class="tab" data-side="matrix">🔀 เมทริกซ์ผสม</div>
+  </div>
+
+  <!-- ===== ฝั่งไก่พันธุ์ ===== -->
+  <!-- ===== แผนทดลอง (overview) ===== -->
+  <section class="side active" id="plan">
+    <div class="hint" style="margin-bottom:14px">🗺️ <b>แผนแม่บทการทดลองผสมพันธุ์</b> — กำหนดคู่ผสม (พ่อ × แม่ → ลูก), จำนวน family, วิธีเก็บไข่ และตารางฟัก · หน้าอื่นคือการลงมือทำตามแผนนี้ (เล้า → ทะเบียน → ไข่ → ฟัก)</div>
+    <div class="stats" id="stats-plan"></div>
+    <div class="egggrid" id="plangrid"></div>
+    <div class="breeds" id="planfuture"></div>
+  </section>
+
+  <!-- ===== ผังเล้า (รวม 2 ฝั่ง) ===== -->
+  <section class="side" id="coop">
+    <div class="subtoggle">
+      <div class="subtab active" data-view="cv-breeder">ฝั่งไก่พันธุ์ · 19 กรง/แถว</div>
+      <div class="subtab" data-view="cv-grower">ฝั่งไก่รุ่น · 75 กรง/แถว</div>
+    </div>
+
+    <div class="coopview active" id="cv-breeder">
+    <div class="legends">
+      <div class="legbox"><span class="legtitle">สายพันธุ์ (สีกรง)</span><div class="legrow" id="leg-breeder"></div></div>
+      <div class="legbox"><span class="legtitle">เพศ</span>
+        <div class="legrow">
+          <span class="chip"><span class="sexbadge" style="background:var(--female)">♀</span> เมีย</span>
+          <span class="chip"><span class="sexbadge" style="background:var(--male)">♂</span> ผู้</span>
+          <span class="chip"><span class="sw" style="background:#f3f4f5"></span> กรงว่าง</span>
+        </div></div>
+    </div>
+    <div class="stats" id="stats-breeder"></div>
+    <div class="coop" id="coop-breeder"></div>
+
+    <div class="breeds">
+      <h3>รายการไก่พันธุ์</h3>
+      <table><thead><tr><th>สายพันธุ์ / รหัส</th><th class="num">ผู้ (ตัว)</th><th class="num">เมีย (ตัว)</th><th>หมายเหตุ</th></tr></thead>
+      <tbody id="btbl-breeder"></tbody></table>
+    </div>
+    <div class="questions">
+      <h4>❓ คำถาม/หมายเหตุที่ฝังในไฟล์ (รอยืนยัน)</h4>
+      <ul>
+        <li>ใช่ตัวผู้ SPL ตัวผู้ไหม? · จัดผสมอย่างไร?</li>
+        <li>ตัวผู้ R1: ใช่ 2 ตัว หรือ 4 ตัว?</li>
+        <li>SPL: จาก 450 ตัด 150 · ประดู่ดำ: จาก 300 เหลือ 100 · จาก 100 เหลือ 40 (เก็บ 60)</li>
+        <li>สีฟ้าอ่อน / ส้ม / เทา ที่ยังไม่อยู่ในรายการ = ยังไม่ระบุสายพันธุ์ (รอยืนยัน)</li>
+      </ul>
+    </div>
+    </div><!-- /cv-breeder -->
+
+    <div class="coopview" id="cv-grower">
+    <div class="legends">
+      <div class="legbox"><span class="legtitle">สายพันธุ์ (สีกรง)</span><div class="legrow" id="leg-grower"></div></div>
+      <div class="legbox"><span class="legtitle">เพศ</span>
+        <div class="legrow">
+          <span class="chip"><span class="sexbadge" style="background:var(--female)">♀</span> เมีย</span>
+          <span class="chip"><span class="sexbadge" style="background:var(--male)">♂</span> ผู้</span>
+          <span class="chip"><span class="sw" style="background:#f3f4f5"></span> กรงว่าง</span>
+        </div></div>
+    </div>
+    <div class="stats" id="stats-grower"></div>
+    <div class="coop" id="coop-grower"></div>
+
+    <div class="breeds">
+      <h3>รายการไก่รุ่น</h3>
+      <table><thead><tr><th>สายพันธุ์ / รหัส</th><th class="num">จำนวน (ตัว)</th><th>หมายเหตุ</th></tr></thead>
+      <tbody id="btbl-grower"></tbody></table>
+    </div>
+    </div><!-- /cv-grower -->
+  </section>
+
+  <!-- ===== Lockbook ===== -->
+  <section class="side" id="lockbook">
+    <div class="hint" style="margin-bottom:14px">📒 ทะเบียนไก่รายตัว จัดกลุ่มเป็น <b>Family</b> (1 ตัวผู้ + ~10 ตัวเมีย ต่อ family) — รหัสเช่น <code>SB-26-G8-F01-F-001</code> = ไลน์ · ปีเกิด · รุ่น G · Family · เพศ · ลำดับตัว · <b>เชื่อมกับผังเล้า:</b> แต่ละกรงบนผังเล้า = 1 Family ที่นี่</div>
+    <div class="lbfilter" id="lbfilter"></div>
+    <div class="stats" id="stats-lockbook"></div>
+    <div class="lbgrid" id="lbgrid"></div>
+  </section>
+
+  <!-- ===== ไข่รายวัน ===== -->
+  <section class="side" id="eggs">
+    <div class="hint" style="margin-bottom:14px">🥚 บันทึก <b>จำนวนไข่รายวันต่อคู่ผสม</b> (พ่อ × แม่ → ลูก) ตั้งแต่ 20 เม.ย. 2026 · <b>เชื่อมกับ Lockbook:</b> รหัสพ่อ/แม่ = ไก่รายตัวใน Lockbook, รหัสลูก = Family รุ่นใหม่ที่จะเข้าตู้ฟัก</div>
+    <div class="lbfilter" id="eggfilter"></div>
+    <div class="stats" id="stats-eggs"></div>
+    <div class="egggrid" id="egggrid"></div>
+  </section>
+
+  <!-- ===== ตู้ฟัก / ลูกไก่ (on hand) ===== -->
+  <section class="side" id="onhand">
+    <div class="hint" style="margin-bottom:14px">🐤 ผลการ <b>ฟักไข่รายครอบครัว</b> (ตู้ฟัก → ลูกไก่) · ไข่เข้าฟัก → ฟักเป็นลูกไก่ + KPI %ฟัก/%เชื้อ/%ตายโคม · <b>เชื่อมกับไข่รายวัน/Lockbook:</b> รหัสพ่อ/แม่/ลูก คีย์เดียวกัน · รหัสลูก = รุ่นถัดไป</div>
+    <div id="ohbanner"></div>
+    <div class="lbfilter" id="ohfilter"></div>
+    <div class="stats" id="stats-onhand"></div>
+    <div class="egggrid" id="ohgrid"></div>
+  </section>
+
+  <!-- ===== เมทริกซ์ผสมไขว้ ===== -->
+  <section class="side" id="matrix">
+    <div class="hint" style="margin-bottom:14px">🔀 <b>เมทริกซ์ผสมไขว้ (Mating Matrix)</b> — แกนตั้ง = พ่อพันธุ์ ♂ · แกนนอน = แม่พันธุ์ ♀ · ในช่อง = ลูกที่เกิด + จำนวน Family · สร้างสดจากแผนทดลอง · <b>ทแยงมุม</b> = ผสมในพันธุ์ (purebred) · <b>นอกทแยงมุม</b> = ผสมข้ามพันธุ์ (crossbred)</div>
+    <div class="stats" id="stats-matrix"></div>
+    <div class="legends" style="margin-bottom:14px">
+      <div class="legbox"><span class="legtitle">ประเภทคู่ผสม</span>
+        <div class="legrow">
+          <span class="chip"><span class="sw" style="background:#e8f2f2;border:1px solid #1f8a8a"></span> Purebred (ในพันธุ์)</span>
+          <span class="chip"><span class="sw" style="background:#fde7e1;border:1px solid #f26b4e"></span> Crossbred (ข้ามพันธุ์)</span>
+          <span class="chip"><span class="sw" style="background:#fafbfb;border:1px solid #e4e7ea"></span> ไม่มีคู่ผสม</span>
+        </div></div>
+    </div>
+    <div class="mxwrap"><table class="mxtable" id="mxtable"></table></div>
+    <div class="breeds" id="mxlist"></div>
+  </section>
+</div>
+
+<script>
+/* ===== สี → สายพันธุ์ (อ้างอิงสีพื้นเซลล์ในชีท "ผังเล้าทดลอง") ===== */
+let LEG_BREEDER = {
+  "FCE4D6":"SB8 แก่", "FFF2CC":"SPL ชุดที่ 1,3", "D0CECE":"ประดู่ดำ (เล็ก)",
+  "8EA9DB":"AUS ใหญ่", "F2F2F2":"ประดู่ดำ ใหญ่", "C6E0B4":"AUS เล็ก", "FF99CC":"SB8G0",
+  "BDD7EE":"ไม่ระบุ (ฟ้าอ่อน)", "F9CB9C":"ไม่ระบุ (ส้ม)", "E7E6E6":"ยังไม่จัดกลุ่ม"
+};
+let LEG_GROWER = {
+  "BDD7EE":"SB8 ชุด 1", "F4B084":"ประดู่ดำ", "DBDBDB":"SL",
+  "FFE599":"SB8 ชุด 2", "00FF00":"SB8 ชุด 3"
+};
+
+/* ===== ข้อมูลพันธุ์: วันรับเข้า + อายุ (อ้างอิงคอลัมน์ วันที่รับ/อายุ ในชีท) ===== */
+let META = {
+  "SPL ชุดที่ 1,3":{recv:"16/1/2026", age:"108 วัน"},
+  "ประดู่ดำ (เล็ก)":{recv:"18/11/2025"},
+  "AUS ใหญ่":{recv:"21/11/2025"},
+  "ประดู่ดำ ใหญ่":{recv:"2/10/2026"},
+  "AUS เล็ก":{recv:"25/2/2026"},
+  "SB8G0":{recv:"2/1/2026", age:"219 วัน"},
+  "SB8 แก่":{},
+  "SB8 ชุด 1":{recv:"17/4/2026"},
+  "ประดู่ดำ":{recv:"24/4/2026"},
+  "SL":{},
+  "SB8 ชุด 2":{recv:"16/4/2026"},
+  "SB8 ชุด 3":{recv:"14/5/2026"},
+};
+
+/* ===== helpers ===== */
+function run(o,from,to,v,c){for(let i=from;i<=to;i++)o[i]=[v,c];return o;}
+function put(o,map,c){for(const k in map)o[k]=[map[k],c];return o;}
+function seq(o,from,arr,c){arr.forEach((v,i)=>o[from+i]=[v,c]);return o;}
+function hexToRgba(h,a){const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;}
+
+/* ===== ข้อมูลผัง: cages = { เลขกรง: [จำนวน, "สีhex"] } ===== */
+let BREEDER = { cages:19, rows:[
+  {name:"L2", sub:"พันธุ์",
+    female:{cages:run({},1,19,80,"FFF2CC"), recTotal:1520},
+    male:{cages:{}, recTotal:0}},
+  {name:"L1", sub:"พันธุ์",
+    female:{cages:run(run({},1,7,80,"FFF2CC"),8,19,95,"F9CB9C"), recTotal:1710},
+    male:{cages:{}, recTotal:50}},
+  {name:"M2", sub:"พันธุ์",
+    female:{cages:run({},5,16,70,"BDD7EE"), recTotal:840},
+    male:{cages:run(run(run({},1,4,40,"FF99CC"),5,16,7,"BDD7EE"),17,19,50,"FFF2CC"), recTotal:394}},
+  {name:"M1", sub:"พันธุ์",
+    female:{cages:put(run({},1,5,45,"D0CECE"),{4:46,5:46},"D0CECE", ) , recTotal:259},
+    male:{cages:put(put(run(run({},7,12,33,"E7E6E6"),13,15,34,"E7E6E6"),{15:35},"E7E6E6"),{6:"×3"},null), recTotal:315}},
+  {name:"R2", sub:"พันธุ์",
+    female:{cages:{}, recTotal:0},
+    male:{cages:run(run(run({},1,6,45,"BDD7EE"),7,7,48,"BDD7EE"),8,19,50,"BDD7EE"), recTotal:918}},
+  {name:"R1", sub:"พันธุ์",
+    female:{cages:put(run({},1,7,40,"FCE4D6"),{8:20,9:"",10:"",11:"",12:"",13:""},"FCE4D6"), recTotal:845},
+    male:{cages:put(run(run({},1,8,4,"FCE4D6"),14,19,50,"FFF2CC"),{9:18,10:50,11:50,12:"",13:""},"FCE4D6"), recTotal:378}},
+]};
+/* แก้สีเฉพาะกรงปลายของ M1 (ผสมหลายพันธุ์) */
+BREEDER.rows[3].female.cages[17]=[12,"8EA9DB"];
+BREEDER.rows[3].female.cages[18]=[12,"F2F2F2"];
+BREEDER.rows[3].female.cages[19]=[8,"C6E0B4"];
+BREEDER.rows[3].male.cages[16]=[8,"8EA9DB"];
+BREEDER.rows[3].male.cages[18]=[4,"F2F2F2"];
+BREEDER.rows[3].male.cages[19]=[2,"C6E0B4"];
+
+let GROWER = { cages:75, chunk:20, rows:[
+  {name:"R · 3/1", sub:"ไก่รุ่น", female:{cages:{},recTotal:0}, male:{cages:{},recTotal:0}},
+  {name:"R · 2/1", sub:"ไก่รุ่น",
+    female:{cages:(()=>{let o=run({},10,25,35,"BDD7EE");run(o,26,28,36,"BDD7EE");
+      o[30]=[47,"F4B084"];o[31]=[48,"F4B084"];o[33]=[43,"DBDBDB"];
+      seq(o,35,[25,28,22,28,20,23,24,20,29,24,25,21,22,26,27,24,25,26,23,22,21,24,27,22,26,24,23,26,20,21],"FFE599");
+      return o;})(), recTotal:1681},
+    male:{cages:{}, recTotal:0}},
+  {name:"R · 1/1", sub:"ไก่รุ่น",
+    female:{cages:{}, recTotal:0},
+    male:{cages:seq({},1,[32,28,31,33,34,30,27,26,33,32,31,34,30,31,32,28,29,27,28,29,26,25,31,31,32,32,34,31,25,24],"00FF00"), recTotal:0}},
+  {name:"L · 3/2", sub:"ไก่รุ่น", female:{cages:{},recTotal:0}, male:{cages:{},recTotal:0}},
+  {name:"L · 2/2", sub:"ไก่รุ่น", female:{cages:{},recTotal:0}, male:{cages:{},recTotal:0}},
+  {name:"L · 1/2", sub:"ไก่รุ่น", female:{cages:{},recTotal:0}, male:{cages:{},recTotal:0}},
+]};
+
+/* ===== render ===== */
+function cageHtml(c,cell,sex,legend){
+  if(cell===undefined) return `<div class="cage empty" data-empty="1" data-cage="${c}" data-sex="${sex==='f'?'เมีย':'ผู้'}"><span class="cn">${c}</span><span class="ct">·</span></div>`;
+  const [v,color]=cell;
+  const icon=sex==='f'?'♀':'♂';
+  const breed = color&&legend[color] ? legend[color] : (color?'(สี #'+color+')':'ไม่มีสี');
+  const bg = color ? hexToRgba(color,0.6) : '#f3f4f5';
+  const noval = (v===''||v===null) ? ' noval':'';
+  const shown = (v===''||v===null) ? '–' : v;
+  return `<div class="cage ${sex}${noval}" style="background:${bg}"
+     data-cage="${c}" data-breed="${breed}" data-sex="${sex==='f'?'เมีย':'ผู้'}" data-count="${shown}" data-color="${color||''}">
+    <span class="cn">${c}</span><span class="sx ${sex}">${icon}</span><span class="ct">${shown}</span></div>`;
+}
+// วาดแถบไก่ช่วงกรง from..to · showTotal = แสดงช่อง "รวม" (ยอดรวมทั้งแถว)
+function stripHtml(sex,data,from,to,legend,showTotal){
+  let html=`<div class="strip"><div class="striplabel ${sex}">${sex==='f'?'♀':'♂'}</div>`;
+  for(let c=from;c<=to;c++){html+=cageHtml(c,data.cages[c],sex,legend);}
+  if(showTotal){
+    const t=data.recTotal!=null?data.recTotal:Object.values(data.cages).reduce((a,x)=>a+(typeof x[0]==='number'?x[0]:0),0);
+    html+=`<div class="total"><small>รวม</small>${t.toLocaleString()}</div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+const coopPage={};                                   // เก็บหน้าปัจจุบันของแต่ละผังเล้า
+function coopNav(elId,pages,cur,chunk,cages){
+  let b='';
+  for(let p=0;p<pages;p++){
+    const s=p*chunk+1, e=Math.min(s+chunk-1,cages);
+    b+=`<button class="cpage${p===cur?' active':''}" onclick="coopGoPage('${elId}',${p})">${p+1} · กรง ${s}–${e}</button>`;
+  }
+  return `<div class="cnav">${b}</div>`;
+}
+function renderCoop(elId,model,legend){
+  const chunk = model.chunk || model.cages;          // ไม่กำหนด = แสดงทั้งแถว (ไม่แบ่งหน้า)
+  const pages = Math.ceil(model.cages/chunk);
+  const cur = Math.min(coopPage[elId]||0, pages-1);
+  const start = cur*chunk+1, end = Math.min(start+chunk-1, model.cages);
+  let rows='';
+  model.rows.forEach(r=>{
+    rows+=`<div class="row"><div class="rowlabel"><div class="name">${r.name}</div><div class="sub">${r.sub}</div></div>
+      <div class="pair">${stripHtml('f',r.female,start,end,legend,true)}${stripHtml('m',r.male,start,end,legend,true)}</div></div>`;
+  });
+  const nav = pages>1 ? coopNav(elId,pages,cur,chunk,model.cages) : '';
+  document.getElementById(elId).innerHTML = nav+rows;
+}
+const COOPS={};                                      // registry สำหรับเปลี่ยนหน้า
+function coopGoPage(elId,p){
+  coopPage[elId]=p;
+  renderCoop(elId, COOPS[elId].model, COOPS[elId].legend);
+}
+function renderStats(elId,model){
+  let f=0,m=0,cf=0,cm=0;
+  model.rows.forEach(r=>{f+=r.female.recTotal||0;m+=r.male.recTotal||0;
+    cf+=Object.values(r.female.cages).filter(x=>typeof x[0]==='number'&&x[0]>0).length;
+    cm+=Object.values(r.male.cages).filter(x=>typeof x[0]==='number'&&x[0]>0).length;});
+  document.getElementById(elId).innerHTML=`
+    <div class="stat"><div class="k">แถวทั้งหมด</div><div class="v">${model.rows.length}</div></div>
+    <div class="stat"><div class="k">กรงต่อแถว</div><div class="v">${model.cages}</div></div>
+    <div class="stat"><div class="k">รวมเมีย ♀</div><div class="v" style="color:var(--female)">${f.toLocaleString()} <small>ตัว</small></div></div>
+    <div class="stat"><div class="k">รวมผู้ ♂</div><div class="v" style="color:var(--male)">${m.toLocaleString()} <small>ตัว</small></div></div>
+    <div class="stat"><div class="k">กรงที่มีไก่</div><div class="v">${cf+cm} <small>กรง</small></div></div>`;
+}
+function renderLegend(elId,legend){
+  document.getElementById(elId).innerHTML=Object.entries(legend).map(([c,name])=>
+    `<span class="chip"><span class="sw" style="background:${hexToRgba(c,0.6)}"></span> ${name}</span>`).join('');
+}
+
+const BREEDER_TBL=[
+  ["FCE4D6","SB8 แก่","50","300",""],
+  ["FFF2CC","SPL ชุดที่ 1,3","450","2,000",""],
+  ["D0CECE","ประดู่ดำ (เล็ก)","301","227","PD-2"],
+  ["F2F2F2","ประดู่ดำ ใหญ่","4","12","ประดู่มข"],
+  ["8EA9DB","AUS ใหญ่","8","12",""],
+  ["C6E0B4","AUS เล็ก","2","8",""],
+  ["FF99CC","SB8G0","160","—",""],
+  ["","ผู้ลาย AUS","×3","—",""],
+];
+const GROWER_TBL=[
+  ["BDD7EE","SB8 ชุด 1","668","ให้เป็น family — ถ้ามีตัวตายให้อัพเดทในกลุ่ม"],
+  ["FFE599","SB8 ชุด 2","875","***"],
+  ["00FF00","SB8 ชุด 3","896",""],
+  ["F4B084","ประดู่ดำ","83","ช่วยเช็คว่าเป็น PD-1 ไหม?"],
+  ["DBDBDB","SL","43",""],
+];
+function dot(c){return `<span class="breeddot"><span class="d" style="background:${c?hexToRgba(c,0.6):'#f3f4f5'}"></span>`;}
+function renderTables(){
+  document.getElementById('btbl-breeder').innerHTML=BREEDER_TBL.map(r=>
+    `<tr><td>${dot(r[0])}${r[1]}</span></td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="note">${r[4]}</td></tr>`).join('');
+  document.getElementById('btbl-grower').innerHTML=GROWER_TBL.map(r=>
+    `<tr><td>${dot(r[0])}${r[1]}</span></td><td class="num">${r[2]}</td><td class="note">${r[3]}</td></tr>`).join('');
+}
+
+/* init */
+renderLegend('leg-breeder',LEG_BREEDER); renderLegend('leg-grower',LEG_GROWER);
+renderTables();
+COOPS['coop-breeder']={model:BREEDER,legend:LEG_BREEDER};
+COOPS['coop-grower']={model:GROWER,legend:LEG_GROWER};
+renderCoop('coop-breeder',BREEDER,LEG_BREEDER); renderCoop('coop-grower',GROWER,LEG_GROWER);
+renderStats('stats-breeder',BREEDER); renderStats('stats-grower',GROWER);
+
+/* ===================== Lockbook ===================== */
+let TAGCOL={"เหลือง":"#f4d03f","เขียว":"#5cb85c","ชมพู":"#ec7fa9","ขาว":"#ffffff","แดง":"#e15a5a","ฟ้า":"#5b8fc7","ส้ม":"#e8915b"};
+let SECCOL={"SB8 44WK":"#c97b5a","SB8 69 WK":"#b08968","L SM":"#7a9a5b","L SF":"#5b9aa0"};
+let LOCKBOOK=[{"s":"SB8 44WK","f":"1","fc":"เหลือง","mc":"ขาว","F":[[1,"SB-26-G8-F01-F-001",1],[2,"SB-26-G8-F01-F-002",2],[3,"SB-26-G8-F01-F-003",3],[4,"SB-26-G8-F01-F-004",4],[5,"SB-26-G8-F01-F-005",5],[6,"SB-26-G8-F01-F-006",6],[7,"SB-26-G8-F01-F-007",7],[8,"SB-26-G8-F01-F-008",8],[9,"SB-26-G8-F01-F-009",9],[10,"SB-26-G8-F01-F-010",10]],"M":[[1,"SB-26-G8-F01-M-001",1]]},{"s":"SB8 44WK","f":"2","fc":"เหลือง","mc":"ขาว","F":[[1,"SB-26-G8-F02-F-001",11],[2,"SB-26-G8-F02-F-002",12],[3,"SB-26-G8-F02-F-003",13],[4,"SB-26-G8-F02-F-004",14],[5,"SB-26-G8-F02-F-005",15],[6,"SB-26-G8-F02-F-006",16],[7,"SB-26-G8-F02-F-007",17],[8,"SB-26-G8-F02-F-008",18],[9,"SB-26-G8-F02-F-009",19],[10,"SB-26-G8-F02-F-010",20]],"M":[[1,"SB-26-G8-F02-M-001",2]]},{"s":"SB8 44WK","f":"3","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",3]]},{"s":"SB8 44WK","f":"4","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",4]]},{"s":"SB8 44WK","f":"6","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"7","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"8","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"9","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"10","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"11","fc":"แดง","mc":"ขาว","F":[[1,"SB-26-G8-F011-F-001",1],[2,"SB-26-G8-F011-F-002",2],[3,"SB-26-G8-F011-F-003",3],[4,"SB-26-G8-F011-F-004",4],[5,"SB-26-G8-F011-F-005",5],[6,"SB-26-G8-F011-F-006",6],[7,"SB-26-G8-F011-F-007",7],[8,"SB-26-G8-F011-F-008",8],[9,"SB-26-G8-F011-F-009",9],[10,"SB-26-G8-F011-F-010",10]],"M":[[1,"SB-26-G8-F011-M-001",11]]},{"s":"SB8 44WK","f":"12","fc":"แดง","mc":"ขาว","F":[[1,"",11],[2,"",12],[3,"",13],[4,"",14],[5,"",15],[6,"",16],[7,"",17],[8,"",18],[9,"",19],[10,"",20]],"M":[[1,"",12]]},{"s":"SB8 44WK","f":"13","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"14","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"15","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"16","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"17","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"18","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"19","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 44WK","f":"20","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 69 WK","f":"1","fc":"เขียว","mc":"ขาว","F":[[1,"SB-25-G8-F01-F-001",1],[2,"SB-25-G8-F01-F-002",2],[3,"SB-25-G8-F01-F-003",3],[4,"SB-25-G8-F01-F-004",4],[5,"SB-25-G8-F01-F-005",5],[6,"SB-25-G8-F01-F-006",6],[7,"SB-25-G8-F01-F-007",7],[8,"SB-25-G8-F01-F-008",8],[9,"SB-25-G8-F01-F-009",9],[10,"SB-25-G8-F01-F-010",10]],"M":[[1,"SB-25-G8-F01-M-001",21]]},{"s":"SB8 69 WK","f":"2","fc":"เขียว","mc":"ขาว","F":[[1,"SB-25-G8-F02-F-001",1],[2,"SB-25-G8-F02-F-002",2],[3,"SB-25-G8-F02-F-003",3],[4,"SB-25-G8-F02-F-004",4],[5,"SB-25-G8-F02-F-005",5],[6,"SB-25-G8-F02-F-006",6],[7,"SB-25-G8-F02-F-007",7],[8,"SB-25-G8-F02-F-008",8],[9,"SB-25-G8-F02-F-009",9],[10,"SB-25-G8-F02-F-010",10]],"M":[[1,"SB-25-G8-F02-M-001",22]]},{"s":"SB8 69 WK","f":"3","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 69 WK","f":"4","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 69 WK","f":"6","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 69 WK","f":"7","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 69 WK","f":"8","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 69 WK","f":"9","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"SB8 69 WK","f":"10","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SM","f":"1","fc":"ชมพู","mc":"ชมพู","F":[[1,"SM-26-G0-F01-F-001",1],[2,"SM-26-G0-F01-F-002",2],[3,"SM-26-G0-F01-F-003",3],[4,"SM-26-G0-F01-F-004",4],[5,"SM-26-G0-F01-F-005",5],[6,"SM-26-G0-F01-F-006",6],[7,"SM-26-G0-F01-F-007",7]],"M":[[1,"SM-26-G0-F01-M-001",8]]},{"s":"L SM","f":"2","fc":"ชมพู","mc":"ชมพู","F":[[1,"SM-26-G0-F02-F-001",9],[2,"SM-26-G0-F02-F-002",10],[3,"SM-26-G0-F02-F-003",11],[4,"SM-26-G0-F02-F-004",12],[5,"SM-26-G0-F02-F-005",13],[6,"SM-26-G0-F02-F-006",14],[7,"SM-26-G0-F02-F-007",15]],"M":[[1,"SM-26-G0-F02-M-001",16]]},{"s":"L SM","f":"3","fc":"ชมพู","mc":"","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[1,"",""]],"M":[]},{"s":"L SM","f":"4","fc":"ชมพู","mc":"","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[1,"",""]],"M":[]},{"s":"L SF","f":"1","fc":"เหลือง","mc":"ขาว","F":[[1,"SF-26-G0-F01-F-001",1],[2,"SF-26-G0-F01-F-002",2],[3,"SF-26-G0-F01-F-003",3],[4,"SF-26-G0-F01-F-004",4],[5,"SF-26-G0-F01-F-005",5],[6,"SF-26-G0-F01-F-006",6],[7,"SF-26-G0-F01-F-007",7],[8,"SF-26-G0-F01-F-008",8],[9,"SF-26-G0-F01-F-009",9],[10,"SF-26-G0-F01-F-010",10]],"M":[[1,"SF-26-G0-F01-M-001",1]]},{"s":"L SF","f":"2","fc":"เหลือง","mc":"ขาว","F":[[1,"SF-26-G0-F02-F-001",11],[2,"SF-26-G0-F02-F-002",12],[3,"SF-26-G0-F02-F-003",13],[4,"SF-26-G0-F02-F-004",14],[5,"SF-26-G0-F02-F-005",15],[6,"SF-26-G0-F02-F-006",16],[7,"SF-26-G0-F02-F-007",17],[8,"SF-26-G0-F02-F-008",18],[9,"SF-26-G0-F02-F-009",19],[10,"SF-26-G0-F02-F-010",20]],"M":[[1,"SF-26-G0-F02-M-001",2]]},{"s":"L SF","f":"3","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"4","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"5","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"6","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"7","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"8","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"9","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"10","fc":"เหลือง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"11","fc":"แดง","mc":"ขาว","F":[[1,"SF-26-G0-F011-F-001",1],[2,"SF-26-G0-F011-F-002",2],[3,"SF-26-G0-F011-F-003",3],[4,"SF-26-G0-F011-F-004",4],[5,"SF-26-G0-F011-F-005",5],[6,"SF-26-G0-F011-F-006",6],[7,"SF-26-G0-F011-F-007",7],[8,"SF-26-G0-F011-F-008",8],[9,"SF-26-G0-F011-F-009",9],[10,"SF-26-G0-F011-F-010",10]],"M":[[1,"SF-26-G0-F011-M-001",11]]},{"s":"L SF","f":"12","fc":"แดง","mc":"ขาว","F":[[1,"",11],[2,"",12],[3,"",13],[4,"",14],[5,"",15],[6,"",16],[7,"",17],[8,"",18],[9,"",19],[10,"",20]],"M":[[1,"",12]]},{"s":"L SF","f":"13","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"14","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"15","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"16","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"17","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"18","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"19","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"20","fc":"แดง","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"21","fc":"เขียว","mc":"ขาว","F":[[1,"SF-26-G0-F021-F-001",1],[2,"SF-26-G0-F021-F-002",2],[3,"SF-26-G0-F021-F-003",3],[4,"SF-26-G0-F021-F-004",4],[5,"SF-26-G0-F021-F-005",5],[6,"SF-26-G0-F021-F-006",6],[7,"SF-26-G0-F021-F-007",7],[8,"SF-26-G0-F021-F-008",8],[9,"SF-26-G0-F021-F-009",9],[10,"SF-26-G0-F021-F-010",10]],"M":[[1,"SF-26-G0-F021-M-001",21]]},{"s":"L SF","f":"22","fc":"เขียว","mc":"ขาว","F":[[1,"SF-26-G0-F022-F-001",11],[2,"SF-26-G0-F022-F-002",12],[3,"SF-26-G0-F022-F-003",13],[4,"SF-26-G0-F022-F-004",14],[5,"SF-26-G0-F022-F-005",15],[6,"SF-26-G0-F022-F-006",16],[7,"SF-26-G0-F022-F-007",17],[8,"SF-26-G0-F022-F-008",18],[9,"SF-26-G0-F022-F-009",19],[10,"SF-26-G0-F022-F-010",20]],"M":[[1,"SF-26-G0-F022-M-001",22]]},{"s":"L SF","f":"23","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"24","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"25","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"26","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"27","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"28","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"29","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]},{"s":"L SF","f":"30","fc":"เขียว","mc":"ขาว","F":[[1,"",""],[2,"",""],[3,"",""],[4,"",""],[5,"",""],[6,"",""],[7,"",""],[8,"",""],[9,"",""],[10,"",""]],"M":[[1,"",""]]}];
+let EGGS={"dates":["20/4","21/4","22/4","23/4","24/4","25/4","26/4","27/4","28/4","29/4","30/4","1/5","2/5","3/5","4/5","5/5","6/5","7/5","8/5","9/5","10/5","11/5","12/5","13/5","14/5","15/5","16/5","17/5","18/5","19/5","20/5","21/5","22/5","23/5","24/5","25/5","26/5","27/5","28/5","29/5"],"rows":[{"pa":"SB-26-G8-F01-M-001","mo":"SB-26-G8-F01-F-001-10","ch":"SB-26-G8-F01","st":50,"sec":"SB8 44WK","fam":"1","d":[5,6,5,4,5,7,5,6,6,8,6]},{"pa":"SB-26-G8-F01-M-002","mo":"SB-26-G8-F02-F-001-10","ch":"SB-26-G8-F02","st":45,"sec":"SB8 44WK","fam":"2","d":[4,5,5,5,4,4,3,4,6,10,5]},{"pa":"SB-26-G8-F01-M-003","mo":"SB-26-G8-F03-F-001-10","ch":"SB-26-G8-F03","st":43,"sec":"SB8 44WK","fam":"3","d":[6,6,7,7,8,5,5,5,5,9,7]},{"pa":"SB-26-G8-F01-M-004","mo":"SB-26-G8-F04-F-001-10","ch":"SB-26-G8-F04","st":36,"sec":"SB8 44WK","fam":"4","d":[5,5,6,6,6,5,5,6,6,10,6]},{"pa":"SB-26-G8-F01-M-005","mo":"SB-26-G8-F05-F-001-10","ch":"SB-26-G8-F05","st":23,"sec":"SB8 44WK","fam":"5","d":[3,3,4,4,3,5,5,3,3,9,8]},{"pa":"SB-26-G8-F01-M-006","mo":"SB-26-G8-F06-F-001-10","ch":"SB-26-G8-F06","st":26,"sec":"SB8 44WK","fam":"6","d":[6,5,7,7,5,6,5,5,5,8,6]},{"pa":"SB-26-G8-F01-M-007","mo":"SB-26-G8-F07-F-001-10","ch":"SB-26-G8-F07","st":22,"sec":"SB8 44WK","fam":"7","d":[8,6,5,8,4,4,6,6,8,8,6]},{"pa":"SB-26-G8-F01-M-008","mo":"SB-26-G8-F08-F-001-10","ch":"SB-26-G8-F08","st":27,"sec":"SB8 44WK","fam":"8","d":[9,5,6,7,6,5,8,6,6,9,8]},{"pa":"SB-26-G8-F01-M-009","mo":"SB-26-G8-F09-F-001-10","ch":"SB-26-G8-F09","st":26,"sec":"SB8 44WK","fam":"9","d":[5,5,5,6,5,4,6,5,4,6,5]},{"pa":"SB-26-G8-F01-M-010","mo":"SB-26-G8-F010-F-001-10","ch":"SB-26-G8-F10","st":23,"sec":"SB8 44WK","fam":"10","d":[4,6,4,4,3,3,4,5,4,7,6]},{"pa":"SB-26-G8-F01-M-011","mo":"SB-26-G8-F011-F-001-10","ch":"SB-26-G8-F11","st":25,"sec":"SB8 44WK","fam":"11","d":[7,6,5,6,5,5,6,4,5,8,6]},{"pa":"SB-26-G8-F01-M-012","mo":"SB-26-G8-F012-F-001-10","ch":"SB-26-G8-F12","st":20,"sec":"SB8 44WK","fam":"12","d":[6,5,5,6,4,6,4,6,5,10,8]},{"pa":"SB-26-G8-F01-M-013","mo":"SB-26-G8-F013-F-001-10","ch":"SB-26-G8-F13","st":21,"sec":"SB8 44WK","fam":"13","d":[3,4,4,5,5,4,6,3,3,8,8]},{"pa":"SB-26-G8-F01-M-014","mo":"SB-26-G8-F014-F-001-10","ch":"SB-26-G8-F14","st":25,"sec":"SB8 44WK","fam":"14","d":[3,5,4,5,4,5,5,3,4,9,6]},{"pa":"SB-26-G8-F01-M-015","mo":"SB-26-G8-F015-F-001-10","ch":"SB-26-G8-F15","st":23,"sec":"SB8 44WK","fam":"15","d":[5,6,5,5,4,5,6,5,5,6,6]},{"pa":"SB-26-G8-F01-M-016","mo":"SB-26-G8-F016-F-001-10","ch":"SB-26-G8-F16","st":23,"sec":"SB8 44WK","fam":"16","d":[6,4,5,6,4,5,6,7,5,8,6]},{"pa":"SB-26-G8-F01-M-017","mo":"SB-26-G8-F017-F-001-10","ch":"SB-26-G8-F17","st":22,"sec":"SB8 44WK","fam":"17","d":[6,5,5,5,6,7,5,5,5,3,7]},{"pa":"SB-26-G8-F01-M-018","mo":"SB-26-G8-F018-F-001-10","ch":"SB-26-G8-F18","st":24,"sec":"SB8 44WK","fam":"18","d":[5,4,6,5,4,5,4,5,5,7,8]},{"pa":"SB-26-G8-F01-M-019","mo":"SB-26-G8-F019-F-001-10","ch":"SB-26-G8-F19","st":22,"sec":"SB8 44WK","fam":"19","d":[8,6,5,6,7,5,5,6,6,5,8]},{"pa":"SB-26-G8-F01-M-020","mo":"SB-26-G8-F020-F-001-10","ch":"SB-26-G8-F20","st":29,"sec":"SB8 44WK","fam":"20","d":[4,4,5,4,6,4,6,4,5,6,6]},{"pa":"SB-25-G8-F01-M-001","mo":"SB-25-G8-F01-F-001-10","ch":"SB-25-G8-F01","st":24,"sec":"SB8 69 WK","fam":"1","d":[9,5,7,8,5,6,9,8,7,6,5]},{"pa":"SB-25-G8-F01-M-002","mo":"SB-25-G8-F02-F-001-10","ch":"SB-25-G8-F02","st":26,"sec":"SB8 69 WK","fam":"2","d":[2,3,4,3,2,3,4,3,3,3,5]},{"pa":"SB-25-G8-F01-M-003","mo":"SB-25-G8-F03-F-001-10","ch":"SB-25-G8-F03","st":28,"sec":"SB8 69 WK","fam":"3","d":[3,4,5,5,6,4,5,6,5,6,6]},{"pa":"SB-25-G8-F01-M-004","mo":"SB-25-G8-F04-F-001-10","ch":"SB-25-G8-F04","st":23,"sec":"SB8 69 WK","fam":"4","d":[4,6,5,6,6,5,5,4,6,6,6]},{"pa":"SB-25-G8-F01-M-005","mo":"SB-25-G8-F05-F-001-10","ch":"SB-25-G8-F05","st":27,"sec":"SB8 69 WK","fam":"5","d":[5,7,8,6,5,6,4,4,5,6,4]},{"pa":"SB-25-G8-F01-M-006","mo":"SB-25-G8-F06-F-001-10","ch":"SB-25-G8-F06","st":26,"sec":"SB8 69 WK","fam":"6","d":[6,5,4,6,7,5,5,4,7,7,6]},{"pa":"SB-25-G8-F01-M-007","mo":"SB-25-G8-F07-F-001-10","ch":"SB-25-G8-F07","st":29,"sec":"SB8 69 WK","fam":"7","d":[6,5,6,4,4,7,6,5,5,5,6]},{"pa":"SB-25-G8-F01-M-008","mo":"SB-25-G8-F08-F-001-10","ch":"SB-25-G8-F08","st":31,"sec":"SB8 69 WK","fam":"8","d":[8,6,5,5,5,4,7,6,3,5,8]},{"pa":"SB-25-G8-F01-M-009","mo":"SB-25-G8-F09-F-001-10","ch":"SB-25-G8-F09","st":30,"sec":"SB8 69 WK","fam":"9","d":[4,6,4,6,4,5,6,4,5,5,6]},{"pa":"SB-25-G8-F01-M-010","mo":"SB-25-G8-F010-F-001-10","ch":"SB-25-G8-F10","st":30,"sec":"SB8 69 WK","fam":"10","d":[5,7,5,4,6,5,6,5,4,5,7]},{"pa":"PD (มข.)","mo":"PD (มข.)","ch":"PD0-F1","st":16,"sec":"","fam":"","d":[2,2,1,2,3,2,2,2,3,6,6,7,9,9,6,8,6,7,9,7,6,5,5,6,4,7,5,4,7,7,6,8,4,11,8,4,7,5,4,6]},{"pa":"PD (มข.)","mo":"PD (มข.)","ch":"PD0-F2","st":17,"sec":"","fam":"","d":[3,3,2,1,2,3,3,2,3]},{"pa":"PD (มข.)","mo":"PD (มข.)","ch":"PD0-F3","st":14,"sec":"","fam":"","d":[4,2,3,2,3,2,3,3,2]},{"pa":"SM-26-G0-F01-M-001","mo":"SM-26-G0-F01-F-001-7","ch":"Lohmann SM-1","st":22,"sec":"L SM","fam":"1","d":[1,2,3,4,3,4,5,4,5,10,15,7,9,9,7,8,7,9,7,8,9,9,7,8,7,8,9,8,9,7,4,7,9,8,8,10,8,7,7,5]},{"pa":"SM-26-G0-F01-M-002","mo":"SM-26-G0-F02-F-001-7","ch":"Lohmann SM-2","st":24,"sec":"L SM","fam":"2","d":[2,3,3,2,3,4,3,3,2]},{"pa":"SM-26-G0-F01-M-003","mo":"SM-26-G0-F03-F-001-7","ch":"Lohmann SM-3","st":26,"sec":"L SM","fam":"3","d":[3,2,3,3,2,4,3,3,3]},{"pa":"SM-26-G0-F01-M-004","mo":"SM-26-G0-F04-F-001-8","ch":"Lohmann SM-4","st":23,"sec":"L SM","fam":"4","d":[2,4,3,3,3,4,4,4,3]},{"pa":"SF-26-G0-F01-M-001-100","mo":"SF-26-G0-F01-F-001-100","ch":"SPL","st":3840,"sec":"L SF","fam":"1","d":[750,776,764,764,748,745,742,760,762,764,727,739,780,723,750,758,757,742,769,765,747,755,766,739,729,768,761,735,704,771,748,747,763,778,776,755,770,769,737,774]},{"pa":"PD","mo":"PD","ch":"PD-1","st":0,"sec":"","fam":"","d":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,87,73,72,71,105,102,76,82,98,101,77,99,93,80,94,67,92,92]},{"pa":"AS","mo":"AS","ch":"AS0","st":10,"sec":"","fam":"","d":[36,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,6,4,3,6,4,3,6,6,3,4,6,5,5,5,5,5,3,5]}]};
+/* map: section|family -> egg row */
+let EGG_BY_FAM={};
+function rebuildEggMap(){EGG_BY_FAM={};EGGS.rows.forEach(r=>{if(r.sec&&r.fam)EGG_BY_FAM[r.sec+'|'+r.fam]=r;});}
+rebuildEggMap();
+let ONHAND={"rows":[{"set":"","pull":"15/1/2026","pa":"Lohmann missex (PS)","mo":"Lohmann (PS)","ch":"SPL","sec":"","fam":"","eggset":9600.0,"wind":1702.0,"crack":0.0,"rot":0.0,"fert":7898.0,"chick":4300.0,"dis":633.0,"cdead":0.0,"cull":5.0,"se":44.8,"sf":54.4,"dpct":8.0,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"","pull":"19/1/2026","pa":"SB8","mo":"SB8","ch":"SB8G0","sec":"","fam":"","eggset":4800.0,"wind":889.0,"crack":0.0,"rot":0.0,"fert":3911.0,"chick":2600.0,"dis":780.0,"cdead":6.0,"cull":6.0,"se":54.2,"sf":66.5,"dpct":19.9,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"","pull":"22/1/2026","pa":"Lohmann missex (PS)","mo":"Lohmann (PS)","ch":"SPL","sec":"","fam":"","eggset":9600.0,"wind":1205.0,"crack":0.0,"rot":0.0,"fert":8395.0,"chick":3900.0,"dis":560.0,"cdead":0.0,"cull":14.0,"se":40.6,"sf":46.5,"dpct":6.7,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"","pull":"29/1/2026","pa":"Lohmann missex (PS)","mo":"Lohmann (PS)","ch":"SPL","sec":"","fam":"","eggset":9600.0,"wind":1150.0,"crack":0.0,"rot":0.0,"fert":8450.0,"chick":3100.0,"dis":548.0,"cdead":3.0,"cull":11.0,"se":32.3,"sf":36.7,"dpct":6.5,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"","pull":"2/5/2026","pa":"Lohmann missex (PS)","mo":"Lohmann (PS)","ch":"SPL","sec":"","fam":"","eggset":4800.0,"wind":981.0,"crack":0.0,"rot":0.0,"fert":3819.0,"chick":2970.0,"dis":332.0,"cdead":8.0,"cull":16.0,"se":61.9,"sf":77.8,"dpct":8.7,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"","pull":"2/12/2026","pa":"Lohmann missex (PS)","mo":"Lohmann (PS)","ch":"SPL","sec":"","fam":"","eggset":9600.0,"wind":995.0,"crack":0.0,"rot":0.0,"fert":8605.0,"chick":5772.0,"dis":695.0,"cdead":9.0,"cull":2.0,"se":60.1,"sf":67.1,"dpct":8.1,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"","pull":"19/2/2026","pa":"Lohmann missex (PS)","mo":"Lohmann (PS)","ch":"SPL","sec":"","fam":"","eggset":4800.0,"wind":705.0,"crack":0.0,"rot":0.0,"fert":4095.0,"chick":3236.0,"dis":660.0,"cdead":12.0,"cull":3.0,"se":67.4,"sf":79.0,"dpct":16.1,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"","pull":"26/2/2026","pa":"Lohmann missex (PS)","mo":"Lohmann (PS)","ch":"SPL","sec":"","fam":"","eggset":4800.0,"wind":657.0,"crack":0.0,"rot":0.0,"fert":4143.0,"chick":2433.0,"dis":470.0,"cdead":0.0,"cull":5.0,"se":50.7,"sf":58.7,"dpct":11.3,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"","pull":"3/5/2026","pa":"Lohmann missex (PS)","mo":"Lohmann (PS)","ch":"SPL","sec":"","fam":"","eggset":4800.0,"wind":552.0,"crack":0.0,"rot":0.0,"fert":4248.0,"chick":2716.0,"dis":560.0,"cdead":0.0,"cull":6.0,"se":56.6,"sf":63.9,"dpct":13.2,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"","pull":"3/12/2026","pa":"Lohmann missex (PS)","mo":"Lohmann (PS)","ch":"SPL","sec":"","fam":"","eggset":4800.0,"wind":788.0,"crack":0.0,"rot":0.0,"fert":4012.0,"chick":2136.0,"dis":145.0,"cdead":0.0,"cull":4.0,"se":44.5,"sf":53.2,"dpct":3.6,"note":"ทดลองเดิมยังไม่ได้แยกครอบครัว","note2":""},{"set":"25/3/2026","pull":"16/4/2026","pa":"SB-26-G8-F01-M-001","mo":"SB-26-G8-F01-F-001-10","ch":"SB-26-G8-F01","sec":"SB8 44WK","fam":"1","eggset":100.0,"wind":47.0,"crack":1.0,"rot":0.0,"fert":53.0,"chick":25.0,"dis":27.0,"cdead":1.0,"cull":0.0,"se":25.0,"sf":47.2,"dpct":50.9,"note":"เริ่มให้แยกเป็นครอบครัว","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-002","mo":"SB-26-G8-F02-F-001-10","ch":"SB-26-G8-F02","sec":"SB8 44WK","fam":"2","eggset":100.0,"wind":52.0,"crack":0.0,"rot":0.0,"fert":48.0,"chick":28.0,"dis":20.0,"cdead":0.0,"cull":0.0,"se":28.0,"sf":58.3,"dpct":41.7,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-003","mo":"SB-26-G8-F03-F-001-10","ch":"SB-26-G8-F03","sec":"SB8 44WK","fam":"3","eggset":100.0,"wind":65.0,"crack":0.0,"rot":0.0,"fert":35.0,"chick":22.0,"dis":11.0,"cdead":2.0,"cull":0.0,"se":22.0,"sf":62.9,"dpct":31.4,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-004","mo":"SB-26-G8-F04-F-001-10","ch":"SB-26-G8-F04","sec":"SB8 44WK","fam":"4","eggset":100.0,"wind":51.0,"crack":1.0,"rot":0.0,"fert":49.0,"chick":28.0,"dis":21.0,"cdead":0.0,"cull":0.0,"se":28.0,"sf":57.1,"dpct":42.9,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-005","mo":"SB-26-G8-F05-F-001-10","ch":"SB-26-G8-F05","sec":"SB8 44WK","fam":"5","eggset":100.0,"wind":60.0,"crack":2.0,"rot":0.0,"fert":40.0,"chick":20.0,"dis":20.0,"cdead":0.0,"cull":0.0,"se":20.0,"sf":50.0,"dpct":50.0,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-006","mo":"SB-26-G8-F06-F-001-10","ch":"SB-26-G8-F06","sec":"SB8 44WK","fam":"6","eggset":100.0,"wind":55.0,"crack":1.0,"rot":0.0,"fert":45.0,"chick":23.0,"dis":22.0,"cdead":0.0,"cull":0.0,"se":23.0,"sf":51.1,"dpct":48.9,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-007","mo":"SB-26-G8-F07-F-001-10","ch":"SB-26-G8-F07","sec":"SB8 44WK","fam":"7","eggset":100.0,"wind":54.0,"crack":0.0,"rot":0.0,"fert":46.0,"chick":24.0,"dis":22.0,"cdead":0.0,"cull":0.0,"se":24.0,"sf":52.2,"dpct":47.8,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-008","mo":"SB-26-G8-F08-F-001-10","ch":"SB-26-G8-F08","sec":"SB8 44WK","fam":"8","eggset":100.0,"wind":57.0,"crack":0.0,"rot":0.0,"fert":43.0,"chick":20.0,"dis":23.0,"cdead":0.0,"cull":0.0,"se":20.0,"sf":46.5,"dpct":53.5,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-009","mo":"SB-26-G8-F09-F-001-10","ch":"SB-26-G8-F09","sec":"SB8 44WK","fam":"9","eggset":100.0,"wind":51.0,"crack":0.0,"rot":0.0,"fert":49.0,"chick":29.0,"dis":20.0,"cdead":0.0,"cull":0.0,"se":29.0,"sf":59.2,"dpct":40.8,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-010","mo":"SB-26-G8-F010-F-001-10","ch":"SB-26-G8-F10","sec":"SB8 44WK","fam":"10","eggset":100.0,"wind":65.0,"crack":2.0,"rot":0.0,"fert":35.0,"chick":24.0,"dis":11.0,"cdead":0.0,"cull":0.0,"se":24.0,"sf":68.6,"dpct":31.4,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-011","mo":"SB-26-G8-F011-F-001-10","ch":"SB-26-G8-F11","sec":"SB8 44WK","fam":"11","eggset":100.0,"wind":54.0,"crack":0.0,"rot":0.0,"fert":46.0,"chick":25.0,"dis":21.0,"cdead":0.0,"cull":0.0,"se":25.0,"sf":54.3,"dpct":45.7,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-012","mo":"SB-26-G8-F012-F-001-10","ch":"SB-26-G8-F12","sec":"SB8 44WK","fam":"12","eggset":100.0,"wind":58.0,"crack":0.0,"rot":0.0,"fert":42.0,"chick":21.0,"dis":21.0,"cdead":0.0,"cull":0.0,"se":21.0,"sf":50.0,"dpct":50.0,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-013","mo":"SB-26-G8-F013-F-001-10","ch":"SB-26-G8-F13","sec":"SB8 44WK","fam":"13","eggset":100.0,"wind":52.0,"crack":0.0,"rot":0.0,"fert":48.0,"chick":22.0,"dis":26.0,"cdead":0.0,"cull":0.0,"se":22.0,"sf":45.8,"dpct":54.2,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-014","mo":"SB-26-G8-F014-F-001-10","ch":"SB-26-G8-F14","sec":"SB8 44WK","fam":"14","eggset":100.0,"wind":60.0,"crack":0.0,"rot":0.0,"fert":40.0,"chick":26.0,"dis":14.0,"cdead":0.0,"cull":0.0,"se":26.0,"sf":65.0,"dpct":35.0,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-015","mo":"SB-26-G8-F015-F-001-10","ch":"SB-26-G8-F15","sec":"SB8 44WK","fam":"15","eggset":100.0,"wind":61.0,"crack":6.0,"rot":0.0,"fert":39.0,"chick":27.0,"dis":12.0,"cdead":0.0,"cull":0.0,"se":27.0,"sf":69.2,"dpct":30.8,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-016","mo":"SB-26-G8-F016-F-001-10","ch":"SB-26-G8-F16","sec":"SB8 44WK","fam":"16","eggset":100.0,"wind":52.0,"crack":2.0,"rot":0.0,"fert":48.0,"chick":24.0,"dis":23.0,"cdead":1.0,"cull":0.0,"se":24.0,"sf":50.0,"dpct":47.9,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-017","mo":"SB-26-G8-F017-F-001-10","ch":"SB-26-G8-F17","sec":"SB8 44WK","fam":"17","eggset":100.0,"wind":60.0,"crack":0.0,"rot":0.0,"fert":40.0,"chick":25.0,"dis":15.0,"cdead":0.0,"cull":0.0,"se":25.0,"sf":62.5,"dpct":37.5,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-018","mo":"SB-26-G8-F018-F-001-10","ch":"SB-26-G8-F18","sec":"SB8 44WK","fam":"18","eggset":100.0,"wind":63.0,"crack":0.0,"rot":0.0,"fert":37.0,"chick":26.0,"dis":11.0,"cdead":0.0,"cull":0.0,"se":26.0,"sf":70.3,"dpct":29.7,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-019","mo":"SB-26-G8-F019-F-001-10","ch":"SB-26-G8-F19","sec":"SB8 44WK","fam":"19","eggset":100.0,"wind":65.0,"crack":0.0,"rot":0.0,"fert":35.0,"chick":23.0,"dis":12.0,"cdead":0.0,"cull":0.0,"se":23.0,"sf":65.7,"dpct":34.3,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-020","mo":"SB-26-G8-F020-F-001-10","ch":"SB-26-G8-F20","sec":"SB8 44WK","fam":"20","eggset":100.0,"wind":55.0,"crack":0.0,"rot":0.0,"fert":45.0,"chick":22.0,"dis":22.0,"cdead":1.0,"cull":0.0,"se":22.0,"sf":48.9,"dpct":48.9,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-001","mo":"SB-25-G8-F01-F-001-10","ch":"SB-25-G8-F01","sec":"SB8 69 WK","fam":"1","eggset":100.0,"wind":62.0,"crack":1.0,"rot":0.0,"fert":38.0,"chick":21.0,"dis":17.0,"cdead":0.0,"cull":0.0,"se":21.0,"sf":55.3,"dpct":44.7,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-002","mo":"SB-25-G8-F02-F-001-10","ch":"SB-25-G8-F02","sec":"SB8 69 WK","fam":"2","eggset":100.0,"wind":59.0,"crack":0.0,"rot":0.0,"fert":41.0,"chick":24.0,"dis":17.0,"cdead":0.0,"cull":0.0,"se":24.0,"sf":58.5,"dpct":41.5,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-003","mo":"SB-25-G8-F03-F-001-10","ch":"SB-25-G8-F03","sec":"SB8 69 WK","fam":"3","eggset":100.0,"wind":52.0,"crack":0.0,"rot":0.0,"fert":48.0,"chick":27.0,"dis":21.0,"cdead":0.0,"cull":0.0,"se":27.0,"sf":56.3,"dpct":43.8,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-004","mo":"SB-25-G8-F04-F-001-10","ch":"SB-25-G8-F04","sec":"SB8 69 WK","fam":"4","eggset":100.0,"wind":48.0,"crack":1.0,"rot":0.0,"fert":52.0,"chick":22.0,"dis":30.0,"cdead":0.0,"cull":0.0,"se":22.0,"sf":42.3,"dpct":57.7,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-005","mo":"SB-25-G8-F05-F-001-10","ch":"SB-25-G8-F05","sec":"SB8 69 WK","fam":"5","eggset":100.0,"wind":44.0,"crack":3.0,"rot":0.0,"fert":56.0,"chick":26.0,"dis":30.0,"cdead":0.0,"cull":0.0,"se":26.0,"sf":46.4,"dpct":53.6,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-006","mo":"SB-25-G8-F06-F-001-10","ch":"SB-25-G8-F06","sec":"SB8 69 WK","fam":"6","eggset":100.0,"wind":46.0,"crack":0.0,"rot":0.0,"fert":54.0,"chick":24.0,"dis":30.0,"cdead":0.0,"cull":0.0,"se":24.0,"sf":44.4,"dpct":55.6,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-007","mo":"SB-25-G8-F07-F-001-10","ch":"SB-25-G8-F07","sec":"SB8 69 WK","fam":"7","eggset":100.0,"wind":42.0,"crack":2.0,"rot":0.0,"fert":58.0,"chick":23.0,"dis":35.0,"cdead":0.0,"cull":0.0,"se":23.0,"sf":39.7,"dpct":60.3,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-008","mo":"SB-25-G8-F08-F-001-10","ch":"SB-25-G8-F08","sec":"SB8 69 WK","fam":"8","eggset":100.0,"wind":56.0,"crack":2.0,"rot":0.0,"fert":44.0,"chick":26.0,"dis":18.0,"cdead":0.0,"cull":0.0,"se":26.0,"sf":59.1,"dpct":40.9,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-009","mo":"SB-25-G8-F09-F-001-10","ch":"SB-25-G8-F09","sec":"SB8 69 WK","fam":"9","eggset":100.0,"wind":63.0,"crack":1.0,"rot":0.0,"fert":37.0,"chick":20.0,"dis":17.0,"cdead":0.0,"cull":0.0,"se":20.0,"sf":54.1,"dpct":45.9,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-010","mo":"SB-25-G8-F010-F-001-10","ch":"SB-25-G8-F10","sec":"SB8 69 WK","fam":"10","eggset":100.0,"wind":56.0,"crack":1.0,"rot":0.0,"fert":44.0,"chick":21.0,"dis":22.0,"cdead":1.0,"cull":0.0,"se":21.0,"sf":47.7,"dpct":50.0,"note":"","note2":""},{"set":"4/1/2026","pull":"23/4/2026","pa":"PD (มข.)","mo":"PD (มข.)","ch":"PD0-F1","sec":"","fam":"","eggset":92.0,"wind":32.0,"crack":0.0,"rot":0.0,"fert":60.0,"chick":26.0,"dis":32.0,"cdead":0.0,"cull":2.0,"se":28.3,"sf":43.3,"dpct":53.3,"note":"","note2":"ขาถ่าง"},{"set":"","pull":"","pa":"PD (มข.)","mo":"PD (มข.)","ch":"PD0-F2","sec":"","fam":"","eggset":88.0,"wind":25.0,"crack":0.0,"rot":0.0,"fert":63.0,"chick":31.0,"dis":31.0,"cdead":0.0,"cull":1.0,"se":35.2,"sf":49.2,"dpct":49.2,"note":"","note2":"ปากเบี้ยว"},{"set":"","pull":"","pa":"PD (มข.)","mo":"PD (มข.)","ch":"PD0-F3","sec":"","fam":"","eggset":110.0,"wind":39.0,"crack":0.0,"rot":0.0,"fert":71.0,"chick":38.0,"dis":31.0,"cdead":0.0,"cull":2.0,"se":34.5,"sf":53.5,"dpct":43.7,"note":"","note2":"ขาแบะ"},{"set":"","pull":"","pa":"SM-26-G0-F01-M-001","mo":"SM-26-G0-F01-F-001-7","ch":"Lohmann SM-1","sec":"L SM","fam":"1","eggset":120.0,"wind":55.0,"crack":0.0,"rot":0.0,"fert":65.0,"chick":25.0,"dis":38.0,"cdead":0.0,"cull":2.0,"se":20.8,"sf":38.5,"dpct":58.5,"note":"","note2":"พิการ ขาแบะ"},{"set":"","pull":"","pa":"SM-26-G0-F01-M-002","mo":"SM-26-G0-F02-F-001-7","ch":"Lohmann SM-2","sec":"L SM","fam":"2","eggset":110.0,"wind":48.0,"crack":0.0,"rot":0.0,"fert":62.0,"chick":16.0,"dis":41.0,"cdead":0.0,"cull":5.0,"se":14.5,"sf":25.8,"dpct":66.1,"note":"","note2":"นิ้วบานไม่ยืน - หัวระเบิด"},{"set":"","pull":"","pa":"SM-26-G0-F01-M-003","mo":"SM-26-G0-F03-F-001-7","ch":"Lohmann SM-3","sec":"L SM","fam":"3","eggset":118.0,"wind":36.0,"crack":0.0,"rot":0.0,"fert":82.0,"chick":32.0,"dis":47.0,"cdead":0.0,"cull":3.0,"se":27.1,"sf":39.0,"dpct":57.3,"note":"","note2":"ปากเบี้ยว/ตาบอด"},{"set":"","pull":"","pa":"SM-26-G0-F01-M-004","mo":"SM-26-G0-F04-F-001-8","ch":"Lohmann SM-4","sec":"L SM","fam":"4","eggset":130.0,"wind":49.0,"crack":0.0,"rot":0.0,"fert":81.0,"chick":39.0,"dis":40.0,"cdead":0.0,"cull":2.0,"se":30.0,"sf":48.1,"dpct":49.4,"note":"","note2":"อ่อนแอ ไม่ลุกยืน"},{"set":"22/4/2026","pull":"14/5/2026","pa":"SB-26-G8-F01-M-001","mo":"SB-26-G8-F01-F-001-10","ch":"SB-26-G8-F01","sec":"SB8 44WK","fam":"1","eggset":150.0,"wind":40.0,"crack":0.0,"rot":0.0,"fert":null,"chick":32.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-002","mo":"SB-26-G8-F02-F-001-10","ch":"SB-26-G8-F02","sec":"SB8 44WK","fam":"2","eggset":150.0,"wind":56.0,"crack":0.0,"rot":0.0,"fert":null,"chick":28.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-003","mo":"SB-26-G8-F03-F-001-10","ch":"SB-26-G8-F03","sec":"SB8 44WK","fam":"3","eggset":150.0,"wind":62.0,"crack":0.0,"rot":0.0,"fert":null,"chick":31.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-004","mo":"SB-26-G8-F04-F-001-10","ch":"SB-26-G8-F04","sec":"SB8 44WK","fam":"4","eggset":150.0,"wind":32.0,"crack":0.0,"rot":0.0,"fert":null,"chick":33.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-005","mo":"SB-26-G8-F05-F-001-10","ch":"SB-26-G8-F05","sec":"SB8 44WK","fam":"5","eggset":150.0,"wind":47.0,"crack":0.0,"rot":0.0,"fert":null,"chick":34.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-006","mo":"SB-26-G8-F06-F-001-10","ch":"SB-26-G8-F06","sec":"SB8 44WK","fam":"6","eggset":150.0,"wind":48.0,"crack":0.0,"rot":0.0,"fert":null,"chick":30.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-007","mo":"SB-26-G8-F07-F-001-10","ch":"SB-26-G8-F07","sec":"SB8 44WK","fam":"7","eggset":150.0,"wind":56.0,"crack":0.0,"rot":0.0,"fert":null,"chick":27.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-008","mo":"SB-26-G8-F08-F-001-10","ch":"SB-26-G8-F08","sec":"SB8 44WK","fam":"8","eggset":150.0,"wind":51.0,"crack":0.0,"rot":0.0,"fert":null,"chick":26.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-009","mo":"SB-26-G8-F09-F-001-10","ch":"SB-26-G8-F09","sec":"SB8 44WK","fam":"9","eggset":150.0,"wind":48.0,"crack":0.0,"rot":0.0,"fert":null,"chick":33.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-010","mo":"SB-26-G8-F010-F-001-10","ch":"SB-26-G8-F10","sec":"SB8 44WK","fam":"10","eggset":150.0,"wind":44.0,"crack":0.0,"rot":0.0,"fert":null,"chick":32.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-011","mo":"SB-26-G8-F011-F-001-10","ch":"SB-26-G8-F11","sec":"SB8 44WK","fam":"11","eggset":150.0,"wind":46.0,"crack":0.0,"rot":0.0,"fert":null,"chick":31.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-012","mo":"SB-26-G8-F012-F-001-10","ch":"SB-26-G8-F12","sec":"SB8 44WK","fam":"12","eggset":150.0,"wind":45.0,"crack":0.0,"rot":0.0,"fert":null,"chick":34.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-013","mo":"SB-26-G8-F013-F-001-10","ch":"SB-26-G8-F13","sec":"SB8 44WK","fam":"13","eggset":150.0,"wind":47.0,"crack":0.0,"rot":0.0,"fert":null,"chick":30.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-014","mo":"SB-26-G8-F014-F-001-10","ch":"SB-26-G8-F14","sec":"SB8 44WK","fam":"14","eggset":150.0,"wind":42.0,"crack":0.0,"rot":0.0,"fert":null,"chick":31.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-015","mo":"SB-26-G8-F015-F-001-10","ch":"SB-26-G8-F15","sec":"SB8 44WK","fam":"15","eggset":150.0,"wind":43.0,"crack":0.0,"rot":0.0,"fert":null,"chick":32.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-016","mo":"SB-26-G8-F016-F-001-10","ch":"SB-26-G8-F16","sec":"SB8 44WK","fam":"16","eggset":150.0,"wind":44.0,"crack":0.0,"rot":0.0,"fert":null,"chick":28.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-017","mo":"SB-26-G8-F017-F-001-10","ch":"SB-26-G8-F17","sec":"SB8 44WK","fam":"17","eggset":150.0,"wind":41.0,"crack":0.0,"rot":0.0,"fert":null,"chick":29.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-018","mo":"SB-26-G8-F018-F-001-10","ch":"SB-26-G8-F18","sec":"SB8 44WK","fam":"18","eggset":150.0,"wind":40.0,"crack":0.0,"rot":0.0,"fert":null,"chick":27.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-019","mo":"SB-26-G8-F019-F-001-10","ch":"SB-26-G8-F19","sec":"SB8 44WK","fam":"19","eggset":150.0,"wind":45.0,"crack":0.0,"rot":0.0,"fert":null,"chick":28.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-020","mo":"SB-26-G8-F020-F-001-10","ch":"SB-26-G8-F20","sec":"SB8 44WK","fam":"20","eggset":150.0,"wind":52.0,"crack":0.0,"rot":0.0,"fert":null,"chick":29.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-001","mo":"SB-25-G8-F01-F-001-10","ch":"SB-25-G8-F01","sec":"SB8 69 WK","fam":"1","eggset":150.0,"wind":58.0,"crack":0.0,"rot":0.0,"fert":null,"chick":26.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-002","mo":"SB-25-G8-F02-F-001-10","ch":"SB-25-G8-F02","sec":"SB8 69 WK","fam":"2","eggset":150.0,"wind":55.0,"crack":0.0,"rot":0.0,"fert":null,"chick":25.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-003","mo":"SB-25-G8-F03-F-001-10","ch":"SB-25-G8-F03","sec":"SB8 69 WK","fam":"3","eggset":150.0,"wind":51.0,"crack":0.0,"rot":0.0,"fert":null,"chick":31.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-004","mo":"SB-25-G8-F04-F-001-10","ch":"SB-25-G8-F04","sec":"SB8 69 WK","fam":"4","eggset":150.0,"wind":50.0,"crack":0.0,"rot":0.0,"fert":null,"chick":31.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-005","mo":"SB-25-G8-F05-F-001-10","ch":"SB-25-G8-F05","sec":"SB8 69 WK","fam":"5","eggset":150.0,"wind":52.0,"crack":0.0,"rot":0.0,"fert":null,"chick":32.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-006","mo":"SB-25-G8-F06-F-001-10","ch":"SB-25-G8-F06","sec":"SB8 69 WK","fam":"6","eggset":150.0,"wind":52.0,"crack":0.0,"rot":0.0,"fert":null,"chick":32.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-007","mo":"SB-25-G8-F07-F-001-10","ch":"SB-25-G8-F07","sec":"SB8 69 WK","fam":"7","eggset":150.0,"wind":53.0,"crack":0.0,"rot":0.0,"fert":null,"chick":34.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-008","mo":"SB-25-G8-F08-F-001-10","ch":"SB-25-G8-F08","sec":"SB8 69 WK","fam":"8","eggset":150.0,"wind":54.0,"crack":0.0,"rot":0.0,"fert":null,"chick":31.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-009","mo":"SB-25-G8-F09-F-001-10","ch":"SB-25-G8-F09","sec":"SB8 69 WK","fam":"9","eggset":150.0,"wind":56.0,"crack":0.0,"rot":0.0,"fert":null,"chick":25.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-010","mo":"SB-25-G8-F010-F-001-10","ch":"SB-25-G8-F10","sec":"SB8 69 WK","fam":"10","eggset":150.0,"wind":55.0,"crack":0.0,"rot":0.0,"fert":null,"chick":24.0,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"16/5/2026","pull":"6/4/2026","pa":"missex","mo":"SL","ch":"SPL","sec":"","fam":"","eggset":19200.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"16/5/2026","pull":"6/4/2026","pa":"SB-26-G8-F01-M-001","mo":"SB-26-G8-F01-F-001-10","ch":"SB-26-G8-F01","sec":"SB8 44WK","fam":"1","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-002","mo":"SB-26-G8-F02-F-001-10","ch":"SB-26-G8-F02","sec":"SB8 44WK","fam":"2","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-003","mo":"SB-26-G8-F03-F-001-10","ch":"SB-26-G8-F03","sec":"SB8 44WK","fam":"3","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-004","mo":"SB-26-G8-F04-F-001-10","ch":"SB-26-G8-F04","sec":"SB8 44WK","fam":"4","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-005","mo":"SB-26-G8-F05-F-001-10","ch":"SB-26-G8-F05","sec":"SB8 44WK","fam":"5","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-006","mo":"SB-26-G8-F06-F-001-10","ch":"SB-26-G8-F06","sec":"SB8 44WK","fam":"6","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-007","mo":"SB-26-G8-F07-F-001-10","ch":"SB-26-G8-F07","sec":"SB8 44WK","fam":"7","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-008","mo":"SB-26-G8-F08-F-001-10","ch":"SB-26-G8-F08","sec":"SB8 44WK","fam":"8","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-009","mo":"SB-26-G8-F09-F-001-10","ch":"SB-26-G8-F09","sec":"SB8 44WK","fam":"9","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-010","mo":"SB-26-G8-F010-F-001-10","ch":"SB-26-G8-F10","sec":"SB8 44WK","fam":"10","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-011","mo":"SB-26-G8-F011-F-001-10","ch":"SB-26-G8-F11","sec":"SB8 44WK","fam":"11","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-012","mo":"SB-26-G8-F012-F-001-10","ch":"SB-26-G8-F12","sec":"SB8 44WK","fam":"12","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-013","mo":"SB-26-G8-F013-F-001-10","ch":"SB-26-G8-F13","sec":"SB8 44WK","fam":"13","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-014","mo":"SB-26-G8-F014-F-001-10","ch":"SB-26-G8-F14","sec":"SB8 44WK","fam":"14","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-015","mo":"SB-26-G8-F015-F-001-10","ch":"SB-26-G8-F15","sec":"SB8 44WK","fam":"15","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-016","mo":"SB-26-G8-F016-F-001-10","ch":"SB-26-G8-F16","sec":"SB8 44WK","fam":"16","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-017","mo":"SB-26-G8-F017-F-001-10","ch":"SB-26-G8-F17","sec":"SB8 44WK","fam":"17","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-018","mo":"SB-26-G8-F018-F-001-10","ch":"SB-26-G8-F18","sec":"SB8 44WK","fam":"18","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-019","mo":"SB-26-G8-F019-F-001-10","ch":"SB-26-G8-F19","sec":"SB8 44WK","fam":"19","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-26-G8-F01-M-020","mo":"SB-26-G8-F020-F-001-10","ch":"SB-26-G8-F20","sec":"SB8 44WK","fam":"20","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-001","mo":"SB-25-G8-F01-F-001-10","ch":"SB-25-G8-F01","sec":"SB8 69 WK","fam":"1","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-002","mo":"SB-25-G8-F02-F-001-10","ch":"SB-25-G8-F02","sec":"SB8 69 WK","fam":"2","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-003","mo":"SB-25-G8-F03-F-001-10","ch":"SB-25-G8-F03","sec":"SB8 69 WK","fam":"3","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-004","mo":"SB-25-G8-F04-F-001-10","ch":"SB-25-G8-F04","sec":"SB8 69 WK","fam":"4","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-005","mo":"SB-25-G8-F05-F-001-10","ch":"SB-25-G8-F05","sec":"SB8 69 WK","fam":"5","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-006","mo":"SB-25-G8-F06-F-001-10","ch":"SB-25-G8-F06","sec":"SB8 69 WK","fam":"6","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-007","mo":"SB-25-G8-F07-F-001-10","ch":"SB-25-G8-F07","sec":"SB8 69 WK","fam":"7","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-008","mo":"SB-25-G8-F08-F-001-10","ch":"SB-25-G8-F08","sec":"SB8 69 WK","fam":"8","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-009","mo":"SB-25-G8-F09-F-001-10","ch":"SB-25-G8-F09","sec":"SB8 69 WK","fam":"9","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"","pull":"","pa":"SB-25-G8-F01-M-010","mo":"SB-25-G8-F010-F-001-10","ch":"SB-25-G8-F10","sec":"SB8 69 WK","fam":"10","eggset":300.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"24/5/2026","pull":"","pa":"PD","mo":"PD","ch":"PD-1","sec":"","fam":"","eggset":900.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"24/5/2026","pull":"","pa":"AS","mo":"AS","ch":"AS0","sec":"","fam":"","eggset":62.0,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""},{"set":"27/5/2026","pull":"18/6/2026","pa":"missex","mo":"SL","ch":"SPL","sec":"","fam":"","eggset":33600,"wind":null,"crack":null,"rot":null,"fert":null,"chick":null,"dis":null,"cdead":null,"cull":null,"se":null,"sf":null,"dpct":null,"note":"","note2":""}]};
+/* map: section|family -> [hatch batches] */
+let ONHAND_BY_FAM={};
+function rebuildOnhandMap(){ONHAND_BY_FAM={};ONHAND.rows.forEach(r=>{if(r.sec&&r.fam){const k=r.sec+'|'+r.fam;(ONHAND_BY_FAM[k]=ONHAND_BY_FAM[k]||[]).push(r);}});}
+rebuildOnhandMap();
+let PLAN={"rows":[{"line":"SB8","pa":"SB8-25","mo":"SB8-25","ch":"SB8G0","nm":10.0,"nf":100.0,"nfam":10.0,"loc":"เล้าทดลอง","method":"เก็บไข่แยกครอบครัว","batches":["30/10/2025","13/11/2025","19/1/2026","16/4/2026","14/5/2026","6/3/26","25/6/2026"]},{"line":"SB8","pa":"SB8-26","mo":"SB8-26","ch":"SB8G0","nm":20.0,"nf":200.0,"nfam":20.0,"loc":"เล้าทดลอง","method":"เก็บไข่แยกครอบครัว","batches":["16/4/2026","14/5/2026","6/3/26","25/6/2026"]},{"line":"SL สายตัวเมีย","pa":"missex","mo":"SL","ch":"SPL","nm":100.0,"nf":1000.0,"nfam":10.0,"loc":"H7","method":"เก็บไข่รวมไม่แยกครอบครัว","batches":["15/1/2026","22/1/2026","29/1/2026","2/5/26","2/12/26","19/2/2026","26/2/2026","3/5/26","3/12/26","6/3/26","15/6/2026","25/6/2026"]},{"line":"SL สายตัวเมีย","pa":"missex","mo":"SL","ch":"SPL","nm":10.0,"nf":100.0,"nfam":1.0,"loc":"H6","method":"เก็บไข่รวมไม่แยกครอบครัว","batches":["6/3/26","15/6/2026","25/6/2026"]},{"line":"SL สายตัวผู้","pa":"missex","mo":"SL","ch":"SL","nm":4.0,"nf":28.0,"nfam":4.0,"loc":"H7","method":"เก็บไข่รวมไม่แยกครอบครัว","batches":["2/12/26","19/2/2026","3/5/26","23/4/2026","15/6/2026"]},{"line":"ประดู่หางดำ มข","pa":"PD","mo":"PD","ch":"PD0","nm":4.0,"nf":12.0,"nfam":3.0,"loc":"เล้าทดลอง","method":"เก็บไข่แยกครอบครัว","batches":["23/4/2026","15/6/2026"]},{"line":"ประดูู่หางดำชุด1","pa":"PD","mo":"PD","ch":"PD-1","nm":300.0,"nf":227.0,"nfam":0.0,"loc":"เล้าทดลอง","method":"เก็บไข่รวมไม่แยกครอบครัว","batches":["15/6/2026"]},{"line":"ประดูู่หางดำชุด2","pa":"PD","mo":"PD","ch":"PD-2","nm":301.0,"nf":null,"nfam":0.0,"loc":"เล้าทดลอง","method":"ยังไม่ไข่","batches":[]},{"line":"ออสตาร์ลอป ชุด1","pa":"AS","mo":"AS","ch":"AS0","nm":2.0,"nf":8.0,"nfam":1.0,"loc":"เล้าทดลอง","method":"เก็บไข่รวมไม่แยกครอบครัว","batches":["15/6/2026"]},{"line":"ออสตาร์ลอป ชุด2","pa":"AS","mo":"AS","ch":"AS1","nm":8.0,"nf":12.0,"nfam":0.0,"loc":"เล้าทดลอง","method":"ยังไม่ไข่","batches":[]}]};
+let lbFilter="ทั้งหมด";
+
+function memberRow(m,sexLabel,sexColor){
+  const [num,code,band]=m;
+  const tag = ""; // tag color set per family
+  const codeHtml = code ? `<span class="fcode">${code}</span>` : `<span class="fcode empty">— ยังไม่กรอกรหัส —</span>`;
+  const bandHtml = (band!==''&&band!=null) ? `ห่วง ${band}` : '';
+  return {num,codeHtml,bandHtml};
+}
+function fcardHtml(fam){
+  const sc=SECCOL[fam.s]||'#a8aeb5';
+  const head=`<div class="fhead">
+      <div><div class="ftitle">Family ${fam.f}</div><div class="fsec">${fam.s}</div></div>
+      <div class="fcount"><span class="fbadge" style="background:var(--female)">♀ ${fam.F.length}</span><span class="fbadge" style="background:var(--male)">♂ ${fam.M.length}</span></div>
+    </div>`;
+  const tagF=TAGCOL[fam.fc]||'#ddd', tagM=TAGCOL[fam.mc]||'#fff';
+  const fr=(arr,tagc)=>arr.map(m=>{const r=memberRow(m);
+    return `<div class="frow"><span class="tag" style="background:${tagc}"></span>${r.codeHtml}<span class="fband">${r.bandHtml}</span></div>`;}).join('');
+  let body=`<div class="fbody">${fr(fam.F,tagF)}`;
+  if(fam.M.length){body+=`<div class="fdivider"></div>${fr(fam.M,tagM)}`;}
+  body+=`</div>`;
+  let foot='';
+  const eg=EGG_BY_FAM[fam.s+'|'+fam.f];
+  if(eg){
+    const tot=eg.d.reduce((a,v)=>a+(v||0),0);
+    foot=`<div class="eggfoot" data-egg="${fam.s}|${fam.f}"><span class="eggn">🥚 ไข่รวม ${tot.toLocaleString()} ฟอง</span><span class="arrow">ดูรายวัน →</span></div>`;
+  }
+  return `<div class="fcard" style="border-left:4px solid ${sc}">${head}${body}${foot}</div>`;
+}
+function renderLockbook(){
+  const list = lbFilter==="ทั้งหมด" ? LOCKBOOK : LOCKBOOK.filter(x=>x.s===lbFilter);
+  document.getElementById('lbgrid').innerHTML = list.map(fcardHtml).join('');
+  // stats
+  let nF=0,nM=0,filled=0;
+  list.forEach(x=>{nF+=x.F.length;nM+=x.M.length; if(x.F.some(m=>m[1])||x.M.some(m=>m[1]))filled++;});
+  document.getElementById('stats-lockbook').innerHTML=`
+    <div class="stat"><div class="k">Family</div><div class="v">${list.length}</div></div>
+    <div class="stat"><div class="k">รวมเมีย ♀</div><div class="v" style="color:var(--female)">${nF}</div></div>
+    <div class="stat"><div class="k">รวมผู้ ♂</div><div class="v" style="color:var(--male)">${nM}</div></div>
+    <div class="stat"><div class="k">กรอกรหัสแล้ว</div><div class="v">${filled} <small>/ ${list.length} fam</small></div></div>`;
+}
+function renderLbFilter(){
+  const secs=["ทั้งหมด",...new Set(LOCKBOOK.map(x=>x.s))];
+  document.getElementById('lbfilter').innerHTML=secs.map(s=>
+    `<span class="lbchip${s===lbFilter?' active':''}" data-sec="${s}">${s}</span>`).join('');
+}
+renderLbFilter(); renderLockbook();
+document.getElementById('lbfilter').addEventListener('click',e=>{
+  const c=e.target.closest('.lbchip'); if(!c)return;
+  lbFilter=c.dataset.sec; renderLbFilter(); renderLockbook();
+});
+// คลิก footer ไข่ ใน Lockbook -> ไป tab ไข่รายวัน + ไฮไลต์คู่นั้น
+document.getElementById('lbgrid').addEventListener('click',e=>{
+  const f=e.target.closest('.eggfoot'); if(!f)return;
+  gotoEgg(f.dataset.egg);
+});
+
+/* ===================== ไข่รายวัน ===================== */
+const LINECOL={"SB8 44WK":"#c97b5a","SB8 69 WK":"#b08968","L SM":"#7a9a5b","L SF":"#5b9aa0"};
+function eggLineOf(r){
+  if(r.sec) return r.sec;
+  const c=(r.ch||'')+'';
+  if(/^PD/i.test(c)||/PD/.test(r.pa)) return "ประดู่ดำ (PD)";
+  if(/^AS/i.test(c)||/AS/.test(r.pa)) return "AUS (AS)";
+  return "อื่นๆ";
+}
+const LINECOL2={"ประดู่ดำ (PD)":"#6f6470","AUS (AS)":"#c9a14a","อื่นๆ":"#9a9486"};
+function lineColor(line){return LINECOL[line]||LINECOL2[line]||"#9a9486";}
+let eggFilter="ทั้งหมด";
+function eggId(r){return 'egg-'+(r.sec?r.sec+'-'+r.fam:(r.ch||r.pa)).replace(/[^A-Za-z0-9]/g,'_');}
+
+function sparkHtml(r){
+  const vals=r.d, mx=Math.max(1,...vals.map(v=>v||0));
+  let bars='';
+  vals.forEach((v,i)=>{
+    if(v==null) bars+=`<div class="bar nodata" style="height:2px" title="${EGGS.dates[i]} · ไม่มีข้อมูล"></div>`;
+    else bars+=`<div class="bar" style="height:${Math.max(2,Math.round(v/mx*42))}px" title="${EGGS.dates[i]} · ${v} ฟอง"></div>`;
+  });
+  const firstI=vals.findIndex(v=>v!=null);
+  const lastI=vals.length-1;
+  return `<div class="spark">${bars}</div>
+    <div class="sparkx"><span>${EGGS.dates[firstI<0?0:firstI]}</span><span>${EGGS.dates[lastI]}</span></div>`;
+}
+function ecardHtml(r){
+  const line=eggLineOf(r), col=lineColor(line);
+  const days=r.d.filter(v=>v!=null).length;
+  const tot=r.d.reduce((a,v)=>a+(v||0),0);
+  const avg=days?(tot/days):0;
+  const title=r.ch||r.pa;
+  return `<div class="ecard" id="${eggId(r)}">
+    <div class="ehead"><div class="ech">${title}</div><span class="eline" style="background:${hexToRgba(col.replace('#',''),0.95)}">${line}</span></div>
+    <div class="epair"><span class="pl">♂ พ่อ:</span> ${r.pa||'—'}<br><span class="pl">♀ แม่:</span> ${r.mo||'—'}</div>
+    <div class="emetrics">
+      <div class="em"><div class="v">${tot.toLocaleString()}</div><div class="k">ไข่รวม (ฟอง)</div></div>
+      <div class="em"><div class="v">${avg.toFixed(1)}</div><div class="k">เฉลี่ย/วัน</div></div>
+      <div class="em"><div class="v">${r.st.toLocaleString()}</div><div class="k">สต็อกยกมา</div></div>
+      <div class="em"><div class="v">${days}</div><div class="k">วันที่บันทึก</div></div>
+    </div>
+    ${sparkHtml(r)}${hatchFootHtml(r)}</div>`;
+}
+function hatchFootHtml(r){
+  if(!r.sec||!r.fam) return '';
+  const batches=ONHAND_BY_FAM[r.sec+'|'+r.fam];
+  if(!batches) return '';
+  const chicks=batches.reduce((a,b)=>a+(b.chick||0),0);
+  return `<div class="hatchfoot" data-hatch="${r.sec}|${r.fam}"><span class="hn">🐤 ฟักได้รวม ${chicks.toLocaleString()} ตัว (${batches.length} รอบ)</span><span class="arrow">ดูผลฟัก →</span></div>`;
+}
+function renderEggs(){
+  const list = eggFilter==="ทั้งหมด" ? EGGS.rows : EGGS.rows.filter(r=>eggLineOf(r)===eggFilter);
+  document.getElementById('egggrid').innerHTML = list.map(ecardHtml).join('');
+  let tot=0,days=0,top=null,topv=-1;
+  list.forEach(r=>{const t=r.d.reduce((a,v)=>a+(v||0),0); tot+=t; if(t>topv){topv=t;top=r;}});
+  document.getElementById('stats-eggs').innerHTML=`
+    <div class="stat"><div class="k">คู่ผสม</div><div class="v">${list.length}</div></div>
+    <div class="stat"><div class="k">ไข่รวมทั้งหมด</div><div class="v" style="color:var(--accent)">${tot.toLocaleString()} <small>ฟอง</small></div></div>
+    <div class="stat"><div class="k">ผลิตมากสุด</div><div class="v">${top?(top.ch||top.pa):'—'} <small>${topv>=0?topv.toLocaleString()+' ฟอง':''}</small></div></div>
+    <div class="stat"><div class="k">ช่วงบันทึก</div><div class="v" style="font-size:15px">${EGGS.dates[0]} – ${EGGS.dates[EGGS.dates.length-1]}</div></div>`;
+}
+function renderEggFilter(){
+  const lines=["ทั้งหมด",...new Set(EGGS.rows.map(eggLineOf))];
+  document.getElementById('eggfilter').innerHTML=lines.map(s=>
+    `<span class="lbchip${s===eggFilter?' active':''}" data-line="${s}">${s}</span>`).join('');
+}
+renderEggFilter(); renderEggs();
+document.getElementById('eggfilter').addEventListener('click',e=>{
+  const c=e.target.closest('.lbchip'); if(!c)return;
+  eggFilter=c.dataset.line; renderEggFilter(); renderEggs();
+});
+function switchTab(side){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.side===side));
+  document.querySelectorAll('.side').forEach(x=>x.classList.remove('active'));
+  document.getElementById(side).classList.add('active');
+}
+function gotoEgg(key){
+  eggFilter="ทั้งหมด"; renderEggFilter(); renderEggs();
+  switchTab('eggs');
+  const r=EGG_BY_FAM[key]; if(!r)return;
+  const el=document.getElementById(eggId(r));
+  if(el){el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.classList.add('hl'); setTimeout(()=>el.classList.remove('hl'),2200);}
+}
+// คลิก footer ฟัก ในแท็บไข่ -> ไป on hand กรองครอบครัวนั้น
+document.getElementById('egggrid').addEventListener('click',e=>{
+  const f=e.target.closest('.hatchfoot'); if(!f)return; gotoHatch(f.dataset.hatch);
+});
+
+/* ===================== ตู้ฟัก / ลูกไก่ (on hand) ===================== */
+function ohGroup(r){
+  if(r.sec) return r.sec;
+  const c=(r.ch||'')+'', pa=(r.pa||'')+'';
+  if(pa.indexOf('Lohmann')>=0||c.indexOf('SPL')===0) return 'SPL (Lohmann)';
+  if(pa==='SB8'||c.indexOf('SB8G0')===0) return 'SB8G0';
+  if(/^PD/i.test(c)) return 'ประดู่ดำ (PD)';
+  return 'อื่นๆ';
+}
+const OHCOL={"SB8 44WK":"#c97b5a","SB8 69 WK":"#b08968","L SM":"#7a9a5b","L SF":"#5b9aa0",
+  "SPL (Lohmann)":"#5b8fc7","SB8G0":"#9c6f96","ประดู่ดำ (PD)":"#6f6470","อื่นๆ":"#9a9486"};
+let ohFilter="ทั้งหมด", ohFam=null;
+function ohId(r,i){return 'oh-'+i;}
+function n(v){return (v==null)?0:v;}
+function ohCardHtml(r,i){
+  const g=ohGroup(r), col=OHCOL[g]||"#9a9486";
+  const set=n(r.eggset), fert=n(r.fert), chick=n(r.chick), mx=Math.max(1,set);
+  const w=v=>Math.max(2,Math.round(v/mx*100));
+  const dates = (r.set||r.pull) ? `<span class="edates"><b>ตั้งฟัก:</b> ${r.set||'—'} &nbsp; <b>ออก:</b> ${r.pull||'—'}</span>` : '';
+  const note = r.note? `<div class="ohnote">📝 ${r.note}${r.note2?' · '+r.note2:''}</div>` : (r.note2?`<div class="ohnote">📝 ${r.note2}</div>`:'');
+  const loss = `<div class="lossrow">
+      <span>ไข่ลม <b>${n(r.wind)}</b></span><span>แตก <b>${n(r.crack)}</b></span><span>เน่า <b>${n(r.rot)}</b></span>
+      <span>ตายโคม <b>${n(r.dis)}</b></span><span>ลูกตาย <b>${n(r.cdead)}</b></span><span>คัดทิ้ง <b>${n(r.cull)}</b></span></div>`;
+  return `<div class="ecard" id="${ohId(r,i)}" data-fam="${r.sec&&r.fam?r.sec+'|'+r.fam:''}">
+    <div class="ehead"><div class="ech">${r.ch||r.pa||'—'}</div><span class="eline" style="background:${hexToRgba(col.replace('#',''),0.95)}">${g}</span></div>
+    ${dates}
+    <div class="funnel">
+      <div class="fnl s1"><span class="fl">ไข่เข้าฟัก</span><div class="fbar" style="width:${w(set)}%"></div><span class="fv">${set.toLocaleString()}</span></div>
+      <div class="fnl s2"><span class="fl">ไข่มีเชื้อ</span><div class="fbar" style="width:${w(fert)}%"></div><span class="fv">${fert.toLocaleString()}</span></div>
+      <div class="fnl s3"><span class="fl">ลูกไก่</span><div class="fbar" style="width:${w(chick)}%"></div><span class="fv">${chick.toLocaleString()}</span></div>
+    </div>
+    <div class="kpirow">
+      <div class="kpi"><div class="kv" style="color:var(--good)">${r.se!=null?r.se+'%':'—'}</div><div class="kk">%ฟัก (SE)</div></div>
+      <div class="kpi"><div class="kv" style="color:var(--accent)">${r.sf!=null?r.sf+'%':'—'}</div><div class="kk">%เชื้อ (SF)</div></div>
+      <div class="kpi"><div class="kv" style="color:var(--female)">${r.dpct!=null?r.dpct+'%':'—'}</div><div class="kk">%ตายโคม</div></div>
+    </div>
+    ${loss}${note}</div>`;
+}
+function ohList(){
+  let list = ohFam ? ONHAND.rows.filter(r=>r.sec+'|'+r.fam===ohFam)
+           : (ohFilter==="ทั้งหมด"? ONHAND.rows : ONHAND.rows.filter(r=>ohGroup(r)===ohFilter));
+  return list;
+}
+function renderOnhand(){
+  const list=ohList();
+  document.getElementById('ohgrid').innerHTML=list.map((r,i)=>ohCardHtml(r,i)).join('');
+  let set=0,chick=0,fert=0,se=[],sf=[];
+  list.forEach(r=>{set+=n(r.eggset);chick+=n(r.chick);fert+=n(r.fert);if(r.se!=null)se.push(r.se);if(r.sf!=null)sf.push(r.sf);});
+  const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length):0;
+  document.getElementById('stats-onhand').innerHTML=`
+    <div class="stat"><div class="k">รอบฟัก</div><div class="v">${list.length}</div></div>
+    <div class="stat"><div class="k">ไข่เข้าฟักรวม</div><div class="v">${set.toLocaleString()} <small>ฟอง</small></div></div>
+    <div class="stat"><div class="k">ลูกไก่รวม</div><div class="v" style="color:var(--good)">${chick.toLocaleString()} <small>ตัว</small></div></div>
+    <div class="stat"><div class="k">%ฟักเฉลี่ย (SE)</div><div class="v">${avg(se).toFixed(1)}%</div></div>
+    <div class="stat"><div class="k">%เชื้อเฉลี่ย (SF)</div><div class="v">${avg(sf).toFixed(1)}%</div></div>`;
+  // banner
+  const b=document.getElementById('ohbanner');
+  b.innerHTML = ohFam ? `<div class="ohbanner">กำลังดูผลฟักของ <b>${ohFam.split('|')[0]} · Family ${ohFam.split('|')[1]}</b> (${list.length} รอบ)<span class="x" id="ohclear">✕ ดูทั้งหมด</span></div>` : '';
+  if(ohFam){document.getElementById('ohclear').onclick=()=>{ohFam=null;renderOhFilter();renderOnhand();};}
+}
+function renderOhFilter(){
+  const gs=["ทั้งหมด",...new Set(ONHAND.rows.map(ohGroup))];
+  document.getElementById('ohfilter').innerHTML=gs.map(s=>
+    `<span class="lbchip${(!ohFam&&s===ohFilter)?' active':''}" data-g="${s}">${s}</span>`).join('');
+}
+renderOhFilter(); renderOnhand();
+document.getElementById('ohfilter').addEventListener('click',e=>{
+  const c=e.target.closest('.lbchip'); if(!c)return;
+  ohFam=null; ohFilter=c.dataset.g; renderOhFilter(); renderOnhand();
+});
+function gotoHatch(key){
+  ohFam=key; renderOhFilter(); renderOnhand(); switchTab('onhand');
+  document.getElementById('onhand').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function gotoLockbookSection(sec){
+  lbFilter=sec; renderLbFilter(); renderLockbook(); switchTab('lockbook');
+  document.getElementById('lockbook').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function gotoOnhandGroup(g){
+  ohFam=null; ohFilter=g; renderOhFilter(); renderOnhand(); switchTab('onhand');
+  document.getElementById('onhand').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ===================== แผนทดลอง (overview) ===================== */
+function planLinks(r){
+  let lock=null, oh=null;
+  if(r.pa==='SB8-26'){lock='SB8 44WK';oh='SB8 44WK';}
+  else if(r.pa==='SB8-25'){lock='SB8 69 WK';oh='SB8 69 WK';}
+  else if(/PD/.test(r.pa)){oh='ประดู่ดำ (PD)';}
+  else if(r.ch==='SPL'||r.ch==='SL'||/missex/i.test(r.pa)){oh='SPL (Lohmann)';}
+  else if(/AS/.test(r.pa)){oh='อื่นๆ';}
+  return {lock,oh};
+}
+function methodCls(m){
+  if(m.indexOf('แยกครอบครัว')>=0 && m.indexOf('ไม่แยก')<0) return ['pm-fam','เก็บไข่แยกครอบครัว'];
+  if(m.indexOf('ไม่แยก')>=0) return ['pm-bulk','เก็บไข่รวม (ไม่แยก family)'];
+  return ['pm-none', m||'ยังไม่ไข่'];
+}
+function pcardHtml(r){
+  const [mc,ml]=methodCls(r.method);
+  const lk=planLinks(r);
+  const batches = r.batches.length
+    ? `<div class="pbatch"><span class="btlabel">🥚 ฟัก:</span>${r.batches.map((b,i)=>`<span class="bt">ชุด${i+1} · ${b}</span>`).join('')}</div>`
+    : `<div class="pbatch"><span class="btlabel">ยังไม่มีกำหนดฟัก</span></div>`;
+  let links='';
+  links += lk.lock ? `<div class="plink" data-goto="lock:${lk.lock}">📒 ทะเบียน</div>` : '';
+  links += lk.oh ? `<div class="plink" data-goto="oh:${lk.oh}">🐤 ผลฟัก</div>` : '';
+  if(!links) links = `<div class="plink disabled">— ยังไม่มีข้อมูลฟัก —</div>`;
+  return `<div class="pcard">
+    <div class="phead">
+      <div class="pname">${r.line}</div>
+      <span class="pmethod ${mc}">${ml}</span>
+    </div>
+    <div class="pbody">
+      <div class="pcross"><span class="gene f">♂ ${r.pa||'—'}</span><span class="ar">×</span><span class="gene m">♀ ${r.mo||'—'}</span><span class="ar">→</span><span class="gene ch">${r.ch||'—'}</span></div>
+      <div class="pnums">
+        <div class="pn"><div class="v" style="color:var(--male)">${r.nm??'—'}</div><div class="k">พ่อ (ตัว)</div></div>
+        <div class="pn"><div class="v" style="color:var(--female)">${r.nf??'—'}</div><div class="k">แม่ (ตัว)</div></div>
+        <div class="pn"><div class="v" style="color:var(--accent)">${r.nfam??'—'}</div><div class="k">Family</div></div>
+      </div>
+      <div class="ploc">📍 <b>${r.loc||'—'}</b></div>
+      ${batches}
+    </div>
+    <div class="plinks">${links}</div>
+  </div>`;
+}
+function renderPlan(){
+  document.getElementById('plangrid').innerHTML = PLAN.rows.map(pcardHtml).join('');
+  let fam=0,m=0,f=0,laying=0;
+  PLAN.rows.forEach(r=>{fam+=r.nfam||0;m+=r.nm||0;f+=r.nf||0; if(r.method.indexOf('ยังไม่')<0&&r.method)laying++;});
+  document.getElementById('stats-plan').innerHTML=`
+    <div class="stat"><div class="k">สายทดลอง</div><div class="v">${PLAN.rows.length}</div></div>
+    <div class="stat"><div class="k">รวม Family</div><div class="v" style="color:var(--accent)">${fam}</div></div>
+    <div class="stat"><div class="k">พ่อพันธุ์</div><div class="v" style="color:var(--male)">${m.toLocaleString()}</div></div>
+    <div class="stat"><div class="k">แม่พันธุ์</div><div class="v" style="color:var(--female)">${f.toLocaleString()}</div></div>
+    <div class="stat"><div class="k">เริ่มเก็บไข่แล้ว</div><div class="v">${laying} <small>/ ${PLAN.rows.length}</small></div></div>`;
+  document.getElementById('planfuture').innerHTML=`
+    <h3>📅 แผนต่อยอด (ปี 2570 / การคัดพ่อแม่พันธุ์)</h3>
+    <div class="pfgrid">
+      <div class="pfbox"><h4>สายพ่อพันธุ์ SPLM</h4>
+        <div class="ln">คัดจาก <b>500</b> → <b>120</b> → เหลือ <b>80 ตัว</b></div>
+        <div class="ln">ผสมกับ แม่นำเข้า <b>800 ตัว</b></div>
+        <div class="ln">(สเปน 700, ออสเตรเลีย 100)</div></div>
+      <div class="pfbox"><h4>สายแม่พันธุ์ SPRF</h4>
+        <div class="ln">คัดจาก <b>1,200</b> → เหลือ <b>800 ตัว</b></div>
+        <div class="ln">ผสมกับ พ่อนำเข้า <b>120 ตัว</b></div>
+        <div class="ln">(สเปน 100, ออสเตรเลีย 10)</div></div>
+      <div class="pfbox"><h4>แผนสะสมไข่เข้าฟัก</h4>
+        <div class="ln">ชุด 1: <b>24,000 ฟอง</b> (13/5)</div>
+        <div class="ln">ชุด 2: <b>12,000 ฟอง</b> (27/5)</div>
+        <div class="ln">+ แผนแยก SPL ไว้รอผสม (คัดจากชุด SPL1)</div></div>
+    </div>`;
+}
+renderPlan();
+document.getElementById('plangrid').addEventListener('click',e=>{
+  const p=e.target.closest('.plink'); if(!p||!p.dataset.goto)return;
+  const [t,v]=p.dataset.goto.split(/:(.+)/);
+  if(t==='lock') gotoLockbookSection(v);
+  else if(t==='oh') gotoOnhandGroup(v);
+});
+
+/* ===== เมทริกซ์ผสมไขว้ (สร้างสดจาก PLAN) ===== */
+function mxBase(s){return (s||'—').replace(/-.*$/,'').toUpperCase();}
+function buildMatrix(){
+  const sires=[], dams=[], cell={};
+  PLAN.rows.forEach(r=>{
+    const s=r.pa||'—', d=r.mo||'—';
+    if(!sires.includes(s))sires.push(s);
+    if(!dams.includes(d))dams.push(d);
+    const k=s+'|'+d; (cell[k]=cell[k]||[]).push(r);
+  });
+  return {sires,dams,cell};
+}
+function renderMatrix(){
+  const {sires,dams,cell}=buildMatrix();
+  const fmt=n=>(n==null?'—':n.toLocaleString());
+  // ตาราง
+  let head='<tr><td class="corner">♂ พ่อ \\ แม่ ♀<small>ลูกที่เกิด</small></td>'+
+    dams.map(d=>`<th class="dam-h">♀ ${d}<small>แม่พันธุ์</small></th>`).join('')+'</tr>';
+  let body=sires.map(s=>{
+    let tds=dams.map(d=>{
+      const rows=cell[s+'|'+d];
+      if(!rows) return '<td><div class="mxcell empty">·</div></td>';
+      const pure=mxBase(s)===mxBase(d);
+      const fam=rows.reduce((a,r)=>a+(r.nfam||0),0);
+      const nm=rows.reduce((a,r)=>a+(r.nm||0),0);
+      const nf=rows.reduce((a,r)=>a+(r.nf||0),0);
+      const chs=[...new Set(rows.map(r=>r.ch).filter(Boolean))];
+      return `<td><div class="mxcell ${pure?'pure':'cross'}" data-sire="${s}" data-dam="${d}">`+
+        chs.map(c=>`<div class="ch">${c}</div>`).join('')+
+        `<div><span class="fam">${fam} family</span></div>`+
+        `<div class="cnt">♂${fmt(nm)} · ♀${fmt(nf)}</div>`+
+        (rows.length>1?`<div class="mxnote">${rows.length} ชุด</div>`:'')+
+        `</div></td>`;
+    }).join('');
+    return `<tr><th class="sire-h">♂ ${s}<small>พ่อพันธุ์</small></th>${tds}</tr>`;
+  }).join('');
+  document.getElementById('mxtable').innerHTML=head+body;
+  // สถิติ
+  let nPure=0,nCross=0,nCells=0;
+  Object.entries(cell).forEach(([k,rows])=>{
+    nCells++; const [s,d]=k.split('|');
+    if(mxBase(s)===mxBase(d))nPure+=rows.length; else nCross+=rows.length;
+  });
+  document.getElementById('stats-matrix').innerHTML=`
+    <div class="stat"><div class="k">คู่ผสม (ช่องในเมทริกซ์)</div><div class="v">${nCells}</div></div>
+    <div class="stat"><div class="k">สายผสมในพันธุ์</div><div class="v" style="color:var(--primary)">${nPure}</div></div>
+    <div class="stat"><div class="k">สายผสมข้ามพันธุ์</div><div class="v" style="color:var(--accent)">${nCross}</div></div>
+    <div class="stat"><div class="k">พ่อพันธุ์ที่ใช้</div><div class="v" style="color:var(--male)">${sires.length}</div></div>
+    <div class="stat"><div class="k">แม่พันธุ์ที่ใช้</div><div class="v" style="color:var(--female)">${dams.length}</div></div>`;
+  // รายการคู่ผสมแบบลิสต์
+  document.getElementById('mxlist').innerHTML='<h3>รายการคู่ผสมทั้งหมด</h3>'+
+    PLAN.rows.map(r=>{
+      const pure=mxBase(r.pa)===mxBase(r.mo);
+      return `<div class="mxitem">`+
+        `<span class="tag ${pure?'pure':'cross'}">${pure?'ในพันธุ์':'ข้ามพันธุ์'}</span>`+
+        `<b>${r.line}</b>`+
+        `<span style="color:var(--male)">♂ ${r.pa||'—'}</span><span class="ar">×</span>`+
+        `<span style="color:var(--female)">♀ ${r.mo||'—'}</span><span class="ar">→</span>`+
+        `<b style="color:var(--head)">${r.ch||'—'}</b>`+
+        `<span class="cnt" style="color:var(--muted);margin-left:auto">`+
+        `${r.nfam||0} family · ♂${fmt(r.nm)}/♀${fmt(r.nf)} · 📍${r.loc||'—'}</span>`+
+        `</div>`;
+    }).join('');
+}
+renderMatrix();
+document.getElementById('mxtable').addEventListener('click',e=>{
+  const c=e.target.closest('.mxcell'); if(!c||!c.dataset.sire)return;
+  document.querySelector('.tab[data-side="plan"]').click();
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* ===== tooltip รายละเอียดกรง ===== */
+const tip=document.getElementById('tip');
+const SEXCOL={'เมีย':'var(--female)','ผู้':'var(--male)'};
+function showTip(el){
+  const empty=el.dataset.empty;
+  const sex=el.dataset.sex, sc=SEXCOL[sex]||'#999';
+  if(empty){
+    tip.innerHTML=`<div class="tiphead" style="background:#a8aeb5"><span class="dotc" style="background:#f3f4f5"></span>กรงว่าง</div>
+      <div class="tipbody">
+        <div class="tr"><span class="lab">กรงที่</span><span class="val">${el.dataset.cage}</span></div>
+        <div class="tr"><span class="lab">ฝั่ง</span><span class="val">${sex}</span></div>
+        <div class="tr"><span class="lab">สถานะ</span><span class="val">— ยังไม่มีไก่ —</span></div>
+      </div>`;
+  }else{
+    const breed=el.dataset.breed, color=el.dataset.color;
+    const m=META[breed]||{};
+    const headbg=color?hexToRgba(color,0.92):'#a8aeb5';
+    tip.innerHTML=`<div class="tiphead" style="background:${headbg};color:#2b2820;text-shadow:0 1px 1px rgba(255,255,255,.4)">
+        <span class="dotc" style="background:${color?'#'+color:'#f3f4f5'}"></span>${breed}</div>
+      <div class="tipbody">
+        <div class="tr"><span class="lab">กรงที่</span><span class="val">${el.dataset.cage}</span></div>
+        <div class="tr"><span class="lab">เพศ</span><span class="val"><span class="sexpill" style="background:${sc}">${sex==='เมีย'?'♀':'♂'} ${sex}</span></span></div>
+        <div class="tr"><span class="lab">วันรับเข้า</span><span class="val">${m.recv||'—'}</span></div>
+        <div class="tr"><span class="lab">อายุ</span><span class="val">${m.age||'—'}</span></div>
+        <div class="tr"><span class="lab">จำนวน</span><span class="val">${el.dataset.count} ตัว</span></div>
+      </div>`;
+  }
+  tip.classList.add('show');
+}
+function moveTip(e){
+  const pad=14, w=tip.offsetWidth, h=tip.offsetHeight;
+  let x=e.clientX+pad, y=e.clientY+pad;
+  if(x+w>innerWidth-8) x=e.clientX-w-pad;
+  if(y+h>innerHeight-8) y=e.clientY-h-pad;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+}
+document.querySelectorAll('.coop').forEach(coop=>{
+  coop.addEventListener('mouseover',e=>{const cg=e.target.closest('.cage'); if(cg){showTip(cg); moveTip(e);}});
+  coop.addEventListener('mousemove',e=>{if(e.target.closest('.cage')) moveTip(e);});
+  coop.addEventListener('mouseout',e=>{const cg=e.target.closest('.cage'); if(cg && !cg.contains(e.relatedTarget)) tip.classList.remove('show');});
+});
+
+document.querySelectorAll('.tab').forEach(t=>{t.onclick=()=>{
+  tip.classList.remove('show');
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.side').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById(t.dataset.side).classList.add('active');
+};});
+
+// ปุ่มสลับด้านในผังเล้า (พันธุ์ / รุ่น)
+document.querySelectorAll('.subtab').forEach(s=>{s.onclick=()=>{
+  tip.classList.remove('show');
+  document.querySelectorAll('.subtab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.coopview').forEach(x=>x.classList.remove('active'));
+  s.classList.add('active');
+  document.getElementById(s.dataset.view).classList.add('active');
+};});
+
+/* ============================================================
+   เชื่อมข้อมูลสดจาก Google Sheet (อ่านอย่างเดียว ผ่าน Apps Script + JSONP)
+   วิธีตั้งค่า: deploy ไฟล์ SunFarm_AppsScript.gs เป็น Web app
+   แล้ววาง URL ที่ได้ลงในตัวแปร SHEET_API_URL ด้านล่าง
+   ============================================================ */
+const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyb2xigoUDKr8C9hZArX2kNIHD68OtPuVlOrJsehpgiRVCbw-lFrDS_k08vJu1CCViOdQ/exec";   // ← Web app URL (เว้นว่าง = ใช้ข้อมูลฝังในไฟล์)
+
+// แทนที่ข้อมูลทั้งหมดด้วยชุดใหม่จาก Sheet แล้ววาดใหม่ทุกแท็บ
+function reloadAll(data){
+  if(data.PLAN) PLAN=data.PLAN;
+  if(data.BREEDER) BREEDER=data.BREEDER;
+  if(data.GROWER) GROWER=data.GROWER;
+  if(data.LOCKBOOK) LOCKBOOK=data.LOCKBOOK;
+  if(data.EGGS) EGGS=data.EGGS;
+  if(data.ONHAND) ONHAND=data.ONHAND;
+  if(data.LEG_BREEDER) LEG_BREEDER=data.LEG_BREEDER;
+  if(data.LEG_GROWER) LEG_GROWER=data.LEG_GROWER;
+  if(data.META) META=data.META;
+  if(data.TAGCOL) TAGCOL=data.TAGCOL;
+  if(data.SECCOL) SECCOL=data.SECCOL;
+  // รีเซ็ตฟิลเตอร์ + หน้ากรง (กันค่าค้างที่อาจไม่มีในข้อมูลใหม่)
+  lbFilter="ทั้งหมด"; eggFilter="ทั้งหมด"; ohFilter="ทั้งหมด"; ohFam=null;
+  Object.keys(coopPage).forEach(k=>delete coopPage[k]);
+  rebuildEggMap(); rebuildOnhandMap();
+  // วาดใหม่ทุกแท็บ
+  renderPlan();
+  renderLegend('leg-breeder',LEG_BREEDER); renderLegend('leg-grower',LEG_GROWER);
+  COOPS['coop-breeder']={model:BREEDER,legend:LEG_BREEDER};
+  COOPS['coop-grower']={model:GROWER,legend:LEG_GROWER};
+  renderCoop('coop-breeder',BREEDER,LEG_BREEDER); renderCoop('coop-grower',GROWER,LEG_GROWER);
+  renderStats('stats-breeder',BREEDER); renderStats('stats-grower',GROWER);
+  renderLbFilter(); renderLockbook();
+  renderEggFilter(); renderEggs();
+  renderOhFilter(); renderOnhand();
+  renderMatrix();
+}
+
+// แถบสถานะ + ปุ่มรีเฟรช (ลอยมุมขวาล่าง)
+const dataBar=document.createElement('div');
+dataBar.id='databar';
+dataBar.style.cssText='position:fixed;right:16px;bottom:16px;z-index:50;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:30px;padding:7px 9px 7px 15px;box-shadow:var(--shadow);font-size:12.5px;font-weight:600;color:var(--ink)';
+dataBar.innerHTML='<span id="dbdot" style="width:9px;height:9px;border-radius:50%;background:#c4c9cd;flex:none"></span><span id="dbtext">ข้อมูลฝังในไฟล์</span><button id="dbbtn" style="border:none;background:var(--primary);color:#fff;border-radius:20px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:12.5px">↻ รีเฟรช</button>';
+document.body.appendChild(dataBar);
+document.getElementById('dbbtn').onclick=loadFromSheet;
+function setStatus(state,msg){
+  const dot=document.getElementById('dbdot'), txt=document.getElementById('dbtext');
+  const map={idle:['#c4c9cd','ข้อมูลฝังในไฟล์ (ยังไม่ตั้งค่า Sheet)'],
+    loading:['#f0ad4e','กำลังโหลดจาก Sheet…'],
+    ok:['#3bb38a','ซิงค์จาก Google Sheet แล้ว · '+new Date().toLocaleTimeString('th-TH')],
+    error:['#e15a5a','เชื่อมต่อไม่ได้'+(msg?': '+msg:'')]};
+  const m=map[state]||map.idle; dot.style.background=m[0]; txt.textContent=m[1];
+}
+
+// โหลดข้อมูลจาก Sheet ผ่าน JSONP (เลี่ยง CORS · เปิดไฟล์ตรงๆ ก็ได้)
+function loadFromSheet(){
+  if(!SHEET_API_URL){ setStatus('idle'); return; }
+  setStatus('loading');
+  const cb='__sf_cb_'+Date.now();
+  const s=document.createElement('script');
+  const cleanup=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;} if(s.parentNode)s.parentNode.removeChild(s); };
+  const timer=setTimeout(()=>{ cleanup(); setStatus('error','หมดเวลาเชื่อมต่อ'); },20000);
+  window[cb]=function(data){ clearTimeout(timer); cleanup();
+    try{
+      // กันหน้าโล่ง: ถ้า Sheet ยังว่าง (ยังไม่ได้รัน seedData) ให้คงข้อมูลเดิมไว้
+      const empty = (!data.PLAN||!data.PLAN.rows.length) && (!data.LOCKBOOK||!data.LOCKBOOK.length) && (!data.ONHAND||!data.ONHAND.rows.length);
+      if(empty){ setStatus('error','Sheet ว่าง — ยังไม่ได้รัน seedData'); return; }
+      reloadAll(data); setStatus('ok');
+    }catch(e){ setStatus('error',e.message); } };
+  s.onerror=()=>{ clearTimeout(timer); cleanup(); setStatus('error','โหลดสคริปต์ไม่สำเร็จ'); };
+  s.src=SHEET_API_URL+(SHEET_API_URL.indexOf('?')<0?'?':'&')+'callback='+cb+'&t='+Date.now();
+  document.body.appendChild(s);
+}
+
+// ครั้งแรกเมื่อเปิดหน้า: ถ้าตั้งค่า URL แล้วให้ดึงสด ไม่งั้นใช้ข้อมูลฝังในไฟล์
+if(SHEET_API_URL) loadFromSheet(); else setStatus('idle');
+</script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กรอกข้อมูล — ฟาร์มทดลองผสมพันธุ์ไก่ (Sunfarm)</title>
+<style>
+  :root{
+    --bg:#f4f5f6; --panel:#ffffff; --ink:#2a3136; --muted:#7e858b; --line:#e4e7ea;
+    --female:#d97a8f; --male:#5b8fc7; --good:#3bb38a; --warn:#f0ad4e; --bad:#e15a5a;
+    --primary:#1f8a8a; --primary-d:#176f6f; --accent:#f26b4e; --head:#15324f;
+    --shadow:0 1px 3px rgba(28,33,40,.06),0 4px 16px rgba(28,33,40,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Sukhumvit Set","Noto Sans Thai",-apple-system,"Segoe UI",sans-serif;line-height:1.5;font-size:15px}
+  header{padding:13px 18px;background:var(--head);color:#fff;position:sticky;top:0;z-index:20;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+  header a{color:#bfe3e3;font-size:12.5px;text-decoration:none}
+  .wrap{max-width:680px;margin:0 auto;padding:14px 14px 90px}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;position:sticky;top:50px;background:var(--bg);padding:8px 0;z-index:10}
+  .tab{flex:1;text-align:center;padding:10px 6px;border:1px solid var(--line);border-radius:11px;background:var(--panel);
+    color:var(--muted);cursor:pointer;font-weight:700;font-size:14px;transition:.15s}
+  .tab.active{color:#fff;background:var(--primary);border-color:var(--primary);box-shadow:0 2px 8px rgba(31,138,138,.3)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+  .card h2{margin:0 0 4px;font-size:16px;color:var(--head)}
+  .card .desc{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .panel{display:none}.panel.active{display:block}
+  label{display:block;font-weight:600;font-size:13.5px;margin:12px 0 5px;color:var(--ink)}
+  label .req{color:var(--accent)}
+  input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:15px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(31,138,138,.15)}
+  textarea{resize:vertical;min-height:90px;line-height:1.6}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .btn{width:100%;padding:14px;border:none;border-radius:12px;background:var(--primary);color:#fff;
+    font-size:16px;font-weight:800;cursor:pointer;margin-top:18px;transition:.15s}
+  .btn:hover{background:var(--primary-d)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn.sec{background:#fff;color:var(--primary);border:1.5px solid var(--primary);margin-top:10px}
+  .hint{background:#eef6f6;border:1px solid #cfe6e6;border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--primary-d);margin-bottom:6px}
+  .egglist{margin-top:8px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .eggsec{background:var(--head);color:#fff;padding:7px 12px;font-weight:700;font-size:13px}
+  .eggrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line)}
+  .eggrow:first-child{border-top:none}
+  .eggrow .nm{flex:1;font-size:13.5px;min-width:0}
+  .eggrow .nm small{display:block;color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .eggrow input{width:78px;text-align:center;padding:8px}
+  .seg{display:flex;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:5px}
+  .seg button{flex:1;padding:10px;border:none;background:#fff;cursor:pointer;font-weight:700;font-size:14px;color:var(--muted)}
+  .seg button.on{background:var(--primary);color:#fff}
+  .kpi{display:flex;gap:10px;margin-top:8px}
+  .kpi .b{flex:1;background:#fafbfb;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+  .kpi .b .v{font-size:18px;font-weight:800;color:var(--accent)}
+  .kpi .b .k{font-size:11px;color:var(--muted)}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);z-index:100;
+    background:var(--head);color:#fff;padding:12px 20px;border-radius:30px;font-weight:700;font-size:14px;
+    box-shadow:0 6px 24px rgba(0,0,0,.25);transition:.3s;max-width:90vw;text-align:center}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  #toast.ok{background:var(--good)} #toast.err{background:var(--bad)}
+  #status{font-size:12px;color:var(--muted);text-align:center;padding:6px}
+  .loading{text-align:center;padding:40px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>📝 กรอกข้อมูลฟาร์มทดลอง</h1>
+  <a href="SunFarm_CoopModel.html">→ เปิดหน้าดูภาพรวม (CoopModel)</a>
+</header>
+
+<div class="wrap">
+  <div id="boot" class="loading">⏳ กำลังโหลดข้อมูลจาก Google Sheet…</div>
+
+  <div id="app" style="display:none">
+    <div class="tabs">
+      <div class="tab active" data-p="egg">🥚 ไข่รายวัน</div>
+      <div class="tab" data-p="hatch">🐤 ผลฟัก</div>
+      <div class="tab" data-p="bird">📋 เพิ่มไก่</div>
+    </div>
+
+    <!-- ===== ไข่รายวัน ===== -->
+    <div class="panel active" id="p-egg">
+      <div class="card">
+        <h2>🥚 บันทึกไข่รายวัน</h2>
+        <div class="desc">เลือกวันที่ แล้วกรอกจำนวนไข่ของแต่ละคู่ผสม (เว้นว่างไว้ถ้าไม่ได้เก็บ)</div>
+        <label>วันที่เก็บไข่ <span class="req">*</span></label>
+        <input type="date" id="eggDate">
+        <div class="hint" style="margin-top:10px">กรอกเฉพาะคู่ที่เก็บไข่วันนี้ก็พอ · ที่เหลือเว้นว่าง</div>
+        <div class="egglist" id="eggList"></div>
+        <button class="btn" id="eggSave">💾 บันทึกไข่</button>
+      </div>
+    </div>
+
+    <!-- ===== ผลฟัก ===== -->
+    <div class="panel" id="p-hatch">
+      <div class="card">
+        <h2>🐤 บันทึกผลฟัก (1 รอบ)</h2>
+        <div class="desc">% ฟัก/% เชื้อ/% ตายโคม ระบบคำนวณให้อัตโนมัติ</div>
+        <label>คู่ผสม <span class="req">*</span></label>
+        <select id="hCross"><option value="">— เลือกคู่ผสม —</option></select>
+        <div class="grid2">
+          <div><label>วันเข้าฟัก (set)</label><input type="date" id="hSet"></div>
+          <div><label>วันออก/ดึง (pull)</label><input type="date" id="hPull"></div>
+        </div>
+        <div class="grid3">
+          <div><label>ไข่เข้าฟัก <span class="req">*</span></label><input type="number" id="hEggset" inputmode="numeric"></div>
+          <div><label>ไข่ลม</label><input type="number" id="hWind" inputmode="numeric"></div>
+          <div><label>ร้าว</label><input type="number" id="hCrack" inputmode="numeric"></div>
+          <div><label>เน่า</label><input type="number" id="hRot" inputmode="numeric"></div>
+          <div><label>มีเชื้อ</label><input type="number" id="hFert" inputmode="numeric"></div>
+          <div><label>ลูกไก่ <span class="req">*</span></label><input type="number" id="hChick" inputmode="numeric"></div>
+          <div><label>ตายโคม</label><input type="number" id="hDis" inputmode="numeric"></div>
+          <div><label>ตายแรกเกิด</label><input type="number" id="hCdead" inputmode="numeric"></div>
+          <div><label>คัดทิ้ง</label><input type="number" id="hCull" inputmode="numeric"></div>
+        </div>
+        <div class="kpi" id="hKpi" style="display:none">
+          <div class="b"><div class="v" id="kSe">–</div><div class="k">% ฟัก (ลูก/เข้าฟัก)</div></div>
+          <div class="b"><div class="v" id="kSf">–</div><div class="k">% ฟักจากเชื้อ</div></div>
+          <div class="b"><div class="v" id="kDp">–</div><div class="k">% ตายโคม</div></div>
+        </div>
+        <label>หมายเหตุ</label><input type="text" id="hNote" placeholder="เช่น เริ่มแยกครอบครัว">
+        <label>หมายเหตุลูกไก่</label><input type="text" id="hNote2" placeholder="เช่น ขาแบะ / ปากเบี้ยว">
+        <button class="btn" id="hSave">💾 บันทึกผลฟัก</button>
+      </div>
+    </div>
+
+    <!-- ===== เพิ่มไก่ ===== -->
+    <div class="panel" id="p-bird">
+      <div class="card">
+        <h2>📋 เพิ่มไก่เข้าทะเบียน</h2>
+        <div class="seg" id="birdMode">
+          <button class="on" data-m="one">เพิ่มทีละตัว</button>
+          <button data-m="fam">เพิ่มทั้ง Family</button>
+        </div>
+
+        <div class="grid2" style="margin-top:6px">
+          <div><label>Section <span class="req">*</span></label>
+            <input list="secList" id="bSec" placeholder="เช่น SB8 44WK">
+            <datalist id="secList"></datalist></div>
+          <div><label>Family <span class="req">*</span></label><input id="bFam" placeholder="เช่น 5"></div>
+        </div>
+        <div class="grid2">
+          <div><label>สีแท็กแม่ (fc)</label><select id="bFc"></select></div>
+          <div><label>สีแท็กพ่อ (mc)</label><select id="bMc"></select></div>
+        </div>
+
+        <!-- โหมดทีละตัว -->
+        <div id="modeOne">
+          <div class="grid3">
+            <div><label>เพศ</label><select id="bSex"><option value="F">เมีย</option><option value="M">ผู้</option></select></div>
+            <div><label>ลำดับ</label><input type="number" id="bIdx" inputmode="numeric" placeholder="1"></div>
+            <div><label>เบอร์ห่วง</label><input id="bBand" placeholder="เช่น 11"></div>
+          </div>
+          <label>รหัสไก่ <span class="req">*</span></label>
+          <input id="bCode" placeholder="เช่น SB-26-G8-F05-F-001">
+        </div>
+
+        <!-- โหมดทั้ง family -->
+        <div id="modeFam" style="display:none">
+          <label>รหัสแม่ (ตัวละบรรทัด)</label>
+          <textarea id="bFcodes" placeholder="SB-26-G8-F05-F-001&#10;SB-26-G8-F05-F-002&#10;..."></textarea>
+          <label>รหัสพ่อ</label>
+          <input id="bMcode" placeholder="SB-26-G8-F05-M-001">
+        </div>
+        <button class="btn" id="bSave">💾 บันทึกเข้าทะเบียน</button>
+      </div>
+    </div>
+
+    <div id="status"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ====== ตั้งค่า: ใช้ URL เดียวกับ CoopModel ====== */
+const API="https://script.google.com/macros/s/AKfycbyb2xigoUDKr8C9hZArX2kNIHD68OtPuVlOrJsehpgiRVCbw-lFrDS_k08vJu1CCViOdQ/exec";
+
+let DATA=null;
+
+function jsonp(params){
+  return new Promise((res,rej)=>{
+    const cb='__f'+Date.now()+Math.floor(Math.random()*1e5);
+    const s=document.createElement('script');
+    const clean=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;} if(s.parentNode)s.parentNode.removeChild(s); };
+    const t=setTimeout(()=>{clean();rej(new Error('หมดเวลาเชื่อมต่อ'));},25000);
+    window[cb]=d=>{clearTimeout(t);clean();res(d);};
+    s.onerror=()=>{clearTimeout(t);clean();rej(new Error('เชื่อมต่อไม่สำเร็จ'));};
+    const q=Object.keys(params).map(k=>k+'='+encodeURIComponent(params[k])).join('&');
+    s.src=API+'?'+q+(q?'&':'')+'callback='+cb+'&_='+Date.now();
+    document.body.appendChild(s);
+  });
+}
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show'+(type?' '+type:'');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),3200);
+}
+// แปลง yyyy-mm-dd → d/m (ไม่มีศูนย์นำหน้า ให้ตรงรูปแบบในชีท)
+function toDM(v){ if(!v)return''; const [y,m,d]=v.split('-'); return parseInt(d,10)+'/'+parseInt(m,10); }
+
+function boot(){
+  jsonp({}).then(d=>{
+    DATA=d; buildUI();
+    document.getElementById('boot').style.display='none';
+    document.getElementById('app').style.display='block';
+  }).catch(e=>{
+    document.getElementById('boot').innerHTML='❌ โหลดข้อมูลไม่ได้: '+e.message+'<br><br>ตรวจว่า URL ถูกต้อง และ Deploy เป็น "Anyone"';
+  });
+}
+
+function buildUI(){
+  // วันที่ default = วันนี้
+  const today=new Date(); document.getElementById('eggDate').value=today.toISOString().slice(0,10);
+
+  // ===== egg list (จัดกลุ่มตาม section) =====
+  const rows=DATA.EGGS.rows;
+  const bySec={};
+  rows.forEach((r,i)=>{ const s=r.sec||'(ไม่ระบุ section)'; (bySec[s]=bySec[s]||[]).push({r,i}); });
+  let h='';
+  Object.keys(bySec).forEach(sec=>{
+    h+=`<div class="eggsec">${sec}</div>`;
+    bySec[sec].forEach(({r})=>{
+      h+=`<div class="eggrow"><div class="nm">${r.ch||r.fam||'-'}<small>♀ ${r.mo}</small></div>
+        <input type="number" inputmode="numeric" min="0" data-mo="${encodeURIComponent(r.mo)}" placeholder="ฟอง"></div>`;
+    });
+  });
+  document.getElementById('eggList').innerHTML=h||'<div style="padding:14px;color:var(--muted)">ยังไม่มีคู่ผสมในชีทไข่รายวัน</div>';
+
+  // ===== hatch cross dropdown =====
+  const hSel=document.getElementById('hCross');
+  rows.forEach((r,i)=>{
+    const o=document.createElement('option'); o.value=i;
+    o.textContent=(r.ch||r.fam||'-')+(r.sec?' · '+r.sec:'');
+    hSel.appendChild(o);
+  });
+
+  // ===== sections + tag colors =====
+  const secs=new Set(); DATA.LOCKBOOK.forEach(g=>g.s&&secs.add(g.s)); Object.keys(DATA.SECCOL||{}).forEach(s=>secs.add(s));
+  document.getElementById('secList').innerHTML=[...secs].map(s=>`<option value="${s}">`).join('');
+  const tagOpts='<option value=""></option>'+Object.keys(DATA.TAGCOL||{}).map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('bFc').innerHTML=tagOpts;
+  document.getElementById('bMc').innerHTML=tagOpts;
+}
+
+/* ====== แท็บ ====== */
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('p-'+t.dataset.p).classList.add('active');
+});
+
+/* ====== บันทึกไข่ (chunk ละ 15 คู่) ====== */
+document.getElementById('eggSave').onclick=async()=>{
+  const date=toDM(document.getElementById('eggDate').value);
+  if(!date){ toast('เลือกวันที่ก่อน','err'); return; }
+  const inputs=[...document.querySelectorAll('#eggList input')].filter(i=>i.value!=='');
+  if(!inputs.length){ toast('ยังไม่ได้กรอกจำนวนไข่','err'); return; }
+  const entries=inputs.map(i=>i.dataset.mo+':'+i.value);
+  const btn=document.getElementById('eggSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
+  try{
+    let total=0;
+    for(let k=0;k<entries.length;k+=15){
+      const chunk=entries.slice(k,k+15).join(';');
+      const r=await jsonp({action:'eggBatch',date,v:chunk});
+      if(!r.ok) throw new Error(r.error||'บันทึกไม่สำเร็จ');
+      total+=r.updated||0;
+    }
+    toast(`✅ บันทึกไข่ ${total} คู่ · วันที่ ${date}`,'ok');
+    inputs.forEach(i=>i.value='');
+  }catch(e){ toast('❌ '+e.message,'err'); }
+  finally{ btn.disabled=false; btn.textContent='💾 บันทึกไข่'; }
+};
+
+/* ====== คำนวณ KPI สดในฟอร์มฟัก ====== */
+function calcKpi(){
+  const g=id=>parseFloat(document.getElementById(id).value)||0;
+  const eggset=g('hEggset'),fert=g('hFert'),chick=g('hChick'),dis=g('hDis');
+  const pct=(a,b)=>b>0?(Math.round(a/b*1000)/10):null;
+  const se=pct(chick,eggset),sf=pct(chick,fert),dp=pct(dis,fert);
+  document.getElementById('hKpi').style.display=(eggset||fert)?'flex':'none';
+  document.getElementById('kSe').textContent=se==null?'–':se+'%';
+  document.getElementById('kSf').textContent=sf==null?'–':sf+'%';
+  document.getElementById('kDp').textContent=dp==null?'–':dp+'%';
+}
+['hEggset','hFert','hChick','hDis'].forEach(id=>document.getElementById(id).addEventListener('input',calcKpi));
+
+/* ====== บันทึกผลฟัก ====== */
+document.getElementById('hSave').onclick=async()=>{
+  const idx=document.getElementById('hCross').value;
+  if(idx===''){ toast('เลือกคู่ผสมก่อน','err'); return; }
+  const r=DATA.EGGS.rows[idx];
+  const g=id=>document.getElementById(id).value;
+  if(!g('hEggset')||!g('hChick')){ toast('กรอกไข่เข้าฟัก + ลูกไก่ก่อน','err'); return; }
+  const btn=document.getElementById('hSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
+  try{
+    const res=await jsonp({action:'addHatch',pa:r.pa,mo:r.mo,ch:r.ch,sec:r.sec,fam:r.fam,
+      set:toDM(g('hSet')),pull:toDM(g('hPull')),
+      eggset:g('hEggset'),wind:g('hWind'),crack:g('hCrack'),rot:g('hRot'),
+      fert:g('hFert'),chick:g('hChick'),dis:g('hDis'),cdead:g('hCdead'),cull:g('hCull'),
+      note:g('hNote'),note2:g('hNote2')});
+    if(!res.ok) throw new Error(res.error||'บันทึกไม่สำเร็จ');
+    toast(`✅ บันทึกผลฟัก ${r.ch||r.fam} · ฟัก ${res.se}%`,'ok');
+    ['hSet','hPull','hEggset','hWind','hCrack','hRot','hFert','hChick','hDis','hCdead','hCull','hNote','hNote2'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('hKpi').style.display='none';
+  }catch(e){ toast('❌ '+e.message,'err'); }
+  finally{ btn.disabled=false; btn.textContent='💾 บันทึกผลฟัก'; }
+};
+
+/* ====== สลับโหมดเพิ่มไก่ ====== */
+let birdMode='one';
+document.querySelectorAll('#birdMode button').forEach(b=>b.onclick=()=>{
+  birdMode=b.dataset.m;
+  document.querySelectorAll('#birdMode button').forEach(x=>x.classList.toggle('on',x===b));
+  document.getElementById('modeOne').style.display=birdMode==='one'?'block':'none';
+  document.getElementById('modeFam').style.display=birdMode==='fam'?'block':'none';
+});
+
+/* ====== บันทึกเพิ่มไก่ ====== */
+document.getElementById('bSave').onclick=async()=>{
+  const g=id=>document.getElementById(id).value.trim();
+  if(!g('bSec')||!g('bFam')){ toast('กรอก Section + Family ก่อน','err'); return; }
+  const btn=document.getElementById('bSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
+  try{
+    let res;
+    if(birdMode==='one'){
+      if(!g('bCode')){ throw new Error('กรอกรหัสไก่ก่อน'); }
+      res=await jsonp({action:'addBird',section:g('bSec'),family:g('bFam'),fc:g('bFc'),mc:g('bMc'),
+        sex:g('bSex'),idx:g('bIdx'),code:g('bCode'),band:g('bBand')});
+      if(!res.ok) throw new Error(res.error||'ล้มเหลว');
+      toast('✅ เพิ่มไก่ '+g('bCode'),'ok');
+      document.getElementById('bCode').value=''; document.getElementById('bBand').value='';
+    }else{
+      const fcodes=g('bFcodes').split(/\n/).map(s=>s.trim()).filter(Boolean);
+      if(!fcodes.length && !g('bMcode')){ throw new Error('ใส่รหัสแม่หรือพ่ออย่างน้อย 1'); }
+      res=await jsonp({action:'addFamily',section:g('bSec'),family:g('bFam'),fc:g('bFc'),mc:g('bMc'),
+        fcodes:fcodes.map(encodeURIComponent).join(','), mcode:g('bMcode')});
+      if(!res.ok) throw new Error(res.error||'ล้มเหลว');
+      toast(`✅ เพิ่ม Family ${g('bFam')} · ${res.added} ตัว`,'ok');
+      document.getElementById('bFcodes').value=''; document.getElementById('bMcode').value='';
+    }
+    document.getElementById('status').textContent='บันทึกล่าสุด: '+new Date().toLocaleTimeString('th-TH')+' · ไปกด ↻ รีเฟรช ใน CoopModel เพื่อดูผล';
+  }catch(e){ toast('❌ '+e.message,'err'); }
+  finally{ btn.disabled=false; btn.textContent='💾 บันทึกเข้าทะเบียน'; }
+};
+
+boot();
+</script>
+</body>
+</html>

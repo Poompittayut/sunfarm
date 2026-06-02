@@ -1,0 +1,9 @@
+# ข้อมูลต้นฉบับ (ไม่ขึ้น GitHub — อยู่ใน Google Sheet แล้ว)
+SB Tag (1).xlsx
+*.xlsx
+~$*
+
+# ระบบปฏิบัติการ / เครื่องมือ
+.DS_Store
+.claude/
+.build/
