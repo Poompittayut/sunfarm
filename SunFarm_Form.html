@@ -213,12 +213,17 @@ function toast(msg,type){
 function toDM(v){ if(!v)return''; const [y,m,d]=v.split('-'); return parseInt(d,10)+'/'+parseInt(m,10); }
 
 function boot(){
-  jsonp({}).then(d=>{
+  document.getElementById('boot').style.display='block';
+  document.getElementById('boot').innerHTML='⏳ กำลังโหลดข้อมูลจาก Google Sheet…';
+  jsonp({key:getKey()}).then(d=>{
+    if(d&&d.needKey){ localStorage.removeItem('sf_key');
+      document.getElementById('boot').innerHTML='🔒 รหัสไม่ถูกต้อง<br><br><button onclick="boot()" style="border:none;background:#1f8a8a;color:#fff;font-weight:700;padding:10px 22px;border-radius:22px;cursor:pointer">🔑 ใส่รหัสอีกครั้ง</button>';
+      return; }
     DATA=d; buildUI();
     document.getElementById('boot').style.display='none';
     document.getElementById('app').style.display='block';
   }).catch(e=>{
-    document.getElementById('boot').innerHTML='❌ โหลดข้อมูลไม่ได้: '+e.message+'<br><br>ตรวจว่า URL ถูกต้อง และ Deploy เป็น "Anyone"';
+    document.getElementById('boot').innerHTML='❌ โหลดข้อมูลไม่ได้: '+e.message+'<br><br><button onclick="boot()" style="border:none;background:#1f8a8a;color:#fff;font-weight:700;padding:10px 22px;border-radius:22px;cursor:pointer">ลองใหม่</button>';
   });
 }
 

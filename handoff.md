@@ -176,7 +176,14 @@ ws = wb['ชื่อชีท']
 - **รหัสเขียน (WRITE_KEY):** Apps Script ตรวจ `e.parameter.key === WRITE_KEY` ก่อนทุก action เขียน (อ่านไม่ต้องใช้รหัส) · ฟอร์มเก็บรหัสใน `localStorage('sf_key')` ถามครั้งแรกครั้งเดียว ส่งแนบทุกครั้งที่เขียน · รหัสผิด → `needKey` → ฟอร์มล้าง+ถามใหม่
 - ⚠️ **WRITE_KEY อยู่ใน `.gs` เท่านั้น (ฝั่ง Google) ห้าม commit รหัสจริง** — ไฟล์ `.gs` ใน repo มีค่า placeholder `"เปลี่ยนรหัสนี้"` · ตั้งรหัสจริงเฉพาะในหน้า Apps Script แล้ว redeploy
 - **`index.html`:** หน้าแรก (landing) มี 2 ปุ่ม → ฟอร์ม / ภาพรวม · เป็นไฟล์ที่ GitHub Pages เปิดเป็นหน้าแรก
-- **โฮสต์:** GitHub Pages (repo ต้องเป็น public) · URL = `https://poompittayut.github.io/sunfarm/`
+- **โฮสต์:** GitHub Pages (repo public) · URL = `https://poompittayut.github.io/sunfarm/`
+
+### ล็อกทั้งระบบ (รหัสเดียว ทั้งดู+กรอก) — ทำแล้ว
+- `doGet` อ่านข้อมูล (ไม่มี action) ก็ต้องมี `key===WRITE_KEY` ด้วย (ping ยังเปิด)
+- **ถอด embedded data ออกจาก `SunFarm_CoopModel.html` ทั้งหมด** (PLAN/BREEDER/GROWER/LOCKBOOK/EGGS/ONHAND/LEG_*/META/TAGCOL/SECCOL/BREEDER_TBL/GROWER_TBL = ว่าง) เพราะไฟล์อยู่บน repo public → ข้อมูลมาจาก API (มีรหัส) เท่านั้น
+- CoopModel มี **gate overlay** (`#gate`) บังหน้าจนใส่รหัสถูก · ส่ง `key` ทุกครั้งที่โหลด · `needKey` → ล้างรหัส+ขอใหม่
+- Form `boot()` ส่ง key ด้วย · รหัสผิด → ปุ่มลองใหม่
+- ⚠️ แก้ `doGet` แล้ว **ต้อง redeploy** ถึงจะ enforce read-lock
 
 ---
 

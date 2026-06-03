@@ -136,7 +136,11 @@ function buildAll_(){
 }
 function doGet(e){
   var p=(e&&e.parameter)||{};
-  var out = p.action ? handleAction_(p.action,e) : buildAll_();
+  var out;
+  if(p.action){ out = handleAction_(p.action,e); }            // ping/เขียน (handleAction_ ตรวจรหัสเอง)
+  else if(String(p.key||'') !== WRITE_KEY){                    // อ่านข้อมูลก็ต้องมีรหัส
+    out = {ok:false, error:'รหัสผ่านไม่ถูกต้อง', needKey:true};
+  } else { out = buildAll_(); }
   var payload=JSON.stringify(out);
   if(p.callback) return ContentService.createTextOutput(p.callback+'('+payload+')').setMimeType(ContentService.MimeType.JAVASCRIPT);
   return ContentService.createTextOutput(payload).setMimeType(ContentService.MimeType.JSON);
