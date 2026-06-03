@@ -17,16 +17,17 @@
 
 | ไฟล์ | คืออะไร | สถานะ |
 |------|---------|-------|
-| `SB Tag (1).xlsx` | **ไฟล์ต้นฉบับ** (source of truth) ทุกข้อมูลมาจากที่นี่ | ของลูกค้า — ห้ามแก้ |
-| `Instruction.md` | เอกสารอธิบายโครงสร้าง/ความสัมพันธ์ของแต่ละชีท | ✅ ทำแล้ว |
+| `SB Tag (1).xlsx` | **ไฟล์ต้นฉบับ** — seed ครั้งแรกจากที่นี่ (ปัจจุบันข้อมูลจริงอยู่ใน Google Sheet) · gitignored | ของลูกค้า — ห้ามแก้ |
 | `SunFarm_CoopModel.html` | **ตัวหลัก** — HTML model โต้ตอบได้ (เปิดไฟล์เดียวจบ ไม่ต้องมี server) | ✅ ทำแล้ว |
 | `handoff.md` | ไฟล์นี้ | — |
 | `SunFarm_AppsScript.gs` | **Apps Script** = seed ข้อมูล + เสิร์ฟ JSON (read-only) ให้ HTML ดึงสด | ✅ ทำแล้ว |
 | `SETUP_GoogleSheet.md` | คู่มือ deploy Apps Script + ผูก HTML กับ Sheet ทีละขั้น | ✅ ทำแล้ว |
 | `SunFarm_Form.html` | **หน้าฟอร์มกรอกข้อมูล** (สำหรับคนทดลอง) → เขียนเข้า Sheet ผ่าน Apps Script | ✅ ทำแล้ว |
-| `SunFarm_Dashboard.html`, `SunFarm_Form.html`, `SunFarm_AppsScript_Fixed.gs` | ของเดิม (Google Apps Script/ฟอร์ม) — **ไม่เกี่ยวกับงานรอบนี้** | ของเก่า |
+| `index.html` | หน้า landing (2 ปุ่ม: ฟอร์ม / ภาพรวม) — GitHub Pages เปิดเป็นหน้าแรก | ✅ ทำแล้ว |
+| `README.md` | อธิบายโปรเจกต์สำหรับ repo | ✅ ทำแล้ว |
 
-> `SunFarm_CoopModel.html` เป็น single-file (HTML+CSS+JS ในไฟล์เดียว, ข้อมูลฝัง inline เป็น JS const) เปิดด้วยเบราว์เซอร์ได้เลย
+> โปรเจกต์อยู่ใน **git repo** (branch `main`, โฮสต์ GitHub Pages) · ไฟล์เก่า `SunFarm_Dashboard.html` / `SunFarm_AppsScript_Fixed.gs` ถูกลบออกแล้ว
+> ⚠️ `SunFarm_CoopModel.html` เป็น single-file แต่ **ข้อมูล const ถูกถอดออกหมด (ค่าว่าง)** — ดึงสดจาก Sheet API ที่ต้องใส่รหัสก่อน (เปิดไฟล์ตรงๆ จะเจอ gate ขอรหัส · ดูข้อ 8.7)
 
 ---
 
@@ -52,7 +53,7 @@ SB   - 26    - G8         - F01      - F        - 001
 - รหัสแม่แบบ `...-F-001-10` = แม่ตัวที่ 001–010 (กลุ่ม 10 ตัว = 1 family)
 
 **กุญแจเชื่อม:** รหัสพ่อ/แม่/ลูก ใช้ชุดเดียวกันใน Lockbook → ไข่รายวัน → on hand
-รายละเอียดเต็มอยู่ใน `Instruction.md` (ข้อ 3.4–3.7)
+(เอกสารละเอียดรวมมาที่ไฟล์นี้แล้ว — `Instruction.md` เดิมถูกยุบทิ้ง · ภาพรวมย่อดู `README.md`)
 
 ---
 
@@ -73,7 +74,7 @@ SB   - 26    - G8         - F01      - F        - 001
 
 ## 5. SunFarm_CoopModel.html — โครงสร้างเทคนิค
 
-**ข้อมูล (ฝัง inline เป็น JS const):**
+**ข้อมูล (โครงสร้าง JS const — ปัจจุบันเริ่มว่าง เติมจาก API ตอนรันไทม์):**
 | const | มาจากชีท | โครงสร้าง |
 |-------|----------|-----------|
 | `BREEDER`, `GROWER` | ผังเล้าทดลอง | `{cages, chunk?, rows:[{name,sub,female:{cages:{n:[จำนวน,"สีhex"]},recTotal},male:{...}}]}` |
@@ -82,7 +83,9 @@ SB   - 26    - G8         - F01      - F        - 001
 | `ONHAND` | on hand | `{rows:[{set,pull,pa,mo,ch,sec,fam,eggset,wind,crack,rot,fert,chick,dis,cdead,cull,se,sf,dpct,note,note2}]}` |
 | `PLAN` | แผนทดลอง | `{rows:[{line,pa,mo,ch,nm,nf,nfam,loc,method,batches:[...]}]}` |
 
-**ฟังก์ชัน render หลัก:** `renderCoop / renderLockbook / renderEggs / renderOnhand / renderPlan`
+> ⚠️ **ปัจจุบัน const เหล่านี้เริ่มเป็นค่าว่าง** (`let PLAN={rows:[]}`, `let EGGS={dates:[],rows:[]}`, `let LOCKBOOK=[]` ฯลฯ) — `reloadAll()` เติมข้อมูลจาก Sheet API ตอนรันไทม์ (โครงสร้างยังเป็นรูปเดิมตามตารางข้างบน) · ดูข้อ 8.5/8.7
+
+**ฟังก์ชัน render หลัก:** `renderCoop / renderLockbook / renderEggs / renderOnhand / renderPlan / renderMatrix`
 **สีกรง = สีพื้นเซลล์จริงจาก Excel** (แมปสี hex → ชื่อพันธุ์ ใน `LEG_BREEDER` / `LEG_GROWER`)
 
 **การเชื่อมข้ามแท็บ (คลิกแล้วกระโดด):**
@@ -128,7 +131,8 @@ SB   - 26    - G8         - F01      - F        - 001
 
 ## 8. วิธีอัปเดตข้อมูล (ถ้า Excel เปลี่ยน)
 
-ข้อมูลใน HTML ถูก **ฝังแบบ static** (ไม่ได้อ่าน Excel สด) — ถ้า Excel อัปเดต ต้อง re-extract:
+> **แหล่งข้อมูลสด (runtime) ตอนนี้คือ Google Sheet** (seed ครั้งแรกจาก Excel ผ่าน `seedData()` ใน `.gs`) — การแก้ข้อมูลปกติทำผ่านฟอร์ม/Sheet ไม่ใช่แก้ HTML
+> ส่วนด้านล่างนี้ใช้เฉพาะกรณี **re-seed ใหม่จาก Excel** (เช่น Excel เปลี่ยนโครงสร้างใหญ่) — ดึงด้วย Python แล้วเอาไปอัปเดต `seedData()` ใน `SunFarm_AppsScript.gs`:
 1. ใช้ `python3 + openpyxl` อ่านชีทที่เปลี่ยน (มี pattern การดึงในประวัติ chat / โค้ดตัวอย่างด้านล่าง)
 2. แปลงเป็น JS const (compact JSON) แล้วแทนที่ const เดิมในไฟล์ HTML
 3. **สำคัญ:** สีกรงต้องอ่านจาก `cell.fill.fgColor.rgb` (ไม่ใช่แค่ค่าตัวเลข)
@@ -191,7 +195,7 @@ ws = wb['ชื่อชีท']
 
 - [ ] แท็บ/หน้า `P2` (ผังเล้าหลังที่ 2 — SPL ชุด 4-9, ประดู่ดำ ชุด 3)
 - [ ] ดูชีท `อัพเดท` และ `แผน Super`
-- [ ] (ถ้าต้องการระบบจริง) ทำ backend/ฐานข้อมูล — โครงสร้างตารางอ้างอิงตาม Data Model ใน `Instruction.md` ข้อ 3 (เล้า→ฝั่ง→แถว→กรง→ช่อง / Family / cross / hatch)
+- [ ] (ถ้าต้องการ DB จริงแทน Google Sheet) ทำ backend — โครงสร้างตารางอ้างอิงตาม Data Model ข้อ 3 ของไฟล์นี้ (เล้า→ฝั่ง→แถว→กรง→ช่อง / Family / cross / hatch)
 - [ ] ยืนยัน 3 ประเด็นค้างในข้อ 7 กับเจ้าของไฟล์
 
 ---
