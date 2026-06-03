@@ -160,7 +160,17 @@
   .fhead .fsec{font-size:11px;font-weight:600;color:rgba(255,255,255,.72)}
   .fhead .fcount{font-size:12px;font-weight:700;display:flex;gap:8px}
   .fbody{padding:6px 0 8px}
-  .frow{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center;padding:3px 14px;font-size:12px}
+  .frow{display:grid;grid-template-columns:20px 1fr auto 16px;gap:8px;align-items:center;padding:3px 14px;font-size:12px;cursor:pointer}
+  .frow:hover{background:var(--panel2)}
+  .frow .fedit{opacity:0;color:var(--primary);font-size:11px;text-align:center}
+  .frow:hover .fedit{opacity:.75}
+  .frow.editing{display:flex;gap:5px;align-items:center;cursor:default;background:#f0f7f7}
+  .frow.editing input{font:inherit;font-size:11px;padding:3px 7px;border-radius:5px;border:1px solid var(--line)}
+  .frow.editing input.ecode{flex:1;min-width:0;border-color:var(--primary);font-family:ui-monospace,monospace}
+  .frow.editing input.eband{width:56px}
+  .frow .fbtn{border:none;border-radius:5px;cursor:pointer;font-size:12px;font-weight:700;padding:3px 9px;line-height:1.4}
+  .frow .fsave{background:var(--good);color:#fff}
+  .frow .fcancel{background:var(--line);color:var(--ink)}
   .frow:hover{background:var(--panel2)}
   .frow .tag{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.18)}
   .frow .fcode{font-family:ui-monospace,monospace;font-size:11px;color:#4a463e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -502,12 +512,13 @@ rebuildOnhandMap();
 let PLAN={rows:[]};
 let lbFilter="ทั้งหมด";
 
-function memberRow(m,sexLabel,sexColor){
-  const [num,code,band]=m;
-  const tag = ""; // tag color set per family
+// แถวไก่ 1 ตัว (คลิกแก้รหัส/ห่วง ได้ → เซฟเข้า Sheet)
+function birdRowHtml(sec,fam,sex,bird,tagc){
+  const code=bird[1], band=bird[2];
   const codeHtml = code ? `<span class="fcode">${code}</span>` : `<span class="fcode empty">— ยังไม่กรอกรหัส —</span>`;
   const bandHtml = (band!==''&&band!=null) ? `ห่วง ${band}` : '';
-  return {num,codeHtml,bandHtml};
+  return `<div class="frow" data-sec="${sec}" data-fam="${fam}" data-sex="${sex}" data-idx="${bird[0]}" title="คลิกเพื่อแก้รหัส/ห่วง">`
+    +`<span class="tag" style="background:${tagc}"></span>${codeHtml}<span class="fband">${bandHtml}</span><span class="fedit">✎</span></div>`;
 }
 function fcardHtml(fam){
   const sc=SECCOL[fam.s]||'#a8aeb5';
@@ -516,10 +527,9 @@ function fcardHtml(fam){
       <div class="fcount"><span class="fbadge" style="background:var(--female)">♀ ${fam.F.length}</span><span class="fbadge" style="background:var(--male)">♂ ${fam.M.length}</span></div>
     </div>`;
   const tagF=TAGCOL[fam.fc]||'#ddd', tagM=TAGCOL[fam.mc]||'#fff';
-  const fr=(arr,tagc)=>arr.map(m=>{const r=memberRow(m);
-    return `<div class="frow"><span class="tag" style="background:${tagc}"></span>${r.codeHtml}<span class="fband">${r.bandHtml}</span></div>`;}).join('');
-  let body=`<div class="fbody">${fr(fam.F,tagF)}`;
-  if(fam.M.length){body+=`<div class="fdivider"></div>${fr(fam.M,tagM)}`;}
+  const fr=(arr,tagc,sex)=>arr.map(m=>birdRowHtml(fam.s,fam.f,sex,m,tagc)).join('');
+  let body=`<div class="fbody">${fr(fam.F,tagF,'F')}`;
+  if(fam.M.length){body+=`<div class="fdivider"></div>${fr(fam.M,tagM,'M')}`;}
   body+=`</div>`;
   let foot='';
   const eg=EGG_BY_FAM[fam.s+'|'+fam.f];
@@ -551,11 +561,90 @@ document.getElementById('lbfilter').addEventListener('click',e=>{
   const c=e.target.closest('.lbchip'); if(!c)return;
   lbFilter=c.dataset.sec; renderLbFilter(); renderLockbook();
 });
-// คลิก footer ไข่ ใน Lockbook -> ไป tab ไข่รายวัน + ไฮไลต์คู่นั้น
+// คลิกใน Lockbook: footer ไข่ -> ไปแท็บไข่ · แถวไก่ -> แก้รหัส/ห่วง (เซฟเข้า Sheet)
 document.getElementById('lbgrid').addEventListener('click',e=>{
-  const f=e.target.closest('.eggfoot'); if(!f)return;
-  gotoEgg(f.dataset.egg);
+  const f=e.target.closest('.eggfoot'); if(f){ gotoEgg(f.dataset.egg); return; }
+  if(e.target.closest('.fsave')){ saveEdit(e.target.closest('.frow')); return; }
+  if(e.target.closest('.fcancel')){ restoreRow(e.target.closest('.frow')); return; }
+  const row=e.target.closest('.frow');
+  if(row && !row.classList.contains('editing')) enterEdit(row);
 });
+
+let editingRow=null;
+function findBird(row){
+  const fam=LOCKBOOK.find(x=>x.s===row.dataset.sec && x.f===row.dataset.fam);
+  if(!fam) return null;
+  const arr=row.dataset.sex==='F'?fam.F:fam.M;
+  const bird=arr.find(b=>String(b[0])===String(row.dataset.idx));
+  const tagc=TAGCOL[row.dataset.sex==='F'?fam.fc:fam.mc]||'#ddd';
+  return {fam,bird,tagc};
+}
+function enterEdit(row){
+  if(editingRow && editingRow!==row) restoreRow(editingRow);
+  const b=findBird(row); if(!b||!b.bird) return;
+  editingRow=row; row.classList.add('editing');
+  row.innerHTML=`<span class="tag" style="background:${b.tagc}"></span>`
+    +`<input class="ecode" placeholder="รหัสไก่" value="${b.bird[1]||''}">`
+    +`<input class="eband" placeholder="ห่วง" value="${b.bird[2]??''}">`
+    +`<button class="fbtn fsave">✓</button><button class="fbtn fcancel">✕</button>`;
+  const ci=row.querySelector('.ecode'); ci.focus();
+  row.querySelectorAll('input').forEach(inp=>inp.addEventListener('keydown',ev=>{
+    if(ev.key==='Enter') saveEdit(row); if(ev.key==='Escape') restoreRow(row);
+  }));
+}
+function restoreRow(row){
+  const b=findBird(row); if(!b) return;
+  const bird=b.bird||[row.dataset.idx,'',''];
+  const codeHtml= bird[1]?`<span class="fcode">${bird[1]}</span>`:`<span class="fcode empty">— ยังไม่กรอกรหัส —</span>`;
+  const bandHtml=(bird[2]!==''&&bird[2]!=null)?`ห่วง ${bird[2]}`:'';
+  row.classList.remove('editing');
+  row.innerHTML=`<span class="tag" style="background:${b.tagc}"></span>${codeHtml}<span class="fband">${bandHtml}</span><span class="fedit">✎</span>`;
+  if(editingRow===row) editingRow=null;
+}
+async function saveEdit(row){
+  const b=findBird(row); if(!b||!b.bird) return;
+  const code=row.querySelector('.ecode').value.trim();
+  const bandRaw=row.querySelector('.eband').value.trim();
+  const band= bandRaw===''?'':(isNaN(+bandRaw)?bandRaw:+bandRaw);
+  const sv=row.querySelector('.fsave'); if(sv){ sv.textContent='…'; sv.disabled=true; }
+  try{
+    const r=await apiWrite({action:'updateBird',section:row.dataset.sec,family:row.dataset.fam,
+      sex:row.dataset.sex,idx:row.dataset.idx,code:code,band:bandRaw});
+    if(r&&r.needKey){ localStorage.removeItem('sf_key'); throw new Error('รหัสผ่านไม่ถูกต้อง — ลองใหม่'); }
+    if(r&&r.ok===false) throw new Error(r.error||'บันทึกไม่สำเร็จ');
+    b.bird[1]=code; b.bird[2]=band;           // patch ข้อมูลในหน้า
+    restoreRow(row); refreshLbStats();
+  }catch(err){
+    if(sv){ sv.textContent='✓'; sv.disabled=false; }
+    alert('❌ '+err.message);
+  }
+}
+function refreshLbStats(){
+  const list=lbFilter==="ทั้งหมด"?LOCKBOOK:LOCKBOOK.filter(x=>x.s===lbFilter);
+  let nF=0,nM=0,filled=0;
+  list.forEach(x=>{nF+=x.F.length;nM+=x.M.length; if(x.F.some(m=>m[1])||x.M.some(m=>m[1]))filled++;});
+  document.getElementById('stats-lockbook').innerHTML=`
+    <div class="stat"><div class="k">Family</div><div class="v">${list.length}</div></div>
+    <div class="stat"><div class="k">รวมเมีย ♀</div><div class="v" style="color:var(--female)">${nF}</div></div>
+    <div class="stat"><div class="k">รวมผู้ ♂</div><div class="v" style="color:var(--male)">${nM}</div></div>
+    <div class="stat"><div class="k">กรอกรหัสแล้ว</div><div class="v">${filled} <small>/ ${list.length} fam</small></div></div>`;
+}
+// เขียนกลับ Sheet ผ่าน JSONP (แนบรหัสเขียน)
+function apiWrite(params){
+  return new Promise((resolve,reject)=>{
+    if(!SHEET_API_URL){ reject(new Error('ยังไม่ได้เชื่อม Google Sheet (เปิดจากไฟล์ฝัง แก้ไม่ได้)')); return; }
+    const cb='__w'+Math.random().toString(36).slice(2);
+    let done=false; const s=document.createElement('script');
+    function cleanup(){ try{delete window[cb];}catch(_){} s.remove(); }
+    window[cb]=d=>{ done=true; resolve(d); cleanup(); };
+    s.onerror=()=>{ if(!done){ cleanup(); reject(new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้')); } };
+    params.key=getKey();
+    const q=Object.keys(params).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(params[k])).join('&');
+    s.src=SHEET_API_URL+(SHEET_API_URL.indexOf('?')<0?'?':'&')+q+'&callback='+cb+'&t='+Date.now();
+    document.body.appendChild(s);
+    setTimeout(()=>{ if(!done){ cleanup(); reject(new Error('หมดเวลาเชื่อมต่อ')); } },15000);
+  });
+}
 
 /* ===================== ไข่รายวัน ===================== */
 const LINECOL={"SB8 44WK":"#c97b5a","SB8 69 WK":"#b08968","L SM":"#7a9a5b","L SF":"#5b9aa0"};

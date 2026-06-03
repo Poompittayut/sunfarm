@@ -164,6 +164,7 @@ function handleAction_(a,e){
     if(a==='addHatch')  return act_addHatch_(e);
     if(a==='addBird')   return act_addBird_(e);
     if(a==='addFamily') return act_addFamily_(e);
+    if(a==='updateBird')return act_updateBird_(e);
     return {ok:false, error:'ไม่รู้จัก action: '+a};
   }catch(err){ return {ok:false, error:String(err)}; }
   finally{ lock.releaseLock(); }
@@ -230,6 +231,31 @@ function act_addBird_(e){
   var p=e.parameter;
   writeRow_('Lockbook',[p.section||'',p.family||'',p.fc||'',p.mc||'',p.sex||'F',p.idx||'',p.code||'',p.band||'']);
   return {ok:true};
+}
+
+// แก้รหัส/ห่วง ของไก่ 1 ตัว (หาแถวจาก section+family+sex+idx) — ไม่เจอก็ต่อท้ายใหม่
+function act_updateBird_(e){
+  var p=e.parameter, sh=getSheet_('Lockbook');
+  var section=String(p.section||''), family=String(p.family||''),
+      sex=String(p.sex||'F'), idx=String(p.idx||'');
+  var code=String(p.code||''), band=String(p.band||'');
+  var last=sh.getLastRow();
+  // คอลัมน์: 1 section, 2 family, 3 fc, 4 mc, 5 sex, 6 idx, 7 code, 8 band
+  if(last>1){
+    var data=sh.getRange(2,1,last-1,8).getValues();
+    for(var i=0;i<data.length;i++){
+      if(String(data[i][0])===section && String(data[i][1])===family
+         && String(data[i][4])===sex && String(data[i][5])===idx){
+        var rn=i+2;
+        sh.getRange(rn,7,1,2).setNumberFormat('@');
+        sh.getRange(rn,7).setValue(code);
+        sh.getRange(rn,8).setValue(band);
+        return {ok:true, updated:1, row:rn};
+      }
+    }
+  }
+  writeRow_('Lockbook',[section,family,p.fc||'',p.mc||'',sex,idx,code,band]);  // ไม่เจอ → เพิ่มใหม่
+  return {ok:true, updated:1, appended:true};
 }
 
 // เพิ่มทั้ง Family → แม่หลายตัว (fcodes คั่น ,) + พ่อ 1 ตัว

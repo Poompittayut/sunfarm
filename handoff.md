@@ -170,7 +170,8 @@ ws = wb['ชื่อชีท']
 - **Apps Script เขียนกลับ:** `doGet` แตกตาม `action` → `handleAction_` (มี `LockService` กันชนกัน) · actions: `eggBatch/addHatch/addBird/addFamily/ping`
 - `eggBatch` หา row ด้วย `mo` (รหัสแม่ unique) แล้ว set ช่อง daily ตาม index ของวันที่ (เพิ่มวันที่ใหม่ใน `ไข่วันที่` อัตโนมัติ)
 - เขียนผ่าน **JSONP GET** (ไม่ใช่ POST) เพื่อเลี่ยง CORS จาก `file://` · payload เล็ก
-- ⚠️ **ต้อง redeploy Apps Script (New version)** หลังแก้ `.gs` ถึงจะมี write-back (URL เดิมไม่เปลี่ยน)
+- **แก้ inline ในหน้าดู (CoopModel):** แท็บ Lockbook คลิกแถวไก่ได้เลย → กรอกรหัส/ห่วง → เซฟเข้า Sheet อัตโนมัติ (action `updateBird` หาแถวจาก section+family+sex+idx แล้ว set code/band · ฟังก์ชันฝั่ง HTML: `enterEdit/saveEdit/restoreRow/apiWrite`) — ไม่ต้องเปิดชีท
+- ⚠️ **ต้อง redeploy Apps Script (New version)** หลังแก้ `.gs` ถึงจะมี write-back/updateBird (URL เดิมไม่เปลี่ยน)
 - ⚠️ ความปลอดภัย: endpoint เปิด "Anyone" + เขียนได้ = ใครมี URL ก็เขียนได้ (โอเคสำหรับใช้ภายใน) · ถ้าต้องการกันควรเพิ่ม token param
 
 ---
