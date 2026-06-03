@@ -9,7 +9,8 @@
     --bg:#ffffff; --panel:#ffffff; --panel2:#f4f5f6;
     --ink:#2a3136; --muted:#7e858b; --line:#e4e7ea;
     --female:#d97a8f; --male:#5b8fc7; --good:#3bb38a;
-    --primary:#1f8a8a; --primary-d:#176f6f; --accent:#f26b4e; --head:#15324f;
+    /* ===== Ocean Depths theme ===== */
+    --primary:#2d8b8b; --primary-d:#236f6f; --accent:#2d8b8b; --head:#1a2332; --seafoam:#a8dadc;
     --shadow:0 1px 3px rgba(28,33,40,.06),0 4px 16px rgba(28,33,40,.07);
   }
   *{box-sizing:border-box}
@@ -23,7 +24,7 @@
   .tab{padding:9px 18px;border:1px solid var(--line);border-radius:10px;background:var(--panel);
     color:var(--muted);cursor:pointer;font-size:14px;font-weight:600;transition:.15s}
   .tab:hover{border-color:var(--primary);color:var(--ink)}
-  .tab.active{background:#fff;color:var(--ink);border-color:var(--primary);box-shadow:0 0 0 3px rgba(31,138,138,.18)}
+  .tab.active{background:#fff;color:var(--ink);border-color:var(--primary);box-shadow:0 0 0 3px var(--seafoam)}
 
   .side{display:none}
   .side.active{display:block}
@@ -45,8 +46,8 @@
     border:1px solid var(--line);text-align:center;transition:.15s}
   .mxcell.empty{color:#c4c9cd;font-size:18px}
   .mxcell.pure{background:#e8f2f2;border:1px solid var(--primary);cursor:pointer}
-  .mxcell.cross{background:#fde7e1;border:1px solid var(--accent);cursor:pointer}
-  .mxcell.pure:hover,.mxcell.cross:hover{box-shadow:0 0 0 3px rgba(31,138,138,.16);transform:translateY(-1px)}
+  .mxcell.cross{background:#edf0f4;border:1px solid var(--head);cursor:pointer}
+  .mxcell.pure:hover,.mxcell.cross:hover{box-shadow:0 0 0 3px rgba(45,139,139,.16);transform:translateY(-1px)}
   .mxcell .ch{font-weight:700;font-size:13px;color:var(--ink)}
   .mxcell .ch+.ch{margin-top:3px}
   .mxcell .fam{display:inline-block;margin-top:5px;font-size:11px;font-weight:700;color:#fff;
@@ -58,7 +59,7 @@
     border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--panel)}
   #mxlist .mxitem .tag{font-size:11px;font-weight:700;border-radius:20px;padding:2px 10px;color:#fff}
   #mxlist .mxitem .tag.pure{background:var(--primary)}
-  #mxlist .mxitem .tag.cross{background:var(--accent)}
+  #mxlist .mxitem .tag.cross{background:var(--head)}
   #mxlist .mxitem .ar{color:var(--muted)}
 
   .subtoggle{display:inline-flex;gap:4px;background:var(--panel2);border:1px solid var(--line);
@@ -176,7 +177,7 @@
   /* ===== ไข่รายวัน ===== */
   .egggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
   .ecard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);transition:.18s;overflow:hidden}
-  .ecard.hl{box-shadow:0 0 0 3px rgba(242,107,78,.45);border-color:var(--accent)}
+  .ecard.hl{box-shadow:0 0 0 3px rgba(45,139,139,.4);border-color:var(--accent)}
   .ecard .ehead{display:flex;align-items:center;justify-content:space-between;gap:10px;
     margin:-14px -16px 12px;padding:11px 16px;background:var(--head)}
   .ecard .ech{font-weight:800;font-size:15px;color:#fff}
@@ -188,7 +189,7 @@
   .emetrics .em .k{font-size:10px;color:var(--muted)}
   .spark{display:flex;align-items:flex-end;gap:1.5px;height:46px;padding-top:4px}
   .spark .bar{flex:1;min-width:2px;background:var(--accent);border-radius:2px 2px 0 0;opacity:.85;transition:.1s}
-  .spark .bar:hover{opacity:1;background:#d8492c}
+  .spark .bar:hover{opacity:1;background:#1f6b6b}
   .spark .bar.nodata{background:#e4e7ea;opacity:.5}
   .sparkx{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px}
 
@@ -208,7 +209,7 @@
   .kpi .kv{font-size:15px;font-weight:800}
   .kpi .kk{font-size:9px;color:var(--muted)}
   .lossrow{font-size:10.5px;color:var(--muted);margin:8px 0 2px;display:flex;flex-wrap:wrap;gap:8px}
-  .lossrow span b{color:#c4502f;font-weight:700}
+  .lossrow span b{color:#236f6f;font-weight:700}
   .ohnote{margin-top:8px;font-size:11px;color:var(--primary);background:#f3f4f6;border-radius:7px;padding:5px 9px}
   .ohbanner{display:flex;align-items:center;gap:10px;background:#edeff2;border:1px solid #d4d8dd;border-radius:10px;padding:9px 14px;margin-bottom:12px;font-size:13px}
   .ohbanner b{color:var(--primary)}
@@ -225,7 +226,7 @@
   .pcard .pname{font-weight:800;font-size:15px;color:#fff}
   .pcard .pmethod{display:inline-block;margin-top:5px;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:10px}
   .pm-fam{background:#e7f0e5;color:#4a7a3e}
-  .pm-bulk{background:#fde8e2;color:#c4502f}
+  .pm-bulk{background:#dcebec;color:#236f6f}
   .pm-none{background:#edeef0;color:#8a8378}
   .pbody{padding:13px 15px}
   .pcross{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:12px;flex-wrap:wrap}
@@ -370,7 +371,7 @@
       <div class="legbox"><span class="legtitle">ประเภทคู่ผสม</span>
         <div class="legrow">
           <span class="chip"><span class="sw" style="background:#e8f2f2;border:1px solid #1f8a8a"></span> Purebred (ในพันธุ์)</span>
-          <span class="chip"><span class="sw" style="background:#fde7e1;border:1px solid #f26b4e"></span> Crossbred (ข้ามพันธุ์)</span>
+          <span class="chip"><span class="sw" style="background:#edf0f4;border:1px solid var(--head)"></span> Crossbred (ข้ามพันธุ์)</span>
           <span class="chip"><span class="sw" style="background:#fafbfb;border:1px solid #e4e7ea"></span> ไม่มีคู่ผสม</span>
         </div></div>
     </div>
