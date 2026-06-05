@@ -476,6 +476,17 @@ function hideTip(){ tip.style.display='none'; }
 
 /* ============ panel (คลิก union / ลูก) ============ */
 const panel=document.getElementById('panel');
+// แสดงวันที่แบบ วว/ดด/ปป (2 หลัก · ปี ค.ศ.) — ต้นทางเป็น วัน/เดือน/ปี ไม่สลับ
+function fmtDate(s){
+  if(s==null) return ''; s=String(s).trim(); if(!s||s==='—') return s;
+  const p=s.split(/[\/\-.]/).map(x=>x.trim()).filter(x=>x!=='');
+  if(p.length<2) return s;
+  const d=parseInt(p[0],10), m=parseInt(p[1],10); if(isNaN(d)||isNaN(m)) return s;
+  const pad=n=>String(n).padStart(2,'0');
+  let out=pad(d)+'/'+pad(m);
+  if(p[2]!=null){ let y=parseInt(p[2],10); if(!isNaN(y)){ if(y>=100)y=y%100; out+='/'+pad(y); } }
+  return out;
+}
 // บล็อกผลฟัก (รวมจาก ONHAND ต่อพันธุ์ลูก)
 function hatchBlockHtml(h, title){
   if(!h||!h.rounds) return '';
@@ -517,7 +528,7 @@ function openUnion(u){
   if(locs.length) h+=`<div class="psec"><h4>📍 สถานที่</h4>${locs.map(l=>`<span class="pchip">${esc(l)}</span>`).join('')}</div>`;
   if(methods.length) h+=`<div class="psec"><h4>วิธีเก็บไข่</h4>${methods.map(l=>`<span class="pchip">${esc(l)}</span>`).join('')}</div>`;
   h+=`<div class="psec"><h4>🥚 ตารางฟัก ${batches.length?`(${batches.length} ชุด)`:''}</h4>`
-    +(batches.length?batches.map((b,i)=>`<span class="pbt">ชุด${i+1} · ${esc(b)}</span>`).join(''):'<span style="color:var(--muted);font-size:12px">— ยังไม่มีกำหนดฟัก —</span>')+`</div>`;
+    +(batches.length?batches.map((b,i)=>`<span class="pbt">ชุด${i+1} · ${esc(fmtDate(b))}</span>`).join(''):'<span style="color:var(--muted);font-size:12px">— ยังไม่มีกำหนดฟัก —</span>')+`</div>`;
   if(u.rows.length>1) h+=`<div class="psec"><h4>หมายเหตุ</h4><span class="pchip">รวม ${u.rows.length} ชุดข้อมูลในคู่ผสมนี้</span></div>`;
   document.getElementById('pbody').innerHTML=h;
   panel.classList.add('open');

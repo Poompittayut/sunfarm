@@ -11,7 +11,7 @@
     --female:#d97a8f; --male:#5b8fc7; --good:#3bb38a;
     /* ===== Ocean Depths theme ===== */
     --primary:#2d8b8b; --primary-d:#236f6f; --accent:#2d8b8b; --head:#1a2332; --seafoam:#a8dadc;
-    --shadow:0 1px 3px rgba(28,33,40,.06),0 4px 16px rgba(28,33,40,.07);
+    --shadow:0 2px 6px rgba(28,33,40,.10),0 12px 30px rgba(28,33,40,.16);
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
@@ -56,7 +56,91 @@
   .mxcell .cnt{font-size:11px;color:var(--muted);margin-top:4px}
   .mxnote{font-size:12px;color:var(--muted);margin-top:2px}
   #mxlist .mxitem{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:9px 12px;
-    border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--panel)}
+    border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--panel);cursor:pointer;transition:.13s}
+  #mxlist .mxitem:hover{border-color:var(--primary);box-shadow:0 0 0 3px var(--seafoam)}
+  .planbanner{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:#eef5f5;border:1px solid var(--primary);border-radius:12px;padding:10px 15px;
+    font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px}
+  .planbanner .bmuted{color:var(--muted);font-weight:500}
+  .pclearbtn{margin-left:auto;border:none;background:var(--primary);color:#fff;border-radius:20px;
+    padding:6px 14px;font-weight:700;font-size:13px;cursor:pointer}
+  .pclearbtn:hover{background:var(--primary-d)}
+  /* แผนทดลองจัดกลุ่มตามสายพันธุ์ (แต่ละสาย = หัวข้อ + บล็อก) */
+  .plangrouped{display:block}
+  .pgsec{margin-bottom:24px}
+  .pghead{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:10px 16px;margin-bottom:13px;box-shadow:var(--shadow);cursor:pointer;user-select:none;transition:border-color .12s}
+  .pghead:hover{border-color:var(--primary)}
+  .pgchev{font-size:12px;color:var(--muted);flex:none;width:13px;text-align:center}
+  .pgsec.collapsed .pghead{margin-bottom:0}
+  .pgsec.collapsed .egggrid{display:none}
+  .pgdot{width:14px;height:14px;border-radius:4px;flex:none}
+  .pgname{font-weight:800;font-size:15px;color:var(--head)}
+  .pgmeta{font-size:12px;color:var(--muted);margin-left:auto;font-weight:600}
+  @media(max-width:640px){.pgmeta{width:100%;margin-left:23px}}
+  /* แถบ "มาจากแผน" บนการ์ด Family (เชื่อม Lockbook → แผนทดลอง) */
+  .fcard .forigin{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 13px;background:#f5f8f8;
+    border-bottom:1px solid var(--line);font-size:12px;cursor:pointer;transition:background .12s}
+  .fcard .forigin:hover{background:#e8f2f2}
+  .forigin .folab{color:var(--muted);font-weight:700;font-size:11px}
+  .forigin .foc{font-weight:700;color:var(--ink)}
+  .forigin .fogo{margin-left:auto;color:var(--primary);font-weight:800;white-space:nowrap}
+  /* สรุปผลฟักแยกสายพันธุ์ (funnel ต่อสาย) */
+  .ohsumwrap{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 20px;box-shadow:var(--shadow);margin-bottom:20px}
+  .ohsumtitle{font-weight:800;font-size:15px;color:var(--head);margin-bottom:6px}
+  .ohsumtitle small{font-weight:500;color:var(--muted);font-size:12px}
+  .ohsrow{display:grid;grid-template-columns:158px 1fr 74px;gap:16px;align-items:center;padding:11px 8px;border-top:1px solid var(--line);border-radius:8px;cursor:pointer;transition:background .12s}
+  .ohsrow:hover{background:var(--panel2)}
+  .ohsrow.first{border-top:none}
+  .ohshead{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .ohsdot{width:14px;height:14px;border-radius:4px;flex:none}
+  .ohsname{font-weight:800;font-size:13.5px;color:var(--ink)}
+  .ohsrounds{font-size:11px;color:var(--muted);width:100%;padding-left:21px}
+  .ohsfunnel{display:flex;flex-direction:column;gap:4px}
+  .ohsf{display:flex;align-items:center;gap:9px;font-size:11.5px}
+  .ohsfl{width:62px;color:var(--muted);flex:none;text-align:right}
+  .ohsbar{height:14px;border-radius:4px;min-width:2px;transition:width .3s}
+  .ohsfv{font-weight:700;color:var(--ink);font-size:12px}
+  .ohskpi{text-align:center}
+  .ohskv{font-size:20px;font-weight:800;line-height:1.05}
+  .ohskk{font-size:10.5px;color:var(--muted)}
+  @media(max-width:640px){.ohsrow{grid-template-columns:1fr auto;gap:8px}.ohsfunnel{grid-column:1/-1}}
+  /* ===== ปุ่มเพิ่ม + โมดัลกรอกข้อมูล ===== */
+  .filterbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .filterbar .lbfilter{flex:1;min-width:160px;margin:0}
+  .filterbar .addbtn{flex:none;margin-left:auto}
+  .addbtn{border:none;background:var(--primary);color:#fff;border-radius:11px;padding:10px 18px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap}
+  .addbtn:hover{background:var(--primary-d)}
+  #emodal{position:fixed;inset:0;z-index:90;background:rgba(20,28,40,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto}
+  #emodal.open{display:flex}
+  .embox{background:#fff;border-radius:16px;width:100%;max-width:560px;box-shadow:0 18px 50px rgba(0,0,0,.3);overflow:hidden;margin:auto}
+  .emhead{display:flex;align-items:center;gap:10px;padding:15px 18px;background:var(--head);color:#fff}
+  .emhead .emt{font-size:16px;font-weight:800;flex:1}
+  .emhead .emx{cursor:pointer;font-size:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(255,255,255,.16)}
+  .embody{padding:16px 18px;max-height:76vh;overflow-y:auto}
+  .embody label{display:block;font-weight:600;font-size:13.5px;margin:11px 0 5px;color:var(--ink)}
+  .embody label .req{color:var(--accent)}
+  .embody input,.embody select,.embody textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink)}
+  .embody input:focus,.embody select:focus,.embody textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,139,139,.15)}
+  .embody textarea{resize:vertical;min-height:88px;line-height:1.6}
+  .eg2{display:grid;grid-template-columns:1fr 1fr;gap:10px} .eg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .ebtn{width:100%;padding:14px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-top:18px}
+  .ebtn:hover{background:var(--primary-d)} .ebtn:disabled{opacity:.55;cursor:not-allowed}
+  .ehint{background:#eef6f6;border:1px solid #cfe6e6;border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--primary-d);margin:6px 0}
+  .elist{margin-top:8px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .elsec{background:var(--head);color:#fff;padding:7px 12px;font-weight:700;font-size:13px}
+  .elrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line)}
+  .elrow .nm{flex:1;font-size:13.5px;min-width:0}
+  .elrow .nm small{display:block;color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .elrow input{width:82px;text-align:center;padding:8px}
+  .eseg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:5px}
+  .eseg button{flex:1;padding:10px;border:none;background:#fff;cursor:pointer;font-weight:700;font-size:14px;color:var(--muted)}
+  .eseg button.on{background:var(--primary);color:#fff}
+  .ekpi{display:flex;gap:10px;margin-top:10px}
+  .ekpi .b{flex:1;background:#fafbfb;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+  .ekpi .b .v{font-size:18px;font-weight:800;color:var(--accent)} .ekpi .b .k{font-size:11px;color:var(--muted)}
+  #etoast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(140px);z-index:120;background:var(--head);color:#fff;padding:12px 20px;border-radius:30px;font-weight:700;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:90vw;text-align:center;transition:.3s}
+  #etoast.show{transform:translateX(-50%) translateY(0)} #etoast.ok{background:#3bb38a} #etoast.err{background:#e15a5a}
   #mxlist .mxitem .tag{font-size:11px;font-weight:700;border-radius:20px;padding:2px 10px;color:#fff}
   #mxlist .mxitem .tag.pure{background:var(--primary)}
   #mxlist .mxitem .tag.cross{background:var(--head)}
@@ -274,17 +358,17 @@
 
 <div class="wrap">
   <div class="tabs">
-    <div class="tab active" data-side="plan">🗺️ แผนทดลอง</div>
+    <div class="tab active" data-side="matrix">🔀 เมทริกซ์ผสม</div>
+    <div class="tab" data-side="plan">🗺️ แผนทดลอง</div>
     <div class="tab" data-side="coop">🏠 ผังเล้า</div>
     <div class="tab" data-side="lockbook">📒 Lockbook · ทะเบียน Family</div>
     <div class="tab" data-side="eggs">🥚 ไข่รายวัน</div>
     <div class="tab" data-side="onhand">🐤 ตู้ฟัก / ลูกไก่</div>
-    <div class="tab" data-side="matrix">🔀 เมทริกซ์ผสม</div>
   </div>
 
   <!-- ===== ฝั่งไก่พันธุ์ ===== -->
   <!-- ===== แผนทดลอง (overview) ===== -->
-  <section class="side active" id="plan">
+  <section class="side" id="plan">
     <div class="hint" style="margin-bottom:14px">🗺️ <b>แผนแม่บทการทดลองผสมพันธุ์</b> — กำหนดคู่ผสม (พ่อ × แม่ → ลูก), จำนวน family, วิธีเก็บไข่ และตารางฟัก · หน้าอื่นคือการลงมือทำตามแผนนี้ (เล้า → ทะเบียน → ไข่ → ฟัก)</div>
     <div class="stats" id="stats-plan"></div>
     <div class="egggrid" id="plangrid"></div>
@@ -351,7 +435,7 @@
   <!-- ===== Lockbook ===== -->
   <section class="side" id="lockbook">
     <div class="hint" style="margin-bottom:14px">📒 ทะเบียนไก่รายตัว จัดกลุ่มเป็น <b>Family</b> (1 ตัวผู้ + ~10 ตัวเมีย ต่อ family) — รหัสเช่น <code>SB-26-G8-F01-F-001</code> = ไลน์ · ปีเกิด · รุ่น G · Family · เพศ · ลำดับตัว · <b>เชื่อมกับผังเล้า:</b> แต่ละกรงบนผังเล้า = 1 Family ที่นี่</div>
-    <div class="lbfilter" id="lbfilter"></div>
+    <div class="filterbar"><div class="lbfilter" id="lbfilter"></div><button class="addbtn" id="addBird">➕ เพิ่มไก่ / Family</button></div>
     <div class="stats" id="stats-lockbook"></div>
     <div class="lbgrid" id="lbgrid"></div>
   </section>
@@ -359,7 +443,7 @@
   <!-- ===== ไข่รายวัน ===== -->
   <section class="side" id="eggs">
     <div class="hint" style="margin-bottom:14px">🥚 บันทึก <b>จำนวนไข่รายวันต่อคู่ผสม</b> (พ่อ × แม่ → ลูก) ตั้งแต่ 20 เม.ย. 2026 · <b>เชื่อมกับ Lockbook:</b> รหัสพ่อ/แม่ = ไก่รายตัวใน Lockbook, รหัสลูก = Family รุ่นใหม่ที่จะเข้าตู้ฟัก</div>
-    <div class="lbfilter" id="eggfilter"></div>
+    <div class="filterbar"><div class="lbfilter" id="eggfilter"></div><button class="addbtn" id="addEgg">➕ บันทึกไข่รายวัน</button></div>
     <div class="stats" id="stats-eggs"></div>
     <div class="egggrid" id="egggrid"></div>
   </section>
@@ -368,14 +452,15 @@
   <section class="side" id="onhand">
     <div class="hint" style="margin-bottom:14px">🐤 ผลการ <b>ฟักไข่รายครอบครัว</b> (ตู้ฟัก → ลูกไก่) · ไข่เข้าฟัก → ฟักเป็นลูกไก่ + KPI %ฟัก/%เชื้อ/%ตายโคม · <b>เชื่อมกับไข่รายวัน/Lockbook:</b> รหัสพ่อ/แม่/ลูก คีย์เดียวกัน · รหัสลูก = รุ่นถัดไป</div>
     <div id="ohbanner"></div>
-    <div class="lbfilter" id="ohfilter"></div>
+    <div class="filterbar"><div class="lbfilter" id="ohfilter"></div><button class="addbtn" id="addHatch">➕ บันทึกผลฟัก</button></div>
     <div class="stats" id="stats-onhand"></div>
+    <div id="ohsummary"></div>
     <div class="egggrid" id="ohgrid"></div>
   </section>
 
   <!-- ===== เมทริกซ์ผสมไขว้ ===== -->
-  <section class="side" id="matrix">
-    <div class="hint" style="margin-bottom:14px">🔀 <b>เมทริกซ์ผสมไขว้ (Mating Matrix)</b> — แกนตั้ง = พ่อพันธุ์ ♂ · แกนนอน = แม่พันธุ์ ♀ · ในช่อง = ลูกที่เกิด + จำนวน Family · สร้างสดจากแผนทดลอง · <b>ทแยงมุม</b> = ผสมในพันธุ์ (purebred) · <b>นอกทแยงมุม</b> = ผสมข้ามพันธุ์ (crossbred)</div>
+  <section class="side active" id="matrix">
+    <div class="hint" style="margin-bottom:14px">🔀 <b>เมทริกซ์ผสมไขว้ (Mating Matrix)</b> — แกนตั้ง = พ่อพันธุ์ ♂ · แกนนอน = แม่พันธุ์ ♀ · ในช่อง = ลูกที่เกิด + จำนวน Family · สร้างสดจากแผนทดลอง · <b>ทแยงมุม</b> = ผสมในพันธุ์ (purebred) · <b>นอกทแยงมุม</b> = ผสมข้ามพันธุ์ (crossbred) · 👆 <b>คลิกคู่ผสม → ดูเฉพาะคู่นั้นในแผนทดลอง</b></div>
     <div class="stats" id="stats-matrix"></div>
     <div class="legends" style="margin-bottom:14px">
       <div class="legbox"><span class="legtitle">ประเภทคู่ผสม</span>
@@ -390,6 +475,10 @@
   </section>
 </div>
 
+<!-- โมดัลกรอกข้อมูล (ไข่ / ฟัก / เพิ่มไก่) -->
+<div id="emodal"><div class="embox"><div class="emhead"><span class="emt" id="emtitle"></span><span class="emx" id="emclose">✕</span></div><div class="embody" id="embody"></div></div></div>
+<div id="etoast"></div>
+
 <script>
 /* ===== สี → สายพันธุ์ (อ้างอิงสีพื้นเซลล์ในชีท "ผังเล้าทดลอง") ===== */
 let LEG_BREEDER = {};
@@ -403,6 +492,17 @@ function run(o,from,to,v,c){for(let i=from;i<=to;i++)o[i]=[v,c];return o;}
 function put(o,map,c){for(const k in map)o[k]=[map[k],c];return o;}
 function seq(o,from,arr,c){arr.forEach((v,i)=>o[from+i]=[v,c]);return o;}
 function hexToRgba(h,a){const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;}
+// แสดงวันที่แบบ วว/ดด/ปป (เลข 2 หลัก · ปี ค.ศ.) — ต้นทางเป็น วัน/เดือน/ปี ไม่สลับ
+function fmtDate(s){
+  if(s==null) return ''; s=String(s).trim(); if(!s||s==='—') return s;
+  const p=s.split(/[\/\-.]/).map(x=>x.trim()).filter(x=>x!=='');
+  if(p.length<2) return s;
+  const d=parseInt(p[0],10), m=parseInt(p[1],10); if(isNaN(d)||isNaN(m)) return s;
+  const pad=n=>String(n).padStart(2,'0');
+  let out=pad(d)+'/'+pad(m);
+  if(p[2]!=null){ let y=parseInt(p[2],10); if(!isNaN(y)){ if(y>=100)y=y%100; out+='/'+pad(y); } }
+  return out;
+}
 
 /* ===== ข้อมูลผัง: cages = { เลขกรง: [จำนวน, "สีhex"] } ===== */
 let BREEDER = {cages:19,rows:[]};
@@ -520,12 +620,51 @@ function birdRowHtml(sec,fam,sex,bird,tagc){
   return `<div class="frow" data-sec="${sec}" data-fam="${fam}" data-sex="${sex}" data-idx="${bird[0]}" title="คลิกเพื่อแก้รหัส/ห่วง">`
     +`<span class="tag" style="background:${tagc}"></span>${codeHtml}<span class="fband">${bandHtml}</span><span class="fedit">✎</span></div>`;
 }
+/* ===== สีพันธุ์มาตรฐาน (ชุดเดียว · ใช้ทุกแท็บ + ตรงกับหน้าผังเครือญาติ) =====
+   รับได้ทั้งรหัส (SB8-26, SPL, PD0…) และชื่อกลุ่ม/section (SB8 44WK, L SM, ประดู่ดำ (PD)…) */
+function breedColor(s){
+  const t=(s==null?'':s).toString(), u=t.toUpperCase();
+  if(/ประดู|PD/.test(t))              return '#5b5048';  // ประดู่หางดำ
+  if(/SPL/.test(u)||/ลูกผสม/.test(t)) return '#e0a458';  // ลูกผสม SPL
+  if(/SB/.test(u))                    return '#c97b5a';  // SB8 (44/69WK, G0)
+  if(/SF/.test(u))                    return '#5b9aa0';  // Lohmann SF
+  if(/SM/.test(u))                    return '#6f9a8d';  // Lohmann SM
+  if(/SL/.test(u))                    return '#7a9a5b';  // SL
+  if(/MISSEX/.test(u)||/คละ/.test(t))         return '#9aa0a6';  // คละเพศ
+  if(/AUS|^AS|\bAS\b/.test(u)||/ออส/.test(t)) return '#b0673a';  // ออสตาร์ลอป (AUS)
+  return '#9a9486';                                      // อื่นๆ
+}
+function famHeadColor(s){ return breedColor(s); }
+// ชื่อสายพันธุ์ (regex ชุดเดียวกับ breedColor → ชื่อ↔สี ตรงกันเสมอ)
+function breedName(s){
+  const t=(s==null?'':s).toString(), u=t.toUpperCase();
+  if(/ประดู|PD/.test(t))              return 'ประดู่หางดำ';
+  if(/SPL/.test(u)||/ลูกผสม/.test(t)) return 'ลูกผสม SPL';
+  if(/SB/.test(u))                    return 'SB8';
+  if(/SF/.test(u))                    return 'Lohmann SF';
+  if(/SM/.test(u))                    return 'Lohmann SM';
+  if(/SL/.test(u))                    return 'Lohmann (SL)';
+  if(/MISSEX/.test(u)||/คละ/.test(t)) return 'คละเพศ';
+  if(/AUS|^AS|\bAS\b/.test(u)||/ออส/.test(t)) return 'ออสตาร์ลอป (AUS)';
+  return 'อื่นๆ';
+}
+// หา "คู่ผสมในแผน" ที่ Family นี้สังกัด (จาก section ของ Lockbook) — ใช้ map เดียวกับ planLinks
+function planForSection(sec){ return (PLAN.rows||[]).find(r=>planLinks(r).lock===sec) || null; }
 function fcardHtml(fam){
   const sc=SECCOL[fam.s]||'#a8aeb5';
-  const head=`<div class="fhead">
-      <div><div class="ftitle">Family ${fam.f}</div><div class="fsec">${fam.s}</div></div>
+  const bc=famHeadColor(fam.s), tc=textOn(bc);
+  const sub = tc==='#fff' ? 'rgba(255,255,255,.72)' : 'rgba(26,35,50,.62)';
+  const head=`<div class="fhead" style="background:${bc}">
+      <div><div class="ftitle" style="color:${tc}">Family ${fam.f}</div><div class="fsec" style="color:${sub}">${fam.s}</div></div>
       <div class="fcount"><span class="fbadge" style="background:var(--female)">♀ ${fam.F.length}</span><span class="fbadge" style="background:var(--male)">♂ ${fam.M.length}</span></div>
     </div>`;
+  // แถบ "มาจากแผน" → คลิกกระโดดไปดูคู่ผสมนั้นในแท็บแผนทดลอง
+  const pr=planForSection(fam.s);
+  const origin = pr ? `<div class="forigin" data-sire="${pr.pa||''}" data-dam="${pr.mo||''}" title="คลิกดูคู่ผสมนี้ในแผนทดลอง">
+      <span class="folab">🧬 จากแผน</span>
+      <span class="foc"><span style="color:var(--male)">♂${pr.pa||'—'}</span> × <span style="color:var(--female)">♀${pr.mo||'—'}</span> → <b>${pr.ch||'—'}</b></span>
+      <span class="fogo">ดูแผน →</span>
+    </div>` : '';
   const tagF=TAGCOL[fam.fc]||'#ddd', tagM=TAGCOL[fam.mc]||'#fff';
   const fr=(arr,tagc,sex)=>arr.map(m=>birdRowHtml(fam.s,fam.f,sex,m,tagc)).join('');
   let body=`<div class="fbody">${fr(fam.F,tagF,'F')}`;
@@ -537,7 +676,7 @@ function fcardHtml(fam){
     const tot=eg.d.reduce((a,v)=>a+(v||0),0);
     foot=`<div class="eggfoot" data-egg="${fam.s}|${fam.f}"><span class="eggn">🥚 ไข่รวม ${tot.toLocaleString()} ฟอง</span><span class="arrow">ดูรายวัน →</span></div>`;
   }
-  return `<div class="fcard" style="border-left:4px solid ${sc}">${head}${body}${foot}</div>`;
+  return `<div class="fcard" style="border-left:4px solid ${sc}">${head}${origin}${body}${foot}</div>`;
 }
 function renderLockbook(){
   const list = lbFilter==="ทั้งหมด" ? LOCKBOOK : LOCKBOOK.filter(x=>x.s===lbFilter);
@@ -563,6 +702,7 @@ document.getElementById('lbfilter').addEventListener('click',e=>{
 });
 // คลิกใน Lockbook: footer ไข่ -> ไปแท็บไข่ · แถวไก่ -> แก้รหัส/ห่วง (เซฟเข้า Sheet)
 document.getElementById('lbgrid').addEventListener('click',e=>{
+  const og=e.target.closest('.forigin'); if(og){ gotoPlanPair(og.dataset.sire,og.dataset.dam); return; }
   const f=e.target.closest('.eggfoot'); if(f){ gotoEgg(f.dataset.egg); return; }
   if(e.target.closest('.fsave')){ saveEdit(e.target.closest('.frow')); return; }
   if(e.target.closest('.fcancel')){ restoreRow(e.target.closest('.frow')); return; }
@@ -647,7 +787,6 @@ function apiWrite(params){
 }
 
 /* ===================== ไข่รายวัน ===================== */
-const LINECOL={"SB8 44WK":"#c97b5a","SB8 69 WK":"#b08968","L SM":"#7a9a5b","L SF":"#5b9aa0"};
 function eggLineOf(r){
   if(r.sec) return r.sec;
   const c=(r.ch||'')+'';
@@ -655,8 +794,7 @@ function eggLineOf(r){
   if(/^AS/i.test(c)||/AS/.test(r.pa)) return "AUS (AS)";
   return "อื่นๆ";
 }
-const LINECOL2={"ประดู่ดำ (PD)":"#6f6470","AUS (AS)":"#c9a14a","อื่นๆ":"#9a9486"};
-function lineColor(line){return LINECOL[line]||LINECOL2[line]||"#9a9486";}
+function lineColor(line){return breedColor(line);}   // ← สีพันธุ์มาตรฐานชุดเดียว
 let eggFilter="ทั้งหมด";
 function eggId(r){return 'egg-'+(r.sec?r.sec+'-'+r.fam:(r.ch||r.pa)).replace(/[^A-Za-z0-9]/g,'_');}
 
@@ -664,13 +802,13 @@ function sparkHtml(r){
   const vals=r.d, mx=Math.max(1,...vals.map(v=>v||0));
   let bars='';
   vals.forEach((v,i)=>{
-    if(v==null) bars+=`<div class="bar nodata" style="height:2px" title="${EGGS.dates[i]} · ไม่มีข้อมูล"></div>`;
-    else bars+=`<div class="bar" style="height:${Math.max(2,Math.round(v/mx*42))}px" title="${EGGS.dates[i]} · ${v} ฟอง"></div>`;
+    if(v==null) bars+=`<div class="bar nodata" style="height:2px" title="${fmtDate(EGGS.dates[i])} · ไม่มีข้อมูล"></div>`;
+    else bars+=`<div class="bar" style="height:${Math.max(2,Math.round(v/mx*42))}px" title="${fmtDate(EGGS.dates[i])} · ${v} ฟอง"></div>`;
   });
   const firstI=vals.findIndex(v=>v!=null);
   const lastI=vals.length-1;
   return `<div class="spark">${bars}</div>
-    <div class="sparkx"><span>${EGGS.dates[firstI<0?0:firstI]}</span><span>${EGGS.dates[lastI]}</span></div>`;
+    <div class="sparkx"><span>${fmtDate(EGGS.dates[firstI<0?0:firstI])}</span><span>${fmtDate(EGGS.dates[lastI])}</span></div>`;
 }
 function ecardHtml(r){
   const line=eggLineOf(r), col=lineColor(line);
@@ -705,7 +843,7 @@ function renderEggs(){
     <div class="stat"><div class="k">คู่ผสม</div><div class="v">${list.length}</div></div>
     <div class="stat"><div class="k">ไข่รวมทั้งหมด</div><div class="v" style="color:var(--accent)">${tot.toLocaleString()} <small>ฟอง</small></div></div>
     <div class="stat"><div class="k">ผลิตมากสุด</div><div class="v">${top?(top.ch||top.pa):'—'} <small>${topv>=0?topv.toLocaleString()+' ฟอง':''}</small></div></div>
-    <div class="stat"><div class="k">ช่วงบันทึก</div><div class="v" style="font-size:15px">${EGGS.dates[0]} – ${EGGS.dates[EGGS.dates.length-1]}</div></div>`;
+    <div class="stat"><div class="k">ช่วงบันทึก</div><div class="v" style="font-size:15px">${fmtDate(EGGS.dates[0])} – ${fmtDate(EGGS.dates[EGGS.dates.length-1])}</div></div>`;
 }
 function renderEggFilter(){
   const lines=["ทั้งหมด",...new Set(EGGS.rows.map(eggLineOf))];
@@ -744,16 +882,14 @@ function ohGroup(r){
   if(/^PD/i.test(c)) return 'ประดู่ดำ (PD)';
   return 'อื่นๆ';
 }
-const OHCOL={"SB8 44WK":"#c97b5a","SB8 69 WK":"#b08968","L SM":"#7a9a5b","L SF":"#5b9aa0",
-  "SPL (Lohmann)":"#5b8fc7","SB8G0":"#9c6f96","ประดู่ดำ (PD)":"#6f6470","อื่นๆ":"#9a9486"};
 let ohFilter="ทั้งหมด", ohFam=null;
 function ohId(r,i){return 'oh-'+i;}
 function n(v){return (v==null)?0:v;}
 function ohCardHtml(r,i){
-  const g=ohGroup(r), col=OHCOL[g]||"#9a9486";
+  const g=ohGroup(r), col=breedColor(g);
   const set=n(r.eggset), fert=n(r.fert), chick=n(r.chick), mx=Math.max(1,set);
   const w=v=>Math.max(2,Math.round(v/mx*100));
-  const dates = (r.set||r.pull) ? `<span class="edates"><b>ตั้งฟัก:</b> ${r.set||'—'} &nbsp; <b>ออก:</b> ${r.pull||'—'}</span>` : '';
+  const dates = (r.set||r.pull) ? `<span class="edates"><b>ตั้งฟัก:</b> ${fmtDate(r.set)||'—'} &nbsp; <b>ออก:</b> ${fmtDate(r.pull)||'—'}</span>` : '';
   const note = r.note? `<div class="ohnote">📝 ${r.note}${r.note2?' · '+r.note2:''}</div>` : (r.note2?`<div class="ohnote">📝 ${r.note2}</div>`:'');
   const loss = `<div class="lossrow">
       <span>ไข่ลม <b>${n(r.wind)}</b></span><span>แตก <b>${n(r.crack)}</b></span><span>เน่า <b>${n(r.rot)}</b></span>
@@ -778,9 +914,51 @@ function ohList(){
            : (ohFilter==="ทั้งหมด"? ONHAND.rows : ONHAND.rows.filter(r=>ohGroup(r)===ohFilter));
   return list;
 }
+// สรุปผลฟักแยกสายพันธุ์ (funnel ต่อสาย · รวมทุกรอบ · ไม่ขึ้นกับฟิลเตอร์)
+function renderOhSummary(){
+  const box=document.getElementById('ohsummary'); if(!box) return;
+  const agg={};
+  ONHAND.rows.forEach(r=>{
+    const g=ohGroup(r);
+    const a=agg[g]||(agg[g]={eggset:0,fert:0,chick:0,rounds:0});
+    a.eggset+=n(r.eggset); a.fert+=n(r.fert); a.chick+=n(r.chick); a.rounds++;
+  });
+  const groups=Object.keys(agg).sort((x,y)=>agg[y].chick-agg[x].chick);
+  if(!groups.length){ box.innerHTML=''; return; }
+  const rows=groups.map((g,gi)=>{
+    const a=agg[g], col=breedColor(g), mx=Math.max(1,a.eggset);
+    const w=v=>Math.max(2,Math.round(v/mx*100));
+    const pct=a.eggset?(a.chick/a.eggset*100):0;
+    const rgba=o=>hexToRgba(col.replace('#',''),o);
+    return `<div class="ohsrow${gi===0?' first':''}" data-g="${g}" title="คลิกเพื่อดูรายรอบของสายนี้">
+      <div class="ohshead"><span class="ohsdot" style="background:${col}"></span><span class="ohsname">${g}</span><span class="ohsrounds">${a.rounds} รอบฟัก</span></div>
+      <div class="ohsfunnel">
+        <div class="ohsf"><span class="ohsfl">ไข่เข้าฟัก</span><div class="ohsbar" style="width:${w(a.eggset)}%;background:${rgba(0.3)}"></div><span class="ohsfv">${a.eggset.toLocaleString()}</span></div>
+        <div class="ohsf"><span class="ohsfl">ไข่มีเชื้อ</span><div class="ohsbar" style="width:${w(a.fert)}%;background:${rgba(0.6)}"></div><span class="ohsfv">${a.fert.toLocaleString()}</span></div>
+        <div class="ohsf"><span class="ohsfl">ลูกไก่</span><div class="ohsbar" style="width:${w(a.chick)}%;background:${col}"></div><span class="ohsfv">${a.chick.toLocaleString()}</span></div>
+      </div>
+      <div class="ohskpi"><div class="ohskv" style="color:${col}">${pct.toFixed(1)}%</div><div class="ohskk">%ฟัก</div></div>
+    </div>`;
+  }).join('');
+  box.innerHTML=`<div class="ohsumwrap"><div class="ohsumtitle">📊 สรุปผลฟักแยกสายพันธุ์ <small>(รวมทุกรอบ · เรียงตามจำนวนลูกที่ฟักได้ · 👆 คลิกสายเพื่อดูรายรอบ)</small></div>${rows}</div>`;
+}
+// คลิกแถวในกราฟสรุป → ไปดูการ์ดรายรอบของสายนั้น
+document.getElementById('ohsummary').addEventListener('click',e=>{
+  const row=e.target.closest('.ohsrow'); if(!row||!row.dataset.g)return;
+  ohFam=null; ohFilter=row.dataset.g; renderOhFilter(); renderOnhand();
+  document.getElementById('ohfilter').scrollIntoView({behavior:'smooth',block:'start'});
+});
 function renderOnhand(){
   const list=ohList();
-  document.getElementById('ohgrid').innerHTML=list.map((r,i)=>ohCardHtml(r,i)).join('');
+  const grid=document.getElementById('ohgrid');
+  if(!ohFam && ohFilter==="ทั้งหมด"){
+    renderOhSummary();                              // "ทั้งหมด" = โชว์แค่กราฟสรุปแยกสาย
+    grid.className='egggrid'; grid.innerHTML='';
+  } else {
+    document.getElementById('ohsummary').innerHTML=''; // ดูทีละสาย = ซ่อนกราฟรวม โชว์แค่การ์ดสายนั้น
+    grid.className='egggrid';
+    grid.innerHTML=list.map((r,i)=>ohCardHtml(r,i)).join('');
+  }
   let set=0,chick=0,fert=0,se=[],sf=[];
   list.forEach(r=>{set+=n(r.eggset);chick+=n(r.chick);fert+=n(r.fert);if(r.se!=null)se.push(r.se);if(r.sf!=null)sf.push(r.sf);});
   const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length):0;
@@ -833,14 +1011,8 @@ function methodCls(m){
   if(m.indexOf('ไม่แยก')>=0) return ['pm-bulk','เก็บไข่รวม (ไม่แยก family)'];
   return ['pm-none', m||'ยังไม่ไข่'];
 }
-// สีพันธุ์ของการ์ดแผน (อิงรหัสลูก→พ่อ→แม่) + เลือกสีตัวอักษรตามความสว่าง
-function planBreedColor(r){
-  const c=((r.ch||r.pa||r.mo||r.line||'')+'').toUpperCase();
-  const map=[[/^SPL/,'#e0a458'],[/^SB/,'#c97b5a'],[/^SM/,'#6f9a8d'],[/^SF/,'#5b9aa0'],
-    [/^SL/,'#7a9a5b'],[/^MISSEX/,'#9aa0a6'],[/^PD/,'#5b5048'],[/^AS/,'#b0673a']];
-  for(const [re,col] of map){ if(re.test(c)) return col; }
-  return '#3a4654';
-}
+// สีพันธุ์ของการ์ดแผน (อิงรหัสลูก→พ่อ→แม่) ใช้สีพันธุ์มาตรฐานชุดเดียว
+function planBreedColor(r){ return breedColor(r.ch||r.pa||r.mo||r.line); }
 function textOn(hex){
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   return (0.299*r+0.587*g+0.114*b)>150 ? '#1a2332' : '#fff';
@@ -850,7 +1022,7 @@ function pcardHtml(r){
   const lk=planLinks(r);
   const bc=planBreedColor(r), tc=textOn(bc);
   const batches = r.batches.length
-    ? `<div class="pbatch"><span class="btlabel">🥚 ฟัก:</span>${r.batches.map((b,i)=>`<span class="bt">ชุด${i+1} · ${b}</span>`).join('')}</div>`
+    ? `<div class="pbatch"><span class="btlabel">🥚 ฟัก:</span>${r.batches.map((b,i)=>`<span class="bt">ชุด${i+1} · ${fmtDate(b)}</span>`).join('')}</div>`
     : `<div class="pbatch"><span class="btlabel">ยังไม่มีกำหนดฟัก</span></div>`;
   let links='';
   links += lk.lock ? `<div class="plink" data-goto="lock:${lk.lock}">📒 ทะเบียน</div>` : '';
@@ -874,17 +1046,40 @@ function pcardHtml(r){
     <div class="plinks">${links}</div>
   </div>`;
 }
+let planFilter=null;   // {pa,mo} = แสดงเฉพาะคู่ผสมนี้ · null = ทั้งหมด
+let planCollapsed=new Set();   // ชื่อกลุ่มสายพันธุ์ที่ถูกย่อไว้ (จำข้ามการ render)
 function renderPlan(){
-  document.getElementById('plangrid').innerHTML = PLAN.rows.map(pcardHtml).join('');
+  const rows = planFilter ? PLAN.rows.filter(r=>r.pa===planFilter.pa && r.mo===planFilter.mo) : PLAN.rows;
+  const banner = planFilter
+    ? `<div class="planbanner"><span>🔎 แสดงเฉพาะคู่ผสม <b style="color:var(--male)">♂ ${planFilter.pa||'—'}</b> × <b style="color:var(--female)">♀ ${planFilter.mo||'—'}</b> <span class="bmuted">(${rows.length} สาย)</span></span><button class="pclearbtn">✕ ดูทั้งหมด</button></div>`
+    : '';
+  const grid=document.getElementById('plangrid');
+  if(planFilter){
+    grid.className='egggrid';
+    grid.innerHTML = banner + rows.map(pcardHtml).join('');
+  } else {
+    // จัดกลุ่มตามสายพันธุ์ — แต่ละสายเป็นหัวข้อ/บล็อก (สีหัวข้อ = สีพันธุ์)
+    const agg={}, order=[];
+    PLAN.rows.forEach(r=>{ const key=r.ch||r.pa||r.mo||r.line, k=breedName(key);
+      if(!agg[k]){ agg[k]={rows:[],color:breedColor(key)}; order.push(k); } agg[k].rows.push(r); });
+    grid.className='plangrouped';
+    grid.innerHTML = order.map(k=>{ const g=agg[k], isC=planCollapsed.has(k);
+      return `<div class="pgsec${isC?' collapsed':''}" data-grp="${esc(k)}"><div class="pghead" style="border-left:5px solid ${g.color}" title="กดเพื่อย่อ/ขยายสายนี้">`
+        +`<span class="pgchev">${isC?'▸':'▾'}</span>`
+        +`<span class="pgdot" style="background:${g.color}"></span><span class="pgname">${esc(k)}</span>`
+        +`<span class="pgmeta">${g.rows.length} สายทดลอง</span></div>`
+        +`<div class="egggrid">${g.rows.map(pcardHtml).join('')}</div></div>`;
+    }).join('');
+  }
   let fam=0,m=0,f=0,laying=0;
-  PLAN.rows.forEach(r=>{fam+=r.nfam||0;m+=r.nm||0;f+=r.nf||0; if(r.method.indexOf('ยังไม่')<0&&r.method)laying++;});
+  rows.forEach(r=>{fam+=r.nfam||0;m+=r.nm||0;f+=r.nf||0; if(r.method.indexOf('ยังไม่')<0&&r.method)laying++;});
   document.getElementById('stats-plan').innerHTML=`
-    <div class="stat"><div class="k">สายทดลอง</div><div class="v">${PLAN.rows.length}</div></div>
+    <div class="stat"><div class="k">สายทดลอง</div><div class="v">${rows.length}</div></div>
     <div class="stat"><div class="k">รวม Family</div><div class="v" style="color:var(--accent)">${fam}</div></div>
     <div class="stat"><div class="k">พ่อพันธุ์</div><div class="v" style="color:var(--male)">${m.toLocaleString()}</div></div>
     <div class="stat"><div class="k">แม่พันธุ์</div><div class="v" style="color:var(--female)">${f.toLocaleString()}</div></div>
-    <div class="stat"><div class="k">เริ่มเก็บไข่แล้ว</div><div class="v">${laying} <small>/ ${PLAN.rows.length}</small></div></div>`;
-  document.getElementById('planfuture').innerHTML=`
+    <div class="stat"><div class="k">เริ่มเก็บไข่แล้ว</div><div class="v">${laying} <small>/ ${rows.length}</small></div></div>`;
+  document.getElementById('planfuture').innerHTML = planFilter ? '' : `
     <h3>📅 แผนต่อยอด (ปี 2570 / การคัดพ่อแม่พันธุ์)</h3>
     <div class="pfgrid">
       <div class="pfbox"><h4>สายพ่อพันธุ์ SPLM</h4>
@@ -896,18 +1091,32 @@ function renderPlan(){
         <div class="ln">ผสมกับ พ่อนำเข้า <b>120 ตัว</b></div>
         <div class="ln">(สเปน 100, ออสเตรเลีย 10)</div></div>
       <div class="pfbox"><h4>แผนสะสมไข่เข้าฟัก</h4>
-        <div class="ln">ชุด 1: <b>24,000 ฟอง</b> (13/5)</div>
-        <div class="ln">ชุด 2: <b>12,000 ฟอง</b> (27/5)</div>
+        <div class="ln">ชุด 1: <b>24,000 ฟอง</b> (13/05)</div>
+        <div class="ln">ชุด 2: <b>12,000 ฟอง</b> (27/05)</div>
         <div class="ln">+ แผนแยก SPL ไว้รอผสม (คัดจากชุด SPL1)</div></div>
     </div>`;
 }
 renderPlan();
 document.getElementById('plangrid').addEventListener('click',e=>{
+  if(e.target.closest('.pclearbtn')){ planFilter=null; renderPlan(); return; }
+  const h=e.target.closest('.pghead');
+  if(h){ const sec=h.closest('.pgsec'), k=sec.dataset.grp;
+    if(planCollapsed.has(k)) planCollapsed.delete(k); else planCollapsed.add(k);
+    sec.classList.toggle('collapsed');
+    const ch=h.querySelector('.pgchev'); if(ch) ch.textContent=sec.classList.contains('collapsed')?'▸':'▾';
+    return; }
   const p=e.target.closest('.plink'); if(!p||!p.dataset.goto)return;
   const [t,v]=p.dataset.goto.split(/:(.+)/);
   if(t==='lock') gotoLockbookSection(v);
   else if(t==='oh') gotoOnhandGroup(v);
 });
+// คลิกคู่ผสม (จากเมทริกซ์) → ไปแท็บแผนทดลอง แสดงเฉพาะคู่นั้น
+function gotoPlanPair(pa,mo){
+  planFilter={pa,mo};
+  renderPlan();
+  switchTab('plan');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
 /* ===== เมทริกซ์ผสมไขว้ (สร้างสดจาก PLAN) ===== */
 function mxBase(s){return (s||'—').replace(/-.*$/,'').toUpperCase();}
@@ -962,7 +1171,7 @@ function renderMatrix(){
   document.getElementById('mxlist').innerHTML='<h3>รายการคู่ผสมทั้งหมด</h3>'+
     PLAN.rows.map(r=>{
       const pure=mxBase(r.pa)===mxBase(r.mo);
-      return `<div class="mxitem">`+
+      return `<div class="mxitem" data-sire="${r.pa||''}" data-dam="${r.mo||''}" title="คลิกดูเฉพาะคู่นี้ในแผนทดลอง">`+
         `<span class="tag ${pure?'pure':'cross'}">${pure?'ในพันธุ์':'ข้ามพันธุ์'}</span>`+
         `<b>${r.line}</b>`+
         `<span style="color:var(--male)">♂ ${r.pa||'—'}</span><span class="ar">×</span>`+
@@ -976,8 +1185,12 @@ function renderMatrix(){
 renderMatrix();
 document.getElementById('mxtable').addEventListener('click',e=>{
   const c=e.target.closest('.mxcell'); if(!c||!c.dataset.sire)return;
-  document.querySelector('.tab[data-side="plan"]').click();
-  window.scrollTo({top:0,behavior:'smooth'});
+  gotoPlanPair(c.dataset.sire, c.dataset.dam);
+});
+// คลิกในรายการคู่ผสมด้านล่างก็ได้เหมือนกัน
+document.getElementById('mxlist').addEventListener('click',e=>{
+  const it=e.target.closest('.mxitem'); if(!it||!it.dataset.sire)return;
+  gotoPlanPair(it.dataset.sire, it.dataset.dam);
 });
 
 /* ===== tooltip รายละเอียดกรง ===== */
@@ -1129,6 +1342,153 @@ function loadFromSheet(){
   s.src=SHEET_API_URL+(SHEET_API_URL.indexOf('?')<0?'?':'&')+'callback='+cb+'&key='+encodeURIComponent(getKey())+'&t='+Date.now();
   document.body.appendChild(s);
 }
+
+/* ===================== กรอกข้อมูล (modal · เขียนกลับ Sheet) ===================== */
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function etoast(msg,type){ const t=document.getElementById('etoast'); t.textContent=msg; t.className='show'+(type?' '+type:''); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),3400); }
+function toDM(v){ if(!v) return ''; const [y,m,d]=v.split('-'); return parseInt(d,10)+'/'+parseInt(m,10); }
+function openModal(title,html){ document.getElementById('emtitle').textContent=title; document.getElementById('embody').innerHTML=html; document.getElementById('emodal').classList.add('open'); }
+function closeModal(){ document.getElementById('emodal').classList.remove('open'); }
+document.getElementById('emclose').onclick=closeModal;
+document.getElementById('emodal').addEventListener('click',e=>{ if(e.target.id==='emodal') closeModal(); });
+
+/* ---- 🥚 บันทึกไข่รายวัน ---- */
+function openEgg(){
+  const rows=EGGS.rows||[];
+  const bySec={}; rows.forEach(r=>{ const s=r.sec||'(ไม่ระบุ section)'; (bySec[s]=bySec[s]||[]).push(r); });
+  let list='';
+  Object.keys(bySec).forEach(sec=>{ list+=`<div class="elsec">${esc(sec)}</div>`;
+    bySec[sec].forEach(r=>{ list+=`<div class="elrow"><div class="nm">${esc(r.ch||r.fam||'-')}<small>♀ ${esc(r.mo)}</small></div><input type="number" inputmode="numeric" min="0" data-mo="${encodeURIComponent(r.mo)}" placeholder="ฟอง"></div>`; }); });
+  if(!list) list='<div style="padding:14px;color:var(--muted)">ยังไม่มีคู่ผสมในชีทไข่รายวัน</div>';
+  openModal('🥚 บันทึกไข่รายวัน',
+    `<label>วันที่เก็บไข่ <span class="req">*</span></label><input type="date" id="eDate" value="${new Date().toISOString().slice(0,10)}">
+     <div class="ehint">กรอกเฉพาะคู่ที่เก็บไข่วันนี้ก็พอ · ที่เหลือเว้นว่าง</div>
+     <div class="elist">${list}</div><button class="ebtn" id="eSave">💾 บันทึกไข่</button>`);
+  document.getElementById('eSave').onclick=saveEgg;
+}
+async function saveEgg(){
+  const date=toDM(document.getElementById('eDate').value);
+  if(!date){ etoast('เลือกวันที่ก่อน','err'); return; }
+  const inputs=[...document.querySelectorAll('#embody .elrow input')].filter(i=>i.value!=='');
+  if(!inputs.length){ etoast('ยังไม่ได้กรอกจำนวนไข่','err'); return; }
+  const entries=inputs.map(i=>i.dataset.mo+':'+i.value);
+  const btn=document.getElementById('eSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
+  try{
+    let total=0;
+    for(let k=0;k<entries.length;k+=15){
+      const r=await apiWrite({action:'eggBatch',date,v:entries.slice(k,k+15).join(';')});
+      if(r&&r.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+      if(!r||!r.ok) throw new Error((r&&r.error)||'บันทึกไม่สำเร็จ');
+      total+=r.updated||0;
+    }
+    etoast(`✅ บันทึกไข่ ${total} คู่ · ${date}`,'ok'); closeModal(); loadFromSheet();
+  }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 บันทึกไข่'; }
+}
+
+/* ---- 🐤 บันทึกผลฟัก ---- */
+function calcKpi(){
+  const g=id=>parseFloat(document.getElementById(id).value)||0;
+  const eggset=g('hEggset'),fert=g('hFert'),chick=g('hChick'),dis=g('hDis');
+  const pct=(a,b)=>b>0?(Math.round(a/b*1000)/10):null;
+  const se=pct(chick,eggset),sf=pct(chick,fert),dp=pct(dis,fert);
+  document.getElementById('hKpi').style.display=(eggset||fert)?'flex':'none';
+  document.getElementById('kSe').textContent=se==null?'–':se+'%';
+  document.getElementById('kSf').textContent=sf==null?'–':sf+'%';
+  document.getElementById('kDp').textContent=dp==null?'–':dp+'%';
+}
+function openHatch(){
+  const rows=EGGS.rows||[];
+  const opts=rows.map((r,i)=>`<option value="${i}">${esc((r.ch||r.fam||'-')+(r.sec?' · '+r.sec:''))}</option>`).join('');
+  openModal('🐤 บันทึกผลฟัก (1 รอบ)',
+    `<label>คู่ผสม <span class="req">*</span></label><select id="hCross"><option value="">— เลือกคู่ผสม —</option>${opts}</select>
+     <div class="eg2"><div><label>วันเข้าฟัก</label><input type="date" id="hSet"></div><div><label>วันออก/ดึง</label><input type="date" id="hPull"></div></div>
+     <div class="eg3">
+       <div><label>ไข่เข้าฟัก <span class="req">*</span></label><input type="number" id="hEggset" inputmode="numeric"></div>
+       <div><label>ไข่ลม</label><input type="number" id="hWind" inputmode="numeric"></div>
+       <div><label>ร้าว</label><input type="number" id="hCrack" inputmode="numeric"></div>
+       <div><label>เน่า</label><input type="number" id="hRot" inputmode="numeric"></div>
+       <div><label>มีเชื้อ</label><input type="number" id="hFert" inputmode="numeric"></div>
+       <div><label>ลูกไก่ <span class="req">*</span></label><input type="number" id="hChick" inputmode="numeric"></div>
+       <div><label>ตายโคม</label><input type="number" id="hDis" inputmode="numeric"></div>
+       <div><label>ตายแรกเกิด</label><input type="number" id="hCdead" inputmode="numeric"></div>
+       <div><label>คัดทิ้ง</label><input type="number" id="hCull" inputmode="numeric"></div>
+     </div>
+     <div class="ekpi" id="hKpi" style="display:none">
+       <div class="b"><div class="v" id="kSe">–</div><div class="k">% ฟัก (ลูก/เข้าฟัก)</div></div>
+       <div class="b"><div class="v" id="kSf">–</div><div class="k">% ฟักจากเชื้อ</div></div>
+       <div class="b"><div class="v" id="kDp">–</div><div class="k">% ตายโคม</div></div></div>
+     <label>หมายเหตุ</label><input type="text" id="hNote" placeholder="เช่น เริ่มแยกครอบครัว">
+     <label>หมายเหตุลูกไก่</label><input type="text" id="hNote2" placeholder="เช่น ขาแบะ / ปากเบี้ยว">
+     <button class="ebtn" id="hSave">💾 บันทึกผลฟัก</button>`);
+  ['hEggset','hFert','hChick','hDis'].forEach(id=>document.getElementById(id).addEventListener('input',calcKpi));
+  document.getElementById('hSave').onclick=saveHatch;
+}
+async function saveHatch(){
+  const idx=document.getElementById('hCross').value;
+  if(idx===''){ etoast('เลือกคู่ผสมก่อน','err'); return; }
+  const r=EGGS.rows[idx], g=id=>document.getElementById(id).value;
+  if(!g('hEggset')||!g('hChick')){ etoast('กรอกไข่เข้าฟัก + ลูกไก่ก่อน','err'); return; }
+  const btn=document.getElementById('hSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
+  try{
+    const res=await apiWrite({action:'addHatch',pa:r.pa,mo:r.mo,ch:r.ch,sec:r.sec,fam:r.fam,
+      set:toDM(g('hSet')),pull:toDM(g('hPull')),eggset:g('hEggset'),wind:g('hWind'),crack:g('hCrack'),rot:g('hRot'),
+      fert:g('hFert'),chick:g('hChick'),dis:g('hDis'),cdead:g('hCdead'),cull:g('hCull'),note:g('hNote'),note2:g('hNote2')});
+    if(res&&res.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+    if(!res||!res.ok) throw new Error((res&&res.error)||'บันทึกไม่สำเร็จ');
+    etoast(`✅ บันทึกผลฟัก ${r.ch||r.fam} · ฟัก ${res.se}%`,'ok'); closeModal(); loadFromSheet();
+  }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 บันทึกผลฟัก'; }
+}
+
+/* ---- 📋 เพิ่มไก่ / Family ---- */
+function openBird(){
+  const secs=new Set(); (LOCKBOOK||[]).forEach(g=>g.s&&secs.add(g.s)); Object.keys(SECCOL||{}).forEach(s=>secs.add(s));
+  const secOpts=[...secs].map(s=>`<option value="${esc(s)}">`).join('');
+  const tagOpts='<option value=""></option>'+Object.keys(TAGCOL||{}).map(c=>`<option>${esc(c)}</option>`).join('');
+  openModal('📋 เพิ่มไก่ / Family',
+    `<div class="eseg" id="bMode"><button class="on" data-m="one">เพิ่มทีละตัว</button><button data-m="fam">เพิ่มทั้ง Family</button></div>
+     <div class="eg2" style="margin-top:6px"><div><label>Section <span class="req">*</span></label><input list="bSecList" id="bSec" placeholder="เช่น SB8 44WK"><datalist id="bSecList">${secOpts}</datalist></div>
+       <div><label>Family <span class="req">*</span></label><input id="bFam" placeholder="เช่น 5"></div></div>
+     <div class="eg2"><div><label>สีแท็กแม่ (fc)</label><select id="bFc">${tagOpts}</select></div><div><label>สีแท็กพ่อ (mc)</label><select id="bMc">${tagOpts}</select></div></div>
+     <div id="bOne"><div class="eg3"><div><label>เพศ</label><select id="bSex"><option value="F">เมีย</option><option value="M">ผู้</option></select></div>
+         <div><label>ลำดับ</label><input type="number" id="bIdx" inputmode="numeric" placeholder="1"></div>
+         <div><label>เบอร์ห่วง</label><input id="bBand" placeholder="เช่น 11"></div></div>
+       <label>รหัสไก่ <span class="req">*</span></label><input id="bCode" placeholder="เช่น SB-26-G8-F05-F-001"></div>
+     <div id="bFamBox" style="display:none"><label>รหัสแม่ (ตัวละบรรทัด)</label><textarea id="bFcodes" placeholder="SB-26-G8-F05-F-001&#10;SB-26-G8-F05-F-002&#10;..."></textarea>
+       <label>รหัสพ่อ</label><input id="bMcode" placeholder="SB-26-G8-F05-M-001"></div>
+     <button class="ebtn" id="bSave">💾 บันทึกเข้าทะเบียน</button>`);
+  let bm='one';
+  document.querySelectorAll('#bMode button').forEach(b=>b.onclick=()=>{ bm=b.dataset.m;
+    document.querySelectorAll('#bMode button').forEach(x=>x.classList.toggle('on',x===b));
+    document.getElementById('bOne').style.display=bm==='one'?'block':'none';
+    document.getElementById('bFamBox').style.display=bm==='fam'?'block':'none'; });
+  document.getElementById('bSave').onclick=()=>saveBird(()=>bm);
+}
+async function saveBird(getMode){
+  const bm=getMode(), g=id=>document.getElementById(id).value.trim();
+  if(!g('bSec')||!g('bFam')){ etoast('กรอก Section + Family ก่อน','err'); return; }
+  const btn=document.getElementById('bSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
+  try{
+    let res;
+    if(bm==='one'){
+      if(!g('bCode')) throw new Error('กรอกรหัสไก่ก่อน');
+      res=await apiWrite({action:'addBird',section:g('bSec'),family:g('bFam'),fc:g('bFc'),mc:g('bMc'),sex:g('bSex'),idx:g('bIdx'),code:g('bCode'),band:g('bBand')});
+      if(res&&res.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+      if(!res||!res.ok) throw new Error((res&&res.error)||'ล้มเหลว');
+      etoast('✅ เพิ่มไก่ '+g('bCode'),'ok');
+    }else{
+      const fcodes=g('bFcodes').split(/\n/).map(s=>s.trim()).filter(Boolean);
+      if(!fcodes.length && !g('bMcode')) throw new Error('ใส่รหัสแม่หรือพ่ออย่างน้อย 1');
+      res=await apiWrite({action:'addFamily',section:g('bSec'),family:g('bFam'),fc:g('bFc'),mc:g('bMc'),fcodes:fcodes.map(encodeURIComponent).join(','),mcode:g('bMcode')});
+      if(res&&res.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+      if(!res||!res.ok) throw new Error((res&&res.error)||'ล้มเหลว');
+      etoast(`✅ เพิ่ม Family ${g('bFam')} · ${res.added} ตัว`,'ok');
+    }
+    closeModal(); loadFromSheet();
+  }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 บันทึกเข้าทะเบียน'; }
+}
+document.getElementById('addEgg').onclick=openEgg;
+document.getElementById('addHatch').onclick=openHatch;
+document.getElementById('addBird').onclick=openBird;
 
 // เปิดหน้า: ต้องปลดล็อกด้วยรหัสก่อนเสมอ
 if(SHEET_API_URL) loadFromSheet(); else { hideGate(); setStatus('idle'); }

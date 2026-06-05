@@ -22,7 +22,7 @@
 | `handoff.md` | ไฟล์นี้ | — |
 | `SunFarm_AppsScript.gs` | **Apps Script** = seed ข้อมูล + เสิร์ฟ JSON (read-only) ให้ HTML ดึงสด | ✅ ทำแล้ว |
 | `SETUP_GoogleSheet.md` | คู่มือ deploy Apps Script + ผูก HTML กับ Sheet ทีละขั้น | ✅ ทำแล้ว |
-| `SunFarm_Form.html` | **หน้าฟอร์มกรอกข้อมูล** (สำหรับคนทดลอง) → เขียนเข้า Sheet ผ่าน Apps Script | ✅ ทำแล้ว |
+| `SunFarm_Form.html` | **ฟอร์มกรอกข้อมูล — สำหรับคนงานหน้างาน (มือถือ)** · เบา/เร็ว/โฟกัส · ปรับ UI ให้เหมาะมือถือแล้ว (ช่องกรอก 16px กัน iOS zoom · ปุ่มบันทึก sticky ลอยล่างจอ · ปุ่ม/ช่องใหญ่แตะง่าย) · เขียน Sheet ผ่าน action เดียวกับ CoopModel | ✅ ใช้คู่กับ CoopModel |
 | `SunFarm_FamilyTree.html` | **ผังเครือญาติการผสมพันธุ์** — root tree บนลงล่าง (พ่อแม่พันธุ์ → จุดผสม × → ลูกพันธุ์) สำหรับคนทั่วไปดูง่าย · ใช้ `PLAN` ดึงสดจาก Sheet (gate รหัสเหมือน CoopModel) | ✅ ทำแล้ว |
 | `index.html` | หน้า landing (3 ปุ่ม: ฟอร์ม / ภาพรวม / ผังเครือญาติ) — GitHub Pages เปิดเป็นหน้าแรก | ✅ ทำแล้ว |
 | `README.md` | อธิบายโปรเจกต์สำหรับ repo | ✅ ทำแล้ว |
@@ -62,12 +62,12 @@ SB   - 26    - G8         - F01      - F        - 001
 
 | ชีท Excel | แท็บใน HTML | หมายเหตุ |
 |-----------|-------------|----------|
-| `แผนทดลอง` | 🗺️ แผนทดลอง (หน้าแรก) | การ์ดต่อสายทดลอง + ปุ่มลิงก์ไปแท็บอื่น |
+| (สร้างสดจาก PLAN) | 🔀 เมทริกซ์ผสม **(แท็บแรก/หน้าแรก)** | ตารางไขว้ พ่อ×แม่→ลูก · purebred(ทแยง)/crossbred · `renderMatrix()` · **คลิกคู่ผสม (ช่อง หรือ รายการล่าง) → ไปแท็บแผนทดลอง กรองเฉพาะคู่นั้น** ผ่าน `gotoPlanPair(pa,mo)` |
+| `แผนทดลอง` | 🗺️ แผนทดลอง | **การ์ดจัดกลุ่มตามสายพันธุ์** (แต่ละสาย=หัวข้อ+บล็อก · ชื่อ/สี จาก `breedName`+`breedColor`) · **คลิกหัวข้อ = ย่อ/ขยายสายนั้น** (chevron ▾/▸ · จำสถานะใน `planCollapsed` Set ข้าม render/reload) เผื่อโฟกัสทีละสาย · คลิกคู่ผสม(จากเมทริกซ์)→`planFilter` แสดง flat + banner "ดูทั้งหมด" · หัวการ์ด=สีพันธุ์ |
 | `ผังเล้าทดลอง` | 🏠 ผังเล้า | มี sub-toggle: ฝั่งไก่พันธุ์(19กรง) / ฝั่งไก่รุ่น(75กรง) |
-| `Lockbook` | 📒 Lockbook | 62 Family · ฟิลเตอร์ตาม section |
+| `Lockbook` | 📒 Lockbook | 62 Family · ฟิลเตอร์ตาม section · หัวการ์ดสีพันธุ์ · **แถบ "🧬 จากแผน" บนการ์ด → คลิก "ดูแผน" กระโดดไปแท็บแผนกรองคู่นั้น** (`planForSection()` + `gotoPlanPair()`) — เชื่อม 2 ทางกับแผนทดลอง (เฉพาะสาย SB8 ที่มี section ตรงกับแผน) |
 | `ไข่รายวัน` | 🥚 ไข่รายวัน | 40 คู่ผสม + กราฟ sparkline |
-| `on hand` | 🐤 ตู้ฟัก/ลูกไก่ | 111 รอบฟัก + funnel + KPI |
-| (สร้างสดจาก PLAN) | 🔀 เมทริกซ์ผสม | ตารางไขว้ พ่อ×แม่→ลูก · purebred(ทแยง)/crossbred · `renderMatrix()` |
+| `on hand` | 🐤 ตู้ฟัก/ลูกไก่ | การ์ดรายรอบ funnel + KPI · **2 มุมมอง:** (1) **"ทั้งหมด" = โชว์แค่กราฟสรุป "ผลฟักแยกสายพันธุ์"** (`renderOhSummary()` · funnel ต่อสาย ไข่เข้า→มีเชื้อ→ลูกไก่ + %ฟัก · สีตาม `breedColor` · เรียงตามจำนวนลูก · **คลิกแถว → ไปดูสายนั้น**) ไม่มีการ์ดรายรอบ · (2) **กดชิป/แถวกราฟ/family = โชว์แค่การ์ดรายรอบของสายนั้น** (ซ่อนกราฟ) · สลับไปมาใน `renderOnhand()` |
 | `P2` | ❌ ยังไม่ทำ | ผังเล้าหลังที่ 2 (SPL ชุด4-9) |
 | `อัพเดท`, `แผน Super` | ❌ ยังไม่ดู | ยังไม่ได้ตรวจ |
 
@@ -113,8 +113,11 @@ SB   - 26    - G8         - F01      - F        - 001
 | `--panel2`,`--line`,`--ink`,`--muted` | เทากลาง (neutral) | **สำคัญ: ต้องเป็นเทากลาง ไม่ติด cyan** |
 | `--female`/`--male`/`--good` | ชมพู/ฟ้า/เขียว | semantic |
 
+> **รูปแบบวันที่ (แสดงผล):** ทุกหน้าใช้ `fmtDate(s)` → **วว/ดด/ปป** (เลข 2 หลัก · ปี ค.ศ. 2 หลัก เช่น `06/03/26`) · ต้นทางเป็น วัน/เดือน/ปี **ไม่สลับวัน/เดือน** · ใช้ที่ ตารางฟัก(batches) · sparkline ไข่ · ตั้งฟัก/ออก(onhand) · ช่วงบันทึก · FamilyTree batches · ⚠️ เป็นแค่ "การแสดงผล" — การ**บันทึก**ยังใช้ `toDM` (d/m) ตามที่ Sheet เก็บ ไม่แตะ
+
 > ⚠️ บทเรียน: ตอนแรกใส่ cyan ลงในสีกลาง (panel2/line/ink) ทำให้ทั้งจอดู "ติดฟ้า" — แก้โดยทำสีกลางให้เป็นเทากลางจริง เหลือสีเฉพาะ teal/coral/navy/pink ที่ตั้งใจ
-> **สีพันธุ์ (จาก Excel) และสีแท็กไก่ = "สีข้อมูล" ห้ามเปลี่ยน** (อยู่ใน LEG_*, SECCOL, OHCOL, TAGCOL)
+> **สีพันธุ์มาตรฐาน (ใช้ทุกแท็บ + ตรงกับหน้าผังเครือญาติ):** รวมเป็นฟังก์ชันเดียว `breedColor(s)` ใน CoopModel — รับได้ทั้งรหัส (SB8-26, SPL…) และชื่อกลุ่ม/section (SB8 44WK, L SM, ประดู่ดำ (PD)…) · `planBreedColor/famHeadColor/lineColor` และการ์ดตู้ฟักทุกตัวเรียกใช้ฟังก์ชันนี้หมด (เลิกใช้ LINECOL/LINECOL2/OHCOL ที่เคยไม่ตรงกัน) · ค่าสี = SB8 `#c97b5a` · SPL `#e0a458` · Lohmann SM `#6f9a8d` · SF `#5b9aa0` · SL `#7a9a5b` · ประดู่หางดำ `#5b5048` · AUS `#b0673a` · คละเพศ `#9aa0a6` (ชุดเดียวกับ `breedMeta` ใน `SunFarm_FamilyTree.html`)
+> **สีแท็กไก่/สีกรงผังเล้า = "สีข้อมูล" จาก Excel ห้ามเปลี่ยน** (อยู่ใน LEG_*, SECCOL, TAGCOL) — ผังเล้ายังใช้สีกรงจริงจาก Excel + legend ของตัวเอง (ไม่ผูกกับ breedColor)
 
 ---
 
@@ -172,6 +175,7 @@ ws = wb['ชื่อชีท']
 - `eggBatch` หา row ด้วย `mo` (รหัสแม่ unique) แล้ว set ช่อง daily ตาม index ของวันที่ (เพิ่มวันที่ใหม่ใน `ไข่วันที่` อัตโนมัติ)
 - เขียนผ่าน **JSONP GET** (ไม่ใช่ POST) เพื่อเลี่ยง CORS จาก `file://` · payload เล็ก
 - **แก้ inline ในหน้าดู (CoopModel):** แท็บ Lockbook คลิกแถวไก่ได้เลย → กรอกรหัส/ห่วง → เซฟเข้า Sheet อัตโนมัติ (action `updateBird` หาแถวจาก section+family+sex+idx แล้ว set code/band · ฟังก์ชันฝั่ง HTML: `enterEdit/saveEdit/restoreRow/apiWrite`) — ไม่ต้องเปิดชีท
+- **กรอกข้อมูลครบใน CoopModel (รวมจากฟอร์มเดิม) — ทำแล้ว:** ปุ่ม **➕ ในแต่ละแท็บ → เด้ง modal** (ไข่รายวัน=`openEgg/saveEgg`→`eggBatch` chunk 15 · ผลฟัก=`openHatch/saveHatch`→`addHatch` + KPI สด `calcKpi` · เพิ่มไก่/Family=`openBird/saveBird`→`addBird`/`addFamily` มี toggle ทีละตัว/ทั้ง family) · ใช้ `apiWrite` เดิม + `etoast/openModal/closeModal/toDM` ที่เพิ่มใหม่ · เซฟเสร็จ `closeModal()`+`loadFromSheet()` รีเฟรชอัตโนมัติ · **encoding เหมือนฟอร์มเดิมเป๊ะ** (mo/fcodes pre-encode แล้ว apiWrite encode ซ้ำ) → `.gs` parse ได้เหมือนเดิม ไม่ต้อง redeploy
 - ⚠️ **ต้อง redeploy Apps Script (New version)** หลังแก้ `.gs` ถึงจะมี write-back/updateBird (URL เดิมไม่เปลี่ยน)
 - ⚠️ ความปลอดภัย: endpoint เปิด "Anyone" + เขียนได้ = ใครมี URL ก็เขียนได้ (โอเคสำหรับใช้ภายใน) · ถ้าต้องการกันควรเพิ่ม token param
 
