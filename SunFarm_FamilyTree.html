@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ผังเครือญาติการผสมพันธุ์ไก่ — Sunfarm</title>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#ffffff; --panel2:#f4f5f6;
+    --ink:#2a3136; --muted:#7e858b; --line:#e4e7ea;
+    --female:#d97a8f; --male:#5b8fc7; --good:#3bb38a;
+    --primary:#2d8b8b; --primary-d:#236f6f; --accent:#2d8b8b; --head:#1a2332; --seafoam:#a8dadc;
+    --shadow:0 1px 3px rgba(28,33,40,.06),0 4px 16px rgba(28,33,40,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--panel2);color:var(--ink);
+    font-family:"Sukhumvit Set","Noto Sans Thai",-apple-system,"Segoe UI",sans-serif;line-height:1.5;font-size:14px}
+  header{padding:12px 26px;border-bottom:1px solid var(--line);background:var(--panel);
+    position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header .ht{display:flex;align-items:center;gap:10px}
+  header h1{margin:0;font-size:16px;font-weight:800;color:var(--head)}
+  header .hsub{font-size:12px;color:var(--muted)}
+  header a.back{margin-left:auto;font-size:13px;font-weight:700;color:var(--primary);text-decoration:none;
+    border:1px solid var(--line);border-radius:9px;padding:7px 13px;background:#fff}
+  header a.back:hover{border-color:var(--primary)}
+
+  .bar{display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding:11px 26px;background:var(--panel);
+    border-bottom:1px solid var(--line)}
+  .obtn{border:1px solid var(--primary);background:#fff;color:var(--primary-d);font-weight:800;font-size:13px;
+    border-radius:10px;padding:9px 14px;cursor:pointer;white-space:nowrap;flex:none}
+  .obtn:hover{background:#e8f2f2}
+  .stats{display:flex;gap:10px;flex-wrap:wrap}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:7px 13px;min-width:84px}
+  .stat .k{font-size:11px;color:var(--muted);font-weight:600}
+  .stat .v{font-size:19px;font-weight:800;line-height:1.15}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-left:auto;align-items:center}
+  .lg{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink)}
+  .lg .dot{width:13px;height:13px;border-radius:4px;flex:none}
+  .hint{font-size:12px;color:var(--muted);padding:8px 26px 0}
+  .hint b{color:var(--primary)}
+
+  /* ===== เวที (stage) ===== */
+  .stagewrap{overflow:auto;padding:18px 26px 90px}
+  .stage{position:relative;margin:0 auto}
+  .stage svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+
+  /* node = สายพันธุ์ */
+  .tnode{position:absolute;background:#fff;border:1px solid var(--line);border-left:5px solid #ccc;
+    border-radius:13px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;
+    padding:9px 12px;cursor:pointer;transition:transform .13s,box-shadow .13s,opacity .13s;z-index:3}
+  .tnode:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(28,33,40,.16);z-index:8}
+  .tnode.dim,.tuni.dim{opacity:.15}
+  .tnode.hl{box-shadow:0 0 0 3px var(--seafoam),0 8px 22px rgba(28,33,40,.18);z-index:9}
+  #links path{transition:opacity .13s}
+  .tnode .temoji{font-size:25px;flex:none;line-height:1}
+  .tnode .tname{font-weight:800;font-size:14px;color:var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tnode .tcode{font-size:11.5px;color:var(--muted);font-weight:600}
+  .tnode .trole{position:absolute;top:-9px;right:9px;font-size:9.5px;font-weight:800;color:#fff;
+    border-radius:20px;padding:1px 8px;letter-spacing:.3px}
+  .tnode.root .trole{background:var(--male)}
+  .tnode.off .trole{background:var(--accent)}
+  .tnode .tmaintain{position:absolute;bottom:-8px;right:8px;font-size:10px;font-weight:700;color:var(--primary);
+    background:#e8f2f2;border:1px solid var(--primary);border-radius:20px;padding:0 7px}
+  .tnode .thatch{position:absolute;bottom:-9px;left:8px;font-size:10px;font-weight:800;color:#b65a36;
+    background:#fff5ee;border:1px solid #f3c9b6;border-radius:20px;padding:0 8px;white-space:nowrap}
+  .tnode .thatch.zero{color:var(--muted);background:var(--panel2);border-color:var(--line)}
+
+  /* union = จุดผสม */
+  .tuni{position:absolute;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:800;color:#fff;cursor:pointer;z-index:5;box-shadow:0 2px 7px rgba(28,33,40,.22);
+    transition:transform .12s,opacity .13s}
+  .tuni:hover{transform:scale(1.18)}
+  .tuni.pure{background:var(--primary)}
+  .tuni.cross{background:var(--accent)}
+  .tuni .ubadge{position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:800;
+    white-space:nowrap;color:var(--muted)}
+
+  /* tooltip */
+  #tip{position:fixed;z-index:60;background:#fff;border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 8px 28px rgba(28,33,40,.18);padding:0;min-width:200px;max-width:280px;display:none;overflow:hidden}
+  #tip .th{padding:8px 12px;font-weight:800;color:#fff;display:flex;align-items:center;gap:7px;font-size:13px}
+  #tip .tb{padding:9px 12px;font-size:12px}
+  #tip .tb .row{display:flex;justify-content:space-between;gap:10px;margin:2px 0}
+  #tip .tb .row .l{color:var(--muted)}
+  #tip .tb .row .v{font-weight:700;text-align:right}
+
+  /* panel ข้าง */
+  #panel{position:fixed;top:0;right:0;height:100%;width:340px;max-width:88vw;background:#fff;
+    box-shadow:-6px 0 28px rgba(28,33,40,.16);z-index:70;transform:translateX(105%);transition:transform .22s;
+    display:flex;flex-direction:column}
+  #panel.open{transform:translateX(0)}
+  #panel .ph{padding:16px 18px;color:#fff;position:relative}
+  #panel .ph .pt{font-size:18px;font-weight:800}
+  #panel .ph .ps{font-size:12.5px;opacity:.92;margin-top:2px}
+  #panel .pclose{position:absolute;top:13px;right:14px;cursor:pointer;font-size:20px;color:#fff;opacity:.85;
+    background:rgba(255,255,255,.15);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+  #panel .pbody{padding:16px 18px;overflow-y:auto;flex:1}
+  .pcross{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:14px;font-weight:800}
+  .pcross .g{padding:4px 10px;border-radius:9px;font-size:13px}
+  .pcross .gpa{background:#e7eff8;color:var(--male)}
+  .pcross .gmo{background:#fbeaef;color:var(--female)}
+  .pcross .gch{background:#e6f3f0;color:var(--primary-d)}
+  .pcross .ar{color:var(--muted);font-size:16px}
+  .pnums{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}
+  .pn{background:#fff;border:1px solid var(--line);border-radius:11px;padding:9px;text-align:center}
+  .pn .v{font-size:20px;font-weight:800}
+  .pn .k{font-size:11px;color:var(--muted);font-weight:600}
+  .psec{margin-bottom:13px}
+  .psec h4{margin:0 0 6px;font-size:12.5px;color:var(--muted);font-weight:700;text-transform:none}
+  .pchip{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    padding:3px 9px;font-size:12px;font-weight:600;margin:0 5px 5px 0}
+  .pbt{display:inline-block;background:#fff5ee;border:1px solid #f3c9b6;color:#b65a36;border-radius:8px;
+    padding:3px 9px;font-size:12px;font-weight:700;margin:0 5px 5px 0}
+  .ptag{display:inline-block;border-radius:20px;padding:2px 11px;font-size:11.5px;font-weight:800;color:#fff}
+  .ptag.pure{background:var(--primary)} .ptag.cross{background:var(--accent)}
+
+  .empty{text-align:center;color:var(--muted);padding:80px 20px;font-size:15px}
+
+  /* databar + gate (reuse จาก CoopModel) */
+  @media (max-width:600px){ #panel{width:100%} .legend{margin-left:0} }
+</style>
+</head>
+<body>
+  <header>
+    <div class="ht">
+      <span style="font-size:24px">🌳</span>
+      <div>
+        <h1>ผังเครือญาติการผสมพันธุ์ไก่</h1>
+        <div class="hsub">Sunfarm · พ่อแม่พันธุ์ด้านบน → ลูกที่ผสมได้ด้านล่าง</div>
+      </div>
+    </div>
+    <a class="back" href="index.html">← หน้าหลัก</a>
+  </header>
+
+  <div class="bar">
+    <button id="orientBtn" class="obtn"></button>
+    <div class="stats" id="stats"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div class="hint">👆 คลิก <b>วงกลมจุดผสม (×)</b> หรือ <b>การ์ดลูกพันธุ์</b> เพื่อดูรายละเอียดคู่ผสม · เลื่อนเมาส์เหนือการ์ดเพื่อดูข้อมูลย่อ</div>
+
+  <div class="stagewrap">
+    <div class="stage" id="stage">
+      <svg id="links"></svg>
+      <div id="nodes"></div>
+    </div>
+  </div>
+
+  <div id="tip"></div>
+  <div id="panel">
+    <div class="ph"><div class="pt" id="ptitle"></div><div class="ps" id="psub"></div><div class="pclose" id="pclose">✕</div></div>
+    <div class="pbody" id="pbody"></div>
+  </div>
+
+<script>
+/* ============ ข้อมูล (ดึงสดจาก Sheet เท่านั้น) ============ */
+let PLAN={rows:[]};
+let GRAPH=null;
+
+/* ============ helper พันธุ์ ============ */
+function mxBase(s){return (s||'—').replace(/-.*$/,'').toUpperCase();}
+function breedMeta(code){
+  const c=(code==null?'':code).toString();
+  const U=c.toUpperCase();
+  const map=[
+    [/^SPL/,    {name:'ลูกผสม SPL',      emoji:'🐥', color:'#e0a458'}],
+    [/^SB/,     {name:'SB8',             emoji:'🐔', color:'#c97b5a'}],
+    [/^SM/,     {name:'Lohmann SM',      emoji:'🐔', color:'#6f9a8d'}],
+    [/^SF/,     {name:'Lohmann SF',      emoji:'🐔', color:'#5b9aa0'}],
+    [/^SL/,     {name:'Lohmann (SL)',    emoji:'🐔', color:'#7a9a5b'}],
+    [/^MISSEX/, {name:'คละเพศ (missex)', emoji:'🐔', color:'#9aa0a6'}],
+    [/^PD/,     {name:'ประดู่หางดำ',     emoji:'🐓', color:'#5b5048'}],
+    [/^AS/,     {name:'ออสตาร์ลอป (AUS)',emoji:'🐓', color:'#b0673a'}],
+  ];
+  for(const [re,m] of map){ if(re.test(U)) return m; }
+  return {name:c||'—', emoji:'🐔', color:'#7e858b'};
+}
+const fmt=n=>(n==null||n===''?'—':Number(n).toLocaleString());
+
+/* ============ สร้างกราฟจาก PLAN.rows (+ ผลฟักจาก ONHAND) ============ */
+function buildGraph(rows, onhand){
+  const nodeMap={};
+  function ensure(code){
+    if(code==null||code==='') return null;
+    if(!nodeMap[code]) nodeMap[code]={code, meta:breedMeta(code), gen:0, asParent:[], asChild:[]};
+    return nodeMap[code];
+  }
+  // union (คู่ผสมไม่ซ้ำ) — key = pa|mo|ch
+  const uniMap={};
+  rows.forEach(r=>{
+    ensure(r.pa); ensure(r.mo); ensure(r.ch);
+    const k=(r.pa||'')+'|'+(r.mo||'')+'|'+(r.ch||'');
+    if(!uniMap[k]) uniMap[k]={pa:r.pa, mo:r.mo, ch:r.ch, rows:[]};
+    uniMap[k].rows.push(r);
+  });
+  const unions=Object.keys(uniMap).map(k=>uniMap[k]);
+
+  // parents ของแต่ละลูก (ข้าม self: ch===pa หรือ ch===mo = รักษาสาย ไม่นับเป็นรุ่นใหม่)
+  const childParents={};
+  unions.forEach(u=>{
+    if(!u.ch) return;
+    if(u.ch===u.pa || u.ch===u.mo){ u.maintain=true; return; }
+    childParents[u.ch]=childParents[u.ch]||new Set();
+    if(u.pa) childParents[u.ch].add(u.pa);
+    if(u.mo) childParents[u.ch].add(u.mo);
+  });
+  // generation = longest path จาก root
+  const memo={};
+  function genOf(code, stack){
+    if(memo[code]!=null) return memo[code];
+    const ps=childParents[code];
+    if(!ps||!ps.size) return memo[code]=0;
+    if(stack.has(code)) return 0;                // cycle guard
+    stack.add(code);
+    let g=0; ps.forEach(p=>{ g=Math.max(g, genOf(p,stack)+1); });
+    stack.delete(code);
+    return memo[code]=g;
+  }
+  Object.keys(nodeMap).forEach(c=>{ nodeMap[c].gen=genOf(c,new Set()); });
+
+  // ติด flag root/offspring
+  Object.values(nodeMap).forEach(nd=>{ nd.isRoot = nd.gen===0 && !childParents[nd.code]; });
+  unions.forEach(u=>{
+    if(u.pa&&nodeMap[u.pa]) nodeMap[u.pa].asParent.push(u);
+    if(u.mo&&nodeMap[u.mo]&&u.mo!==u.pa) nodeMap[u.mo].asParent.push(u);
+    if(u.ch&&nodeMap[u.ch]) nodeMap[u.ch].asChild.push(u);
+    u.pure = mxBase(u.pa)===mxBase(u.mo);
+  });
+
+  // ม้วนผลฟัก (ONHAND) เข้าโหนด "พันธุ์ลูก" ด้วยกุญแจ ch
+  // onhand ch บางรหัสเป็นระดับ family → map กลับเป็นพันธุ์ลูกในผัง
+  function ohChToNode(ch){
+    ch=(ch==null?'':String(ch)).trim();
+    if(!ch) return null;
+    if(nodeMap[ch]) return ch;                       // ตรงตัว
+    const base=ch.replace(/[-\s]*F?\d+$/i,'');        // ตัดท้าย family (-F01, -1)
+    if(nodeMap[base]) return base;
+    if(/^SB[-\s]?2\d/i.test(ch) || /^SB8/i.test(ch)){ if(nodeMap['SB8G0']) return 'SB8G0'; }
+    return null;                                      // ไม่มีโหนดรองรับ (เช่น Lohmann SM)
+  }
+  if(onhand && onhand.rows){
+    onhand.rows.forEach(r=>{
+      const code=ohChToNode(r.ch); if(!code||!nodeMap[code]) return;
+      const h=nodeMap[code].hatch||(nodeMap[code].hatch={eggset:0,fert:0,chick:0,rounds:0});
+      h.eggset+=+r.eggset||0; h.fert+=+r.fert||0; h.chick+=+r.chick||0; h.rounds+=1;
+    });
+  }
+  return {nodeMap, unions, childParents};
+}
+
+/* ============ Layout (สลับ ซ้าย→ขวา / บนลงล่าง · จัดกลุ่มลดเส้นไขว้) ============ */
+let ORIENT='LR';                  // 'LR' = ซ้ายไปขวา (เริ่มต้น) · 'TB' = บนลงล่าง
+const NW=168, NH=66, PAD=46, USPREAD=30;
+function layout(g){
+  const {nodeMap, unions, childParents}=g;
+  const lr = ORIENT==='LR';
+  const CROSS = lr ? NH : NW;             // ขนาดโหนดตามแกนพี่น้อง
+  const CGAP  = lr ? 22 : 30;             // ระยะห่างตามแกนพี่น้อง
+  const STEP  = CROSS + CGAP;
+  const DSTEP = lr ? (NW + 150) : (NH + 148);   // ระยะระหว่างรุ่น (เผื่อ union)
+  const crossC = p => lr ? p.cy : p.cx;         // ศูนย์กลางโหนดตามแกนพี่น้อง
+  const setUni = (u,c,d) => { if(lr){u.ux=d;u.uy=c;} else {u.ux=c;u.uy=d;} };
+
+  const bands={};
+  Object.values(nodeMap).forEach(nd=>{ (bands[nd.gen]=bands[nd.gen]||[]).push(nd.code); });
+  const gens=Object.keys(bands).map(Number).sort((a,b)=>a-b);
+  const maxGen=gens.length?gens[gens.length-1]:0;
+  const childrenOf={};
+  Object.keys(childParents).forEach(ch=>{ childParents[ch].forEach(p=>{ (childrenOf[p]=childrenOf[p]||[]).push(ch); }); });
+
+  const pos={};
+  // วาง 1 ชั้น: คลายการชนแบบ "กระจายสมมาตร" แล้วแปลงเป็น x/y ตามทิศ
+  function placeGen(gn, desired){
+    const arr=bands[gn].slice().sort((a,b)=>(desired[a]??0)-(desired[b]??0));
+    const xs=[];
+    arr.forEach((c,i)=>{ let d=desired[c]; if(d==null) d=(i?xs[i-1]+STEP:0); xs[i]=d; });
+    for(let pass=0; pass<80; pass++){
+      let moved=false;
+      for(let i=1;i<arr.length;i++){
+        const ov=(xs[i-1]+STEP)-xs[i];
+        if(ov>0.5){ xs[i-1]-=ov/2; xs[i]+=ov/2; moved=true; }
+      }
+      if(!moved) break;
+    }
+    const depth=PAD + gn*DSTEP;
+    arr.forEach((code,i)=>{
+      const c=xs[i];
+      const x = lr ? depth : c;
+      const y = lr ? c : depth;
+      pos[code]={x,y,gen:gn,cx:x+NW/2,cy:y+NH/2,left:x,right:x+NW,top:y,bottom:y+NH};
+    });
+  }
+  // ชั้นปลายสุด (ลูก) = ลำดับเดิม (กลุ่มสายพันธุ์ติดกันอยู่แล้ว) วางบนกริด
+  {
+    const arr=bands[maxGen]||[];
+    const desired={}; arr.forEach((c,i)=>desired[c]=PAD+i*STEP);
+    placeGen(maxGen,desired);
+  }
+  // ไล่กลับเข้าหาราก: พ่อแม่อยู่ตรงกลางกลุ่มลูกตัวเอง
+  for(let gi=gens.length-2; gi>=0; gi--){
+    const gn=gens[gi];
+    const desired={};
+    bands[gn].forEach(code=>{
+      const kids=(childrenOf[code]||[]).filter(c=>pos[c]);
+      if(kids.length){ desired[code]=kids.reduce((a,c)=>a+crossC(pos[c]),0)/kids.length - CROSS/2; }
+    });
+    placeGen(gn,desired);
+  }
+  // union
+  const byChild={};
+  unions.forEach(u=>{
+    const ch=pos[u.ch];
+    const paG=pos[u.pa]?pos[u.pa].gen:0, moG=pos[u.mo]?pos[u.mo].gen:0;
+    u._down = !u.maintain && ch && ch.gen>Math.max(paG,moG);
+    if(u._down){ (byChild[u.ch]=byChild[u.ch]||[]).push(u); }
+  });
+  // union แบบลง → วาง "ก่อนถึงลูก" ตรงแนวลูก (กระจายถ้าหลาย union ชี้ลูกเดียวกัน)
+  Object.keys(byChild).forEach(ch=>{
+    const list=byChild[ch];
+    list.sort((a,b)=>{
+      const av=((pos[a.pa]?crossC(pos[a.pa]):0)+(pos[a.mo]?crossC(pos[a.mo]):0))/2;
+      const bv=((pos[b.pa]?crossC(pos[b.pa]):0)+(pos[b.mo]?crossC(pos[b.mo]):0))/2;
+      return av-bv;
+    });
+    const n=list.length, cc=crossC(pos[ch]);
+    list.forEach((u,i)=>{
+      const c=cc+(i-(n-1)/2)*USPREAD;
+      const pend = lr
+        ? Math.max(pos[u.pa]?pos[u.pa].right:pos[ch].left, pos[u.mo]?pos[u.mo].right:pos[ch].left)
+        : Math.max(pos[u.pa]?pos[u.pa].bottom:pos[ch].top, pos[u.mo]?pos[u.mo].bottom:pos[ch].top);
+      const cstart = lr ? pos[ch].left : pos[ch].top;
+      setUni(u, c, (pend+cstart)/2); u.kind='down';
+    });
+  });
+  // union แบบ "รักษาสาย" / รุ่นเดียวกัน → วางถัดจากพ่อแม่
+  unions.forEach(u=>{
+    if(u._down) return;
+    const pa=pos[u.pa], mo=pos[u.mo], ch=pos[u.ch];
+    const base=pa||mo||ch; if(!base){u.skip=true;return;}
+    const c=((pa?crossC(pa):crossC(base))+(mo?crossC(mo):crossC(base)))/2;
+    const d=(lr?base.right:base.bottom) + DSTEP*0.30;
+    setUni(u, c, d); u.kind='maintain';
+  });
+
+  // normalize → มุมซ้ายบน = PAD · คำนวณ canvas จากทุกองค์ประกอบ
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+  Object.values(pos).forEach(p=>{ minX=Math.min(minX,p.left);minY=Math.min(minY,p.top);maxX=Math.max(maxX,p.right);maxY=Math.max(maxY,p.bottom); });
+  unions.forEach(u=>{ if(u.skip)return; minX=Math.min(minX,u.ux-20);minY=Math.min(minY,u.uy-20);maxX=Math.max(maxX,u.ux+20);maxY=Math.max(maxY,u.uy+20); });
+  const dx=PAD-minX, dy=PAD-minY;
+  Object.values(pos).forEach(p=>{ p.x+=dx;p.y+=dy;p.cx+=dx;p.cy+=dy;p.left+=dx;p.right+=dx;p.top+=dy;p.bottom+=dy; });
+  unions.forEach(u=>{ if(u.skip)return; u.ux+=dx;u.uy+=dy; });
+  return {pos, canvasW:Math.max((maxX-minX)+PAD*2,320), canvasH:Math.max((maxY-minY)+PAD*2,200)};
+}
+
+/* ============ Render ============ */
+// เส้นโค้งโค้งตามแกนรุ่น (ปรับตามทิศ)
+function vpath(ax,ay,bx,by){
+  if(ORIENT==='LR'){ const mx=(ax+bx)/2; return `M${ax},${ay} C${mx},${ay} ${mx},${by} ${bx},${by}`; }
+  const my=(ay+by)/2; return `M${ax},${ay} C${ax},${my} ${bx},${my} ${bx},${by}`;
+}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function render(){
+  const stage=document.getElementById('stage');
+  const svg=document.getElementById('links');
+  const nodesEl=document.getElementById('nodes');
+  if(!GRAPH || !Object.keys(GRAPH.nodeMap).length){
+    stage.style.width=''; stage.style.height='';
+    nodesEl.innerHTML='<div class="empty">— ยังไม่มีข้อมูลแผนผสม —</div>';
+    svg.innerHTML=''; renderStats(); renderLegend(); return;
+  }
+  const L=layout(GRAPH);
+  GRAPH._pos=L.pos;
+  stage.style.width=L.canvasW+'px'; stage.style.height=L.canvasH+'px';
+  svg.setAttribute('viewBox',`0 0 ${L.canvasW} ${L.canvasH}`);
+  const pos=L.pos;
+
+  // เส้นเชื่อม (สีตามพันธุ์ลูก · มี data-u ไว้ไฮไลต์ · จุดต่อปรับตามทิศ)
+  const lr=ORIENT==='LR';
+  const exitPt = p => lr ? [p.right, p.cy] : [p.cx, p.bottom];   // ปลายฝั่งพ่อแม่
+  const entryPt = p => lr ? [p.left, p.cy] : [p.cx, p.top];       // ต้นฝั่งลูก
+  let paths='';
+  GRAPH.unions.forEach((u,i)=>{
+    if(u.skip) return;
+    const pa=pos[u.pa], mo=pos[u.mo], ch=pos[u.ch];
+    const col=(GRAPH.nodeMap[u.ch]&&GRAPH.nodeMap[u.ch].meta.color) || (u.pure?'#2d8b8b':'#e07a4e');
+    const dash=u.kind==='maintain'?'stroke-dasharray="6 5"':'';
+    if(pa){ const [ax,ay]=exitPt(pa); paths+=`<path class="lnk" data-u="${i}" d="${vpath(ax,ay,u.ux,u.uy)}" stroke="${col}" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.82"/>`; }
+    if(mo && u.mo!==u.pa){ const [ax,ay]=exitPt(mo); paths+=`<path class="lnk" data-u="${i}" d="${vpath(ax,ay,u.ux,u.uy)}" stroke="${col}" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.82"/>`; }
+    if(ch){ const [bx,by]= u.kind==='maintain' ? (lr?[ch.right,ch.cy]:[ch.cx,ch.bottom]) : entryPt(ch);
+      paths+=`<path class="lnk" data-u="${i}" d="${vpath(u.ux,u.uy,bx,by)}" stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round" ${dash} opacity="0.95"/>`; }
+  });
+  svg.innerHTML=paths;
+
+  // การ์ดพันธุ์
+  let html='';
+  Object.values(GRAPH.nodeMap).forEach(nd=>{
+    const p=pos[nd.code]; if(!p) return;
+    const role = nd.isRoot ? '<span class="trole">พ่อแม่พันธุ์</span>'
+               : (nd.asChild.length ? '<span class="trole">ลูกพันธุ์</span>' : '');
+    const cls = nd.isRoot ? 'root' : (nd.asChild.length?'off':'');
+    const maintain = nd.asParent.some(u=>u.maintain && (u.ch===nd.code))
+        ? '<span class="tmaintain">↻ รักษาสาย</span>' : '';
+    const h=nd.hatch;
+    const hatch = (h && (h.chick>0||h.eggset>0))
+      ? (h.chick>0 ? `<span class="thatch">🐤 ${fmt(h.chick)} ตัว</span>`
+                   : `<span class="thatch zero">🥚 ${fmt(h.eggset)} ฟอง</span>`)
+      : '';
+    html+=`<div class="tnode ${cls}" data-code="${esc(nd.code)}" style="left:${p.x}px;top:${p.y}px;width:${NW}px;height:${NH}px;border-left-color:${nd.meta.color}">`
+      +`${role}<span class="temoji">${nd.meta.emoji}</span>`
+      +`<div style="min-width:0"><div class="tname">${esc(nd.meta.name)}</div><div class="tcode">${esc(nd.code)}</div></div>`
+      +`${maintain}${hatch}</div>`;
+  });
+  // union nodes
+  GRAPH.unions.forEach((u,i)=>{
+    if(u.skip) return;
+    const fam=u.rows.reduce((a,r)=>a+(+r.nfam||0),0);
+    const badge = u.rows.length>1 ? `${u.rows.length} ชุด` : (fam?`${fam} fam`:'');
+    html+=`<div class="tuni ${u.pure?'pure':'cross'}" data-uni="${i}" style="left:${u.ux-17}px;top:${u.uy-17}px" title="ดูรายละเอียดคู่ผสม">×`
+      +(badge?`<span class="ubadge">${esc(badge)}</span>`:'')+`</div>`;
+  });
+  nodesEl.innerHTML=html;
+  renderStats(); renderLegend();
+}
+
+function renderStats(){
+  const el=document.getElementById('stats');
+  if(!GRAPH){el.innerHTML='';return;}
+  const nodes=Object.values(GRAPH.nodeMap);
+  const roots=nodes.filter(n=>n.isRoot).length;
+  const offs=nodes.filter(n=>n.asChild.length).length;
+  const real=GRAPH.unions.filter(u=>!u.skip);
+  const pure=real.filter(u=>u.pure).length, cross=real.length-pure;
+  const chicks=nodes.reduce((a,n)=>a+(n.hatch?n.hatch.chick:0),0);
+  el.innerHTML=`
+    <div class="stat"><div class="k">พ่อแม่พันธุ์ต้นทาง</div><div class="v" style="color:var(--male)">${roots}</div></div>
+    <div class="stat"><div class="k">คู่ผสม</div><div class="v">${real.length}</div></div>
+    <div class="stat"><div class="k">ลูกพันธุ์ที่ได้</div><div class="v" style="color:var(--accent)">${offs}</div></div>
+    <div class="stat"><div class="k">ผสมในสาย</div><div class="v" style="color:var(--primary)">${pure}</div></div>
+    <div class="stat"><div class="k">ผสมข้ามสาย</div><div class="v" style="color:var(--accent)">${cross}</div></div>`
+    +(chicks>0?`<div class="stat"><div class="k">🐤 ลูกออกจากฟัก</div><div class="v" style="color:var(--primary-d)">${chicks.toLocaleString()}</div></div>`:'');
+}
+function renderLegend(){
+  const el=document.getElementById('legend');
+  if(!GRAPH){el.innerHTML='';return;}
+  const seen={};
+  Object.values(GRAPH.nodeMap).forEach(n=>{ if(!seen[n.meta.name]) seen[n.meta.name]={name:n.meta.name,color:n.meta.color}; });
+  el.innerHTML=Object.values(seen).map(m=>`<span class="lg"><span class="dot" style="background:${m.color}"></span>${esc(m.name)}</span>`).join('');
+}
+
+/* ============ tooltip (hover node) ============ */
+const tip=document.getElementById('tip');
+function showTip(code,ev){
+  const nd=GRAPH.nodeMap[code]; if(!nd) return;
+  const asPa=nd.asParent.filter(u=>!u.skip);
+  const asCh=nd.asChild.filter(u=>!u.skip);
+  let rows='';
+  if(asPa.length){ rows+=`<div class="row"><span class="l">ใช้ผสมเป็น</span><span class="v">${asPa.map(u=>esc(u.ch||'—')).filter((v,i,a)=>a.indexOf(v)===i).join(', ')}</span></div>`; }
+  if(asCh.length){ const par=[...new Set(asCh.flatMap(u=>[u.pa,u.mo].filter(Boolean)))]; rows+=`<div class="row"><span class="l">เกิดจาก</span><span class="v">${par.map(esc).join(' × ')}</span></div>`; }
+  rows+=`<div class="row"><span class="l">บทบาท</span><span class="v">${nd.isRoot?'พ่อแม่พันธุ์ต้นทาง':(asCh.length?'ลูกพันธุ์':'สายพันธุ์')}</span></div>`;
+  if(nd.hatch&&nd.hatch.rounds){ const hh=nd.hatch; const ph=hh.eggset?(hh.chick/hh.eggset*100).toFixed(1):'—';
+    rows+=`<div class="row"><span class="l">🐤 ฟักได้</span><span class="v">${fmt(hh.chick)} ตัว (${ph}%)</span></div>`; }
+  tip.innerHTML=`<div class="th" style="background:${nd.meta.color}"><span>${nd.meta.emoji}</span>${esc(nd.meta.name)}</div>`
+    +`<div class="tb"><div class="row"><span class="l">รหัส</span><span class="v">${esc(nd.code)}</span></div>${rows}</div>`;
+  tip.style.display='block'; moveTip(ev);
+}
+function moveTip(ev){
+  const pad=14, w=tip.offsetWidth, h=tip.offsetHeight;
+  let x=ev.clientX+pad, y=ev.clientY+pad;
+  if(x+w>window.innerWidth-8) x=ev.clientX-w-pad;
+  if(y+h>window.innerHeight-8) y=ev.clientY-h-pad;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+}
+function hideTip(){ tip.style.display='none'; }
+
+/* ============ panel (คลิก union / ลูก) ============ */
+const panel=document.getElementById('panel');
+// บล็อกผลฟัก (รวมจาก ONHAND ต่อพันธุ์ลูก)
+function hatchBlockHtml(h, title){
+  if(!h||!h.rounds) return '';
+  const pctF=h.eggset?(h.fert/h.eggset*100):0;
+  const pctH=h.eggset?(h.chick/h.eggset*100):0;
+  return `<div class="psec"><h4>🐤 ${title||'ผลฟัก (รวมทุกรอบจากตู้ฟัก)'}</h4>
+    <div class="pnums">
+      <div class="pn"><div class="v">${fmt(h.eggset)}</div><div class="k">ไข่เข้าฟัก</div></div>
+      <div class="pn"><div class="v" style="color:var(--primary)">${fmt(h.chick)}</div><div class="k">ลูกออก (ตัว)</div></div>
+      <div class="pn"><div class="v" style="color:var(--accent)">${h.eggset?pctH.toFixed(1)+'%':'—'}</div><div class="k">% ฟัก</div></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted)">ไข่มีเชื้อ ${fmt(h.fert)} ฟอง (${h.eggset?pctF.toFixed(1):'—'}%) · ฟัก ${h.rounds} รอบ</div>
+  </div>`;
+}
+function openUnion(u){
+  const sumF=u.rows.reduce((a,r)=>a+(+r.nf||0),0);
+  const sumM=u.rows.reduce((a,r)=>a+(+r.nm||0),0);
+  const sumFam=u.rows.reduce((a,r)=>a+(+r.nfam||0),0);
+  const lines=[...new Set(u.rows.map(r=>r.line).filter(Boolean))];
+  const locs=[...new Set(u.rows.map(r=>r.loc).filter(Boolean))];
+  const methods=[...new Set(u.rows.map(r=>r.method).filter(Boolean))];
+  const batches=[...new Set(u.rows.flatMap(r=>r.batches||[]).filter(Boolean))];
+  const paM=breedMeta(u.pa), moM=breedMeta(u.mo), chM=breedMeta(u.ch);
+  document.querySelector('#panel .ph').style.background=u.pure?'var(--primary)':'var(--accent)';
+  document.getElementById('ptitle').textContent=(chM.name||u.ch||'—');
+  document.getElementById('psub').innerHTML=`<span class="ptag ${u.pure?'pure':'cross'}" style="background:rgba(255,255,255,.22)">${u.pure?'ผสมในสายพันธุ์':'ผสมข้ามสายพันธุ์'}</span>`+(u.maintain?' · ↻ รักษาสาย':'');
+  let h=`<div class="pcross">
+      <span class="g gpa">♂ ${esc(u.pa||'—')}</span><span class="ar">×</span>
+      <span class="g gmo">♀ ${esc(u.mo||'—')}</span><span class="ar">→</span>
+      <span class="g gch">${esc(u.ch||'—')}</span>
+    </div>
+    <div class="pnums">
+      <div class="pn"><div class="v" style="color:var(--male)">${fmt(sumM)}</div><div class="k">พ่อ (ตัว)</div></div>
+      <div class="pn"><div class="v" style="color:var(--female)">${fmt(sumF)}</div><div class="k">แม่ (ตัว)</div></div>
+      <div class="pn"><div class="v" style="color:var(--accent)">${fmt(sumFam)}</div><div class="k">Family</div></div>
+    </div>`;
+  h+=hatchBlockHtml(GRAPH.nodeMap[u.ch] && GRAPH.nodeMap[u.ch].hatch);
+  if(lines.length) h+=`<div class="psec"><h4>สายทดลอง</h4>${lines.map(l=>`<span class="pchip">${esc(l)}</span>`).join('')}</div>`;
+  if(locs.length) h+=`<div class="psec"><h4>📍 สถานที่</h4>${locs.map(l=>`<span class="pchip">${esc(l)}</span>`).join('')}</div>`;
+  if(methods.length) h+=`<div class="psec"><h4>วิธีเก็บไข่</h4>${methods.map(l=>`<span class="pchip">${esc(l)}</span>`).join('')}</div>`;
+  h+=`<div class="psec"><h4>🥚 ตารางฟัก ${batches.length?`(${batches.length} ชุด)`:''}</h4>`
+    +(batches.length?batches.map((b,i)=>`<span class="pbt">ชุด${i+1} · ${esc(b)}</span>`).join(''):'<span style="color:var(--muted);font-size:12px">— ยังไม่มีกำหนดฟัก —</span>')+`</div>`;
+  if(u.rows.length>1) h+=`<div class="psec"><h4>หมายเหตุ</h4><span class="pchip">รวม ${u.rows.length} ชุดข้อมูลในคู่ผสมนี้</span></div>`;
+  document.getElementById('pbody').innerHTML=h;
+  panel.classList.add('open');
+}
+function openNode(code){
+  const nd=GRAPH.nodeMap[code]; if(!nd) return;
+  const asCh=nd.asChild.filter(u=>!u.skip);
+  if(asCh.length){ openUnion(asCh[0]); return; }       // ลูก → เปิดคู่ผสมที่ให้กำเนิด
+  // พ่อแม่พันธุ์ → สรุปว่าใช้ผสมเป็นอะไรบ้าง
+  const asPa=nd.asParent.filter(u=>!u.skip);
+  document.querySelector('#panel .ph').style.background=nd.meta.color;
+  document.getElementById('ptitle').textContent=nd.meta.name;
+  document.getElementById('psub').textContent=`รหัส ${nd.code} · พ่อแม่พันธุ์ต้นทาง`;
+  let h=`<div class="psec"><h4>นำไปผสมเป็น (${asPa.length} คู่)</h4>`;
+  if(asPa.length){
+    h+=asPa.map(u=>`<div class="pcross" style="margin-bottom:8px">
+        <span class="g gpa">♂ ${esc(u.pa||'—')}</span><span class="ar">×</span>
+        <span class="g gmo">♀ ${esc(u.mo||'—')}</span><span class="ar">→</span>
+        <span class="g gch">${esc(u.ch||'—')}</span></div>`).join('');
+  }else h+='<span style="color:var(--muted);font-size:12px">— ยังไม่ถูกใช้ในคู่ผสม —</span>';
+  h+=`</div>`;
+  // ผลฟักรวมของลูกทุกสายที่เกิดจากพ่อแม่พันธุ์นี้
+  const kids=[...new Set(asPa.map(u=>u.ch).filter(Boolean))];
+  const tot={eggset:0,fert:0,chick:0,rounds:0}; let any=false;
+  kids.forEach(ch=>{ const hh=GRAPH.nodeMap[ch]&&GRAPH.nodeMap[ch].hatch;
+    if(hh){ any=true; tot.eggset+=hh.eggset; tot.fert+=hh.fert; tot.chick+=hh.chick; tot.rounds+=hh.rounds; } });
+  if(any) h+=hatchBlockHtml(tot,'ผลฟักรวมของลูกทั้งหมด');
+  document.getElementById('pbody').innerHTML=h;
+  panel.classList.add('open');
+}
+document.getElementById('pclose').onclick=()=>panel.classList.remove('open');
+
+/* ============ event delegation ============ */
+document.getElementById('nodes').addEventListener('click',e=>{
+  const u=e.target.closest('.tuni');
+  if(u){ openUnion(GRAPH.unions[+u.dataset.uni]); return; }
+  const n=e.target.closest('.tnode');
+  if(n){ openNode(n.dataset.code); }
+});
+const nodesRoot=document.getElementById('nodes');
+nodesRoot.addEventListener('mouseover',e=>{
+  const n=e.target.closest('.tnode');
+  if(n){ showTip(n.dataset.code,e); highlightNode(n.dataset.code); return; }
+  const u=e.target.closest('.tuni');
+  if(u){ highlightUnion(+u.dataset.uni); }
+});
+nodesRoot.addEventListener('mousemove',e=>{
+  if(tip.style.display==='block' && e.target.closest('.tnode')) moveTip(e);
+});
+nodesRoot.addEventListener('mouseout',e=>{
+  if(e.target.closest('.tnode')) hideTip();
+  if(e.target.closest('.tnode')||e.target.closest('.tuni')) clearHL();
+});
+
+/* ไฮไลต์เส้น/โหนดที่เกี่ยวข้อง เมื่อชี้ */
+function applyHL(uset,nset){
+  document.querySelectorAll('#nodes .tnode').forEach(el=>{
+    const on=nset.has(el.dataset.code);
+    el.classList.toggle('dim',!on); el.classList.toggle('hl',on);
+  });
+  document.querySelectorAll('#nodes .tuni').forEach(el=>{ el.classList.toggle('dim',!uset.has(+el.dataset.uni)); });
+  document.querySelectorAll('#links path').forEach(el=>{ el.style.opacity=uset.has(+el.dataset.u)?'1':'0.07'; });
+}
+function clearHL(){
+  document.querySelectorAll('#nodes .dim,#nodes .hl').forEach(el=>el.classList.remove('dim','hl'));
+  document.querySelectorAll('#links path').forEach(el=>{ el.style.opacity=''; });
+}
+function highlightNode(code){
+  const nd=GRAPH&&GRAPH.nodeMap[code]; if(!nd) return;
+  const uset=new Set(), nset=new Set([code]);
+  nd.asParent.concat(nd.asChild).forEach(u=>{
+    if(u.skip) return;
+    const i=GRAPH.unions.indexOf(u); if(i>=0) uset.add(i);
+    [u.pa,u.mo,u.ch].forEach(c=>{ if(c) nset.add(c); });
+  });
+  applyHL(uset,nset);
+}
+function highlightUnion(i){
+  const u=GRAPH&&GRAPH.unions[i]; if(!u) return;
+  const nset=new Set(); [u.pa,u.mo,u.ch].forEach(c=>{ if(c) nset.add(c); });
+  applyHL(new Set([i]),nset);
+}
+window.addEventListener('resize',()=>{ if(GRAPH) render(); });
+
+/* ปุ่มสลับทิศ ซ้าย→ขวา / บนลงล่าง */
+function updateOrientBtn(){
+  const b=document.getElementById('orientBtn');
+  if(b) b.textContent = ORIENT==='LR' ? '⬇ สลับเป็นบนลงล่าง' : '➡ สลับเป็นซ้ายไปขวา';
+  const sub=document.querySelector('header .hsub');
+  if(sub) sub.textContent = ORIENT==='LR'
+    ? 'Sunfarm · พ่อแม่พันธุ์ด้านซ้าย → ลูกที่ผสมได้ด้านขวา'
+    : 'Sunfarm · พ่อแม่พันธุ์ด้านบน → ลูกที่ผสมได้ด้านล่าง';
+}
+document.getElementById('orientBtn').onclick=()=>{ ORIENT = ORIENT==='LR'?'TB':'LR'; updateOrientBtn(); if(GRAPH) render(); };
+updateOrientBtn();
+
+/* ============ เข้าข้อมูล + วาด ============ */
+function buildTree(plan, onhand){
+  PLAN=plan||{rows:[]};
+  GRAPH=buildGraph(PLAN.rows||[], onhand||{rows:[]});
+  render();
+}
+
+/* ============ เชื่อม Google Sheet (reuse จาก CoopModel) ============ */
+const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyb2xigoUDKr8C9hZArX2kNIHD68OtPuVlOrJsehpgiRVCbw-lFrDS_k08vJu1CCViOdQ/exec";
+
+// แถบสถานะ + ปุ่มรีเฟรช (ลอยมุมขวาล่าง)
+const dataBar=document.createElement('div');
+dataBar.id='databar';
+dataBar.style.cssText='position:fixed;right:16px;bottom:16px;z-index:50;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:30px;padding:7px 9px 7px 15px;box-shadow:var(--shadow);font-size:12.5px;font-weight:600;color:var(--ink)';
+dataBar.innerHTML='<span id="dbdot" style="width:9px;height:9px;border-radius:50%;background:#c4c9cd;flex:none"></span><span id="dbtext">ข้อมูลฝังในไฟล์</span><button id="dbbtn" style="border:none;background:var(--primary);color:#fff;border-radius:20px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:12.5px">↻ รีเฟรช</button>';
+document.body.appendChild(dataBar);
+document.getElementById('dbbtn').onclick=loadFromSheet;
+function setStatus(state,msg){
+  const dot=document.getElementById('dbdot'), txt=document.getElementById('dbtext');
+  const map={idle:['#c4c9cd','ข้อมูลฝังในไฟล์ (ยังไม่ตั้งค่า Sheet)'],
+    loading:['#f0ad4e','กำลังโหลดจาก Sheet…'],
+    ok:['#3bb38a','ซิงค์จาก Google Sheet แล้ว · '+new Date().toLocaleTimeString('th-TH')],
+    error:['#e15a5a','เชื่อมต่อไม่ได้'+(msg?': '+msg:'')]};
+  const m=map[state]||map.idle; dot.style.background=m[0]; txt.textContent=m[1];
+}
+
+// รหัสเข้าระบบ (เก็บในเครื่อง ถามครั้งแรกครั้งเดียว)
+function getKey(){
+  let k=localStorage.getItem('sf_key');
+  if(!k){ k=prompt('🔒 ใส่รหัสผ่านเพื่อเข้าดูข้อมูล (สอบถามผู้ดูแลระบบ)')||''; if(k) localStorage.setItem('sf_key',k); }
+  return k;
+}
+function clearKey(){ localStorage.removeItem('sf_key'); }
+
+// ฉากกั้นรหัส (บังหน้าจนกว่าจะปลดล็อกสำเร็จ)
+const gate=document.createElement('div');
+gate.id='gate';
+gate.style.cssText='position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#1a2332,#2d8b8b);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:24px;font-family:inherit';
+gate.innerHTML='<div style="font-size:52px">🌳</div><div style="font-size:20px;font-weight:800;margin:10px 0 4px">ผังเครือญาติการผสมพันธุ์ไก่</div><div id="gatemsg" style="color:#cfe6e6;font-size:14px;margin-bottom:20px">กำลังเชื่อมต่อ…</div><button id="gatebtn" style="display:none;border:none;background:#fff;color:#2d8b8b;font-weight:800;font-size:15px;padding:11px 28px;border-radius:24px;cursor:pointer">🔑 ใส่รหัส</button>';
+document.body.appendChild(gate);
+document.getElementById('gatebtn').onclick=()=>loadFromSheet();
+function showGate(msg,btn){ gate.style.display='flex'; document.getElementById('gatemsg').textContent=msg; document.getElementById('gatebtn').style.display=btn?'inline-block':'none'; }
+function hideGate(){ gate.style.display='none'; }
+
+function loadFromSheet(){
+  if(!SHEET_API_URL){ hideGate(); setStatus('idle'); return; }
+  showGate('กำลังเชื่อมต่อ…',false); setStatus('loading');
+  const cb='__sf_cb_'+Date.now();
+  const s=document.createElement('script');
+  const cleanup=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;} if(s.parentNode)s.parentNode.removeChild(s); };
+  const timer=setTimeout(()=>{ cleanup(); setStatus('error','หมดเวลาเชื่อมต่อ'); showGate('เชื่อมต่อไม่ได้ — ลองใหม่',true); },20000);
+  window[cb]=function(data){ clearTimeout(timer); cleanup();
+    try{
+      if(data&&data.needKey){ clearKey(); setStatus('error','รหัสไม่ถูกต้อง'); showGate('รหัสไม่ถูกต้อง — ลองใหม่',true); return; }
+      if(!data.PLAN||!data.PLAN.rows||!data.PLAN.rows.length){ setStatus('error','Sheet ว่าง — ยังไม่ได้รัน seedData'); showGate('ยังไม่มีข้อมูลแผนผสมใน Sheet',true); return; }
+      buildTree(data.PLAN, data.ONHAND); setStatus('ok'); hideGate();
+    }catch(e){ setStatus('error',e.message); showGate('เกิดข้อผิดพลาด — ลองใหม่',true); } };
+  s.onerror=()=>{ clearTimeout(timer); cleanup(); setStatus('error','โหลดสคริปต์ไม่สำเร็จ'); showGate('เชื่อมต่อไม่ได้ — ลองใหม่',true); };
+  s.src=SHEET_API_URL+(SHEET_API_URL.indexOf('?')<0?'?':'&')+'callback='+cb+'&key='+encodeURIComponent(getKey())+'&t='+Date.now();
+  document.body.appendChild(s);
+}
+
+// เปิดหน้า: ต้องปลดล็อกด้วยรหัสก่อนเสมอ
+if(SHEET_API_URL) loadFromSheet(); else { hideGate(); setStatus('idle'); }
+</script>
+</body>
+</html>

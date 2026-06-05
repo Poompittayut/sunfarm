@@ -23,7 +23,8 @@
 | `SunFarm_AppsScript.gs` | **Apps Script** = seed ข้อมูล + เสิร์ฟ JSON (read-only) ให้ HTML ดึงสด | ✅ ทำแล้ว |
 | `SETUP_GoogleSheet.md` | คู่มือ deploy Apps Script + ผูก HTML กับ Sheet ทีละขั้น | ✅ ทำแล้ว |
 | `SunFarm_Form.html` | **หน้าฟอร์มกรอกข้อมูล** (สำหรับคนทดลอง) → เขียนเข้า Sheet ผ่าน Apps Script | ✅ ทำแล้ว |
-| `index.html` | หน้า landing (2 ปุ่ม: ฟอร์ม / ภาพรวม) — GitHub Pages เปิดเป็นหน้าแรก | ✅ ทำแล้ว |
+| `SunFarm_FamilyTree.html` | **ผังเครือญาติการผสมพันธุ์** — root tree บนลงล่าง (พ่อแม่พันธุ์ → จุดผสม × → ลูกพันธุ์) สำหรับคนทั่วไปดูง่าย · ใช้ `PLAN` ดึงสดจาก Sheet (gate รหัสเหมือน CoopModel) | ✅ ทำแล้ว |
+| `index.html` | หน้า landing (3 ปุ่ม: ฟอร์ม / ภาพรวม / ผังเครือญาติ) — GitHub Pages เปิดเป็นหน้าแรก | ✅ ทำแล้ว |
 | `README.md` | อธิบายโปรเจกต์สำหรับ repo | ✅ ทำแล้ว |
 
 > โปรเจกต์อยู่ใน **git repo** (branch `main`, โฮสต์ GitHub Pages) · ไฟล์เก่า `SunFarm_Dashboard.html` / `SunFarm_AppsScript_Fixed.gs` ถูกลบออกแล้ว
@@ -105,7 +106,7 @@ SB   - 26    - G8         - F01      - F        - 001
 
 | ตัวแปร | ค่า | ใช้ที่ |
 |--------|-----|--------|
-| `--head` | `#15324f` navy | แถบหัวการ์ด (พื้น navy + ตัวอักษรขาว) |
+| `--head` | `#15324f` navy | แถบหัวการ์ด (พื้น navy + ตัวอักษรขาว) — **ยกเว้นการ์ดแท็บแผนทดลอง**: หัวการ์ดใช้ "สีพันธุ์" แทน (`planBreedColor()` อิงรหัสลูก/พ่อ + `textOn()` เลือกขาว/เข้มตามความสว่าง) |
 | `--primary` | `#1f8a8a` teal | ปุ่ม/แท็บ/ลิงก์/หัวข้อรอง |
 | `--accent` | `#f26b4e` coral | เลขเด่น/กราฟ sparkline/funnel-ไข่มีเชื้อ |
 | `--bg`,`--panel` | `#ffffff` ขาว | พื้นหน้า + การ์ด |
@@ -189,6 +190,21 @@ ws = wb['ชื่อชีท']
 - CoopModel มี **gate overlay** (`#gate`) บังหน้าจนใส่รหัสถูก · ส่ง `key` ทุกครั้งที่โหลด · `needKey` → ล้างรหัส+ขอใหม่
 - Form `boot()` ส่ง key ด้วย · รหัสผิด → ปุ่มลองใหม่
 - ⚠️ แก้ `doGet` แล้ว **ต้อง redeploy** ถึงจะ enforce read-lock
+
+---
+
+## 8.8 ผังเครือญาติ (SunFarm_FamilyTree.html) — ทำแล้ว
+
+หน้า "Flow ผสมพันธุ์แบบ root tree" สำหรับคนทั่วไป (แยกจาก CoopModel ที่เน้นข้อมูลละเอียด)
+
+- **ข้อมูล:** ใช้ `PLAN.rows` (โครงผัง) + `ONHAND.rows` (ผลฟัก) — ดึงสดจาก Sheet ผ่าน gate/รหัส/JSONP **ชุดเดียวกับ CoopModel เป๊ะ** (copy `SHEET_API_URL`, `getKey/loadFromSheet/setStatus`, `#gate`, `#databar`) · ไม่ต้อง redeploy `.gs` (อ่านอย่างเดียว)
+- **ผลฟัก (ONHAND):** ม้วนยอด eggset/fert/chick/รอบ เข้าโหนด "พันธุ์ลูก" ด้วยกุญแจ `ch` · onhand `pa/mo` เป็นชื่อยาวคนละแบบกับ PLAN **แต่ `ch` ตรงกัน** จึง join ด้วย `ch` · รหัสระดับ family map กลับเป็นพันธุ์ลูกใน `ohChToNode()` (ตรงตัว → ตัดท้าย `-F\d+` → กฎ `SB-25/26-G8*`→`SB8G0`) · `Lohmann SM-*` ไม่มีโหนดในผัง = ไม่แสดง · โชว์: ป้าย 🐤 บนการ์ดลูก (เทา=เข้าฟักแต่ยังไม่ออก) + section ใน panel + สถิติรวมหัวหน้า · ฟังก์ชัน `hatchBlockHtml()`
+- **node = ระดับสายพันธุ์** (1 รหัส pa/mo/ch = 1 node) · **สลับทิศได้** ปุ่ม `#orientBtn` (ตัวแปร `ORIENT` = `'LR'` ซ้าย→ขวา ค่าเริ่มต้น / `'TB'` บนลงล่าง) · `layout()` คิดพิกัดเป็นแกน depth(รุ่น)/cross(พี่น้อง) แล้ว map เป็น x/y ตามทิศ · `vpath()`+จุดต่อ (exitPt/entryPt) ปรับโค้งตามทิศ
+- **กลไก:** `buildGraph()` รวม union (คู่ผสมไม่ซ้ำ key=`pa|mo|ch`, aggregate หลายชุดเข้าด้วยกัน) → `genOf()` คิด generation แบบ longest-path (cycle guard: ข้าม edge ที่ `ch===pa||ch===mo` = "รักษาสาย") → `layout()` แบบ tidy-tree **บนลงล่าง ลดเส้นไขว้**: วางลูกชั้นล่างก่อน (กริด, กลุ่มสายพันธุ์ติดกัน) แล้วไล่ขึ้นวางพ่อแม่ให้อยู่เหนือ "จุดกึ่งกลางของลูกตัวเอง" · คลายการชนด้วย relaxation (ดันคู่ทับกันออกคนละครึ่ง = คร่อมลูกสมมาตร) · union วางเหนือลูกตรงๆ (กระจายถ้าหลาย union ชี้ลูกเดียวกัน) → `render()` วาดการ์ด/union/เส้น SVG
+- **เส้น:** สีตาม "พันธุ์ลูก" (`nodeMap[ch].meta.color`) แยกแต่ละสายชัด · เส้น "รักษาสาย" = เส้นประ · ทุก path มี `data-u=index` ไว้ไฮไลต์
+- **interaction:** คลิก union(×) หรือ การ์ดลูก → panel ขวา (ลูก/พ่อ/แม่/family/สถานที่/วิธีเก็บไข่/ตารางฟัก) · **hover การ์ด/union → ไฮไลต์ทั้งสายที่เกี่ยวข้อง (เน้นเส้น+โหนด หรี่ที่เหลือ)** ผ่าน `highlightNode/highlightUnion/applyHL/clearHL` + tooltip
+- **purebred vs crossbred:** `mxBase(pa)===mxBase(mo)` (ฟังก์ชันเดียวกับเมทริกซ์ใน CoopModel)
+- ⚠️ เพิ่ม PLAN.row ใหม่ใน Sheet → ผังอัปเดตอัตโนมัติ (ไม่ต้องแก้ HTML) · ถ้ามีรหัสพันธุ์ใหม่ที่ยังไม่มีในแมป ให้เติม prefix ใน `breedMeta()` (ไม่งั้น fallback เป็นชื่อ=รหัส สีเทา)
 
 ---
 
