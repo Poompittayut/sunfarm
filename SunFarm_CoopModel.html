@@ -127,6 +127,7 @@
   .ebtn{width:100%;padding:14px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-top:18px}
   .ebtn:hover{background:var(--primary-d)} .ebtn:disabled{opacity:.55;cursor:not-allowed}
   .ehint{background:#eef6f6;border:1px solid #cfe6e6;border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--primary-d);margin:6px 0}
+  .brdchk{display:block;min-height:15px;margin-top:3px;font-size:11.5px;line-height:1.3}
   .elist{margin-top:8px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
   .elsec{background:var(--head);color:#fff;padding:7px 12px;font-weight:700;font-size:13px}
   .elrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line)}
@@ -1467,15 +1468,42 @@ async function saveBird(getMode){
   }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 บันทึกเข้าทะเบียน'; }
 }
 /* ---- ➕ เพิ่มคู่ผสม (แผนทดลอง) ---- */
+// รวมรหัสพ่อ/แม่/ลูกที่เคยใช้จริงในแผน → ใช้เป็นตัวเลือก autocomplete (กันพิมพ์ผิด)
+function planCodeList(){
+  const s=new Set();
+  (PLAN.rows||[]).forEach(r=>[r.pa,r.mo,r.ch].forEach(c=>{ c=(c==null?'':String(c)).trim(); if(c) s.add(c); }));
+  return Array.from(s).sort((a,b)=>a.localeCompare(b,'th'));
+}
+function planCodeOptions(){
+  return planCodeList().map(c=>{
+    const b=breedOf(c), nm=b.known?b.name:'ไม่รู้จักพันธุ์';
+    return `<option value="${c.replace(/"/g,'&quot;')}">${nm}</option>`;
+  }).join('');
+}
+// ตัวตรวจสด: โชว์ชื่อ/สีพันธุ์ของรหัสที่กรอก หรือเตือนถ้าไม่รู้จัก
+function planCheck(inId,outId){
+  const v=(document.getElementById(inId).value||'').trim();
+  const el=document.getElementById(outId); if(!el) return;
+  if(!v){ el.innerHTML=''; return; }
+  const b=breedOf(v);
+  if(b.known){
+    el.innerHTML=`<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${b.color};vertical-align:middle;margin-right:5px"></span>${b.emoji} ${b.name}`;
+    el.style.color='var(--primary-d)';
+  }else{
+    el.innerHTML='⚠️ ยังไม่รู้จักพันธุ์ของรหัสนี้ (จะได้สีเทา) — ตรวจรหัสนำหน้า หรือเพิ่มที่เมนู 🎨 จัดการสายพันธุ์';
+    el.style.color='#b3531f';
+  }
+}
 function openPlan(){
   openModal('➕ เพิ่มคู่ผสม (แผนทดลอง)',
     `<label>ชื่อสายทดลอง <small>(เว้นว่าง = ใช้ชื่อลูก)</small></label><input type="text" id="plLine" placeholder="เช่น โรดไอแลน R1">
      <div class="eg3">
-       <div><label>♂ พ่อพันธุ์ <span class="req">*</span></label><input type="text" id="plPa" placeholder="RIR-26"></div>
-       <div><label>♀ แม่พันธุ์ <span class="req">*</span></label><input type="text" id="plMo" placeholder="RIR-26"></div>
-       <div><label>ลูกที่ได้ <span class="req">*</span></label><input type="text" id="plCh" placeholder="RIR-G0"></div>
+       <div><label>♂ พ่อพันธุ์ <span class="req">*</span></label><input type="text" id="plPa" list="plCodeList" autocomplete="off" placeholder="เลือก/พิมพ์ เช่น SB8-26"><small class="brdchk" id="ckPa"></small></div>
+       <div><label>♀ แม่พันธุ์ <span class="req">*</span></label><input type="text" id="plMo" list="plCodeList" autocomplete="off" placeholder="เลือก/พิมพ์ เช่น SB8-25"><small class="brdchk" id="ckMo"></small></div>
+       <div><label>ลูกที่ได้ <span class="req">*</span></label><input type="text" id="plCh" list="plCodeList" autocomplete="off" placeholder="เลือก/พิมพ์ เช่น SB8G0"><small class="brdchk" id="ckCh"></small></div>
      </div>
-     <div class="ehint">รหัสควรขึ้นต้นด้วย <b>รหัสนำหน้าของสายพันธุ์</b> (ที่ตั้งในเมนู 🎨 จัดการสายพันธุ์) เพื่อให้ได้สีถูก เช่น RIR-26 → ได้สีโรดไอแลน</div>
+     <datalist id="plCodeList">${planCodeOptions()}</datalist>
+     <div class="ehint">👆 <b>กดที่ช่องแล้วเลือกรหัสที่มีอยู่</b> (กันพิมพ์ผิด/ข้อมูลไม่ตรง) · พิมพ์รหัสใหม่ได้ถ้าเป็นพันธุ์/รุ่นใหม่จริง · รหัสควรขึ้นต้นด้วย <b>รหัสนำหน้าของสายพันธุ์</b> เพื่อให้ได้สีถูก</div>
      <div class="eg3">
        <div><label>พ่อ (ตัว)</label><input type="number" id="plNm" inputmode="numeric"></div>
        <div><label>แม่ (ตัว)</label><input type="number" id="plNf" inputmode="numeric"></div>
@@ -1487,6 +1515,9 @@ function openPlan(){
      <label>ตารางฟัก <small>(วันที่ คั่นด้วย , — เว้นว่างได้)</small></label><input type="text" id="plBatch" placeholder="15/1/26, 22/1/26">
      <button class="ebtn" id="plSave">💾 บันทึกคู่ผสม</button>`);
   document.getElementById('plSave').onclick=savePlan;
+  [['plPa','ckPa'],['plMo','ckMo'],['plCh','ckCh']].forEach(([i,o])=>{
+    document.getElementById(i).addEventListener('input',()=>planCheck(i,o));
+  });
 }
 async function savePlan(){
   const g=id=>document.getElementById(id).value.trim();
