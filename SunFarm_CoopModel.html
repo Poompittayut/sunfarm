@@ -317,7 +317,11 @@
 
   /* ===== แผนทดลอง ===== */
   .pcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:0;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
-  .pcard .phead{padding:12px 15px;background:var(--head)}
+  .pcard .phead{padding:12px 15px;background:var(--head);display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .pcard .phinfo{min-width:0}
+  .pcard .pact{display:flex;gap:6px;flex:none}
+  .pcard .picon{border:none;border-radius:8px;width:31px;height:31px;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.22)}
+  .pcard .picon:hover{background:rgba(255,255,255,.42)}
   .pcard .pname{font-weight:800;font-size:15px;color:#fff}
   .pcard .pmethod{display:inline-block;margin-top:5px;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:10px}
   .pm-fam{background:#e7f0e5;color:#4a7a3e}
@@ -371,8 +375,8 @@
   <!-- ===== แผนทดลอง (overview) ===== -->
   <section class="side" id="plan">
     <div class="hint" style="margin-bottom:14px">🗺️ <b>แผนแม่บทการทดลองผสมพันธุ์</b> — กำหนดคู่ผสม (พ่อ × แม่ → ลูก), จำนวน family, วิธีเก็บไข่ และตารางฟัก · หน้าอื่นคือการลงมือทำตามแผนนี้ (เล้า → ทะเบียน → ไข่ → ฟัก)</div>
-    <div class="filterbar"><button class="addbtn" id="addPlan">➕ เพิ่มคู่ผสม</button></div>
     <div class="stats" id="stats-plan"></div>
+    <div class="filterbar"><button class="addbtn" id="addPlan">➕ เพิ่มคู่ผสม</button></div>
     <div class="egggrid" id="plangrid"></div>
     <div class="breeds" id="planfuture"></div>
   </section>
@@ -1008,10 +1012,17 @@ function pcardHtml(r){
   links += lk.lock ? `<div class="plink" data-goto="lock:${lk.lock}">📒 ทะเบียน</div>` : '';
   links += lk.oh ? `<div class="plink" data-goto="oh:${lk.oh}">🐤 ผลฟัก</div>` : '';
   if(!links) links = `<div class="plink disabled">— ยังไม่มีข้อมูลฟัก —</div>`;
+  const idx=PLAN.rows.indexOf(r);
   return `<div class="pcard">
     <div class="phead" style="background:${bc}">
-      <div class="pname" style="color:${tc}">${r.line}</div>
-      <span class="pmethod ${mc}">${ml}</span>
+      <div class="phinfo">
+        <div class="pname" style="color:${tc}">${r.line}</div>
+        <span class="pmethod ${mc}">${ml}</span>
+      </div>
+      <div class="pact">
+        <button class="picon pedit" data-pidx="${idx}" title="แก้ไขคู่ผสม">✏️</button>
+        <button class="picon pdel" data-pidx="${idx}" title="ลบคู่ผสม">🗑️</button>
+      </div>
     </div>
     <div class="pbody">
       <div class="pcross"><span class="gene f">♂ ${r.pa||'—'}</span><span class="ar">×</span><span class="gene m">♀ ${r.mo||'—'}</span><span class="ar">→</span><span class="gene ch">${r.ch||'—'}</span></div>
@@ -1078,6 +1089,8 @@ function renderPlan(){
 }
 renderPlan();
 document.getElementById('plangrid').addEventListener('click',e=>{
+  const ed=e.target.closest('.pedit'); if(ed){ openPlan(+ed.dataset.pidx); return; }
+  const dl=e.target.closest('.pdel'); if(dl){ deletePlan(+dl.dataset.pidx); return; }
   if(e.target.closest('.pclearbtn')){ planFilter=null; renderPlan(); return; }
   const h=e.target.closest('.pghead');
   if(h){ const sec=h.closest('.pgsec'), k=sec.dataset.grp;
@@ -1498,8 +1511,12 @@ function planCheck(inId,outId){
     el.style.color='#b3531f';
   }
 }
-function openPlan(){
-  openModal('➕ เพิ่มคู่ผสม (แผนทดลอง)',
+let planEditIdx=null, planEditChk='';   // โหมดแก้ไข: ดัชนีแถวใน PLAN.rows + ลายเซ็น pa|mo|ch กันแก้ผิดแถว
+function openPlan(editIdx){
+  const ed=(typeof editIdx==='number' && PLAN.rows[editIdx]) ? PLAN.rows[editIdx] : null;
+  planEditIdx = ed ? editIdx : null;
+  planEditChk = ed ? [ed.pa,ed.mo,ed.ch].join('|') : '';
+  openModal(ed?'✏️ แก้ไขคู่ผสม (แผนทดลอง)':'➕ เพิ่มคู่ผสม (แผนทดลอง)',
     `<label>ชื่อสายทดลอง <small>(เว้นว่าง = ใช้ชื่อลูก)</small></label><input type="text" id="plLine" placeholder="เช่น โรดไอแลน R1">
      <div class="eg3">
        <div><label>♂ พ่อพันธุ์ <span class="req">*</span></label><input type="text" id="plPa" list="plCodeList" autocomplete="off" placeholder="เลือก/พิมพ์ เช่น SB8-26"><small class="brdchk" id="ckPa"></small></div>
@@ -1517,23 +1534,48 @@ function openPlan(){
      <label>วิธีเก็บไข่</label>
      <select id="plMethod"><option>เก็บไข่แยกครอบครัว</option><option>เก็บไข่รวมไม่แยกครอบครัว</option><option>ยังไม่ไข่</option></select>
      <label>ตารางฟัก <small>(วันที่ คั่นด้วย , — เว้นว่างได้)</small></label><input type="text" id="plBatch" placeholder="15/1/26, 22/1/26">
-     <button class="ebtn" id="plSave">💾 บันทึกคู่ผสม</button>`);
+     <button class="ebtn" id="plSave">${ed?'💾 บันทึกการแก้ไข':'💾 บันทึกคู่ผสม'}</button>`);
   document.getElementById('plSave').onclick=savePlan;
   [['plPa','ckPa'],['plMo','ckMo'],['plCh','ckCh']].forEach(([i,o])=>{
     document.getElementById(i).addEventListener('input',()=>planCheck(i,o));
   });
+  if(ed){   // เติมค่าเดิมลงฟอร์ม
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=(v==null?'':v); };
+    set('plLine',ed.line); set('plPa',ed.pa); set('plMo',ed.mo); set('plCh',ed.ch);
+    set('plNm',ed.nm); set('plNf',ed.nf); set('plFam',ed.nfam);
+    set('plLoc',ed.loc); set('plBatch',(ed.batches||[]).join(', '));
+    const ms=document.getElementById('plMethod');
+    if(ms && ed.method){ ms.value=ed.method;
+      if(ms.value!==ed.method){ const o=document.createElement('option'); o.textContent=ed.method; ms.appendChild(o); ms.value=ed.method; } }
+    planCheck('plPa','ckPa'); planCheck('plMo','ckMo'); planCheck('plCh','ckCh');
+  }
 }
 async function savePlan(){
   const g=id=>document.getElementById(id).value.trim();
   if(!g('plPa')||!g('plMo')||!g('plCh')){ etoast('กรอก พ่อ × แม่ → ลูก ก่อน','err'); return; }
+  const isEdit=(planEditIdx!=null);
   const btn=document.getElementById('plSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
   try{
-    const r=await apiWrite({action:'addPlan',line:g('plLine'),pa:g('plPa'),mo:g('plMo'),ch:g('plCh'),
-      nm:g('plNm'),nf:g('plNf'),nfam:g('plFam'),loc:g('plLoc'),method:g('plMethod'),batches:g('plBatch')});
+    const params={action:isEdit?'editPlan':'addPlan',line:g('plLine'),pa:g('plPa'),mo:g('plMo'),ch:g('plCh'),
+      nm:g('plNm'),nf:g('plNf'),nfam:g('plFam'),loc:g('plLoc'),method:g('plMethod'),batches:g('plBatch')};
+    if(isEdit){ params.idx=planEditIdx; params.chk=planEditChk; }
+    const r=await apiWrite(params);
     if(r&&r.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+    if(r&&r.stale) throw new Error(r.error||'ข้อมูลเปลี่ยนไปแล้ว กรุณารีเฟรชหน้าก่อนแก้');
     if(!r||!r.ok) throw new Error((r&&r.error)||'บันทึกไม่สำเร็จ');
-    etoast('✅ เพิ่มคู่ผสม '+(r.line||g('plCh')),'ok'); closeModal(); loadFromSheet();
-  }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 บันทึกคู่ผสม'; }
+    etoast((isEdit?'✅ บันทึกการแก้ไข ':'✅ เพิ่มคู่ผสม ')+(r.line||g('plCh')),'ok'); closeModal(); loadFromSheet();
+  }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent=isEdit?'💾 บันทึกการแก้ไข':'💾 บันทึกคู่ผสม'; }
+}
+async function deletePlan(idx){
+  const r0=PLAN.rows[idx]; if(!r0) return;
+  if(!confirm(`ลบคู่ผสมนี้?\n\n${r0.line||''}\n♂ ${r0.pa||'—'} × ♀ ${r0.mo||'—'} → ${r0.ch||'—'}\n\n⚠️ ลบแล้วกู้คืนไม่ได้`)) return;
+  try{
+    const r=await apiWrite({action:'deletePlan',idx:idx,chk:[r0.pa,r0.mo,r0.ch].join('|')});
+    if(r&&r.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+    if(r&&r.stale) throw new Error(r.error||'ข้อมูลเปลี่ยนไปแล้ว กรุณารีเฟรชหน้าก่อนลบ');
+    if(!r||!r.ok) throw new Error((r&&r.error)||'ลบไม่สำเร็จ');
+    etoast('🗑️ ลบคู่ผสมแล้ว','ok'); loadFromSheet();
+  }catch(e){ etoast('❌ '+e.message,'err'); }
 }
 document.getElementById('addEgg').onclick=openEgg;
 document.getElementById('addHatch').onclick=openHatch;

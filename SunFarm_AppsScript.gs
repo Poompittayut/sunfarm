@@ -169,6 +169,8 @@ function handleAction_(a,e){
     if(a==='addBreed')  return act_addBreed_(e);
     if(a==='deleteBreed')return act_deleteBreed_(e);
     if(a==='addPlan')   return act_addPlan_(e);
+    if(a==='editPlan')  return act_editPlan_(e);
+    if(a==='deletePlan')return act_deletePlan_(e);
     return {ok:false, error:'ไม่รู้จัก action: '+a};
   }catch(err){ return {ok:false, error:String(err)}; }
   finally{ lock.releaseLock(); }
@@ -343,4 +345,56 @@ function act_addPlan_(e){
   writeRow_('แผนทดลอง',[line,pa,mo,ch,num(p.nm),num(p.nf),num(p.nfam),
     String(p.loc||'').trim(),String(p.method||'').trim(),batches]);
   return {ok:true, line:line, ch:ch};
+}
+
+// แปลงดัชนีรายการ (0-based ตาม objsOf_ ที่ข้ามแถวว่าง) → เลขแถวจริงในชีท (1-based)
+function findPlanRow_(idx){
+  var sh=getSheet_('แผนทดลอง'); if(!sh) return -1;
+  var v=sh.getDataRange().getValues(), n=-1;
+  for(var i=1;i<v.length;i++){
+    var empty=true;
+    for(var k=0;k<v[i].length;k++){ if(v[i][k]!==''&&v[i][k]!==null){empty=false;break;} }
+    if(empty) continue;
+    n++; if(n===idx) return i+1;
+  }
+  return -1;
+}
+function planFields_(p){
+  var pa=String(p.pa||'').trim(), mo=String(p.mo||'').trim(), ch=String(p.ch||'').trim();
+  if(!pa||!mo||!ch) return null;
+  var line=String(p.line||'').trim()||ch;
+  function num(x){ var v=parseFloat(x); return isNaN(v)?'':v; }
+  var batches=String(p.batches||'').split(/[,\n;|]/).map(function(s){return s.trim();}).filter(String).join(' | ');
+  return [line,pa,mo,ch,num(p.nm),num(p.nf),num(p.nfam),
+    String(p.loc||'').trim(),String(p.method||'').trim(),batches];
+}
+function act_editPlan_(e){
+  var p=e.parameter, idx=parseInt(p.idx,10);
+  if(isNaN(idx)||idx<0) return {ok:false,error:'ไม่พบรายการที่จะแก้'};
+  var rn=findPlanRow_(idx);
+  if(rn<0) return {ok:false,error:'ไม่พบแถวคู่ผสมในชีท',stale:true};
+  var sh=getSheet_('แผนทดลอง');
+  // กันแก้ผิดแถว: ตรวจ pa|mo|ch เดิมยังตรงกับแถวที่ระบุ
+  if(p.chk!=null && String(p.chk)!==''){
+    var cur=sh.getRange(rn,2,1,3).getValues()[0].map(function(x){return String(x);}).join('|');
+    if(cur!==String(p.chk)) return {ok:false,error:'ข้อมูลในชีทเปลี่ยนไปแล้ว กรุณารีเฟรชหน้าก่อนแก้',stale:true};
+  }
+  var row=planFields_(p);
+  if(!row) return {ok:false,error:'ต้องมี พ่อ × แม่ → ลูก ครบ'};
+  sh.getRange(rn,1,1,row.length).setNumberFormat('@');
+  sh.getRange(rn,1,1,row.length).setValues([row]);
+  return {ok:true, line:row[0], ch:row[3]};
+}
+function act_deletePlan_(e){
+  var p=e.parameter, idx=parseInt(p.idx,10);
+  if(isNaN(idx)||idx<0) return {ok:false,error:'ไม่พบรายการที่จะลบ'};
+  var rn=findPlanRow_(idx);
+  if(rn<0) return {ok:false,error:'ไม่พบแถวคู่ผสมในชีท',stale:true};
+  var sh=getSheet_('แผนทดลอง');
+  if(p.chk!=null && String(p.chk)!==''){
+    var cur=sh.getRange(rn,2,1,3).getValues()[0].map(function(x){return String(x);}).join('|');
+    if(cur!==String(p.chk)) return {ok:false,error:'ข้อมูลในชีทเปลี่ยนไปแล้ว กรุณารีเฟรชหน้าก่อนลบ',stale:true};
+  }
+  sh.deleteRow(rn);
+  return {ok:true, deleted:idx};
 }
