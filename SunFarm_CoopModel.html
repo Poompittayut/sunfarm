@@ -1475,10 +1475,14 @@ function planCodeList(){
   return Array.from(s).sort((a,b)=>a.localeCompare(b,'th'));
 }
 function planCodeOptions(){
-  return planCodeList().map(c=>{
-    const b=breedOf(c), nm=b.known?b.name:'ไม่รู้จักพันธุ์';
-    return `<option value="${c.replace(/"/g,'&quot;')}">${nm}</option>`;
-  }).join('');
+  const map=new Map();   // value → ชื่อพันธุ์ (dedupe)
+  // 1) ทุกสายพันธุ์ที่ลงทะเบียนไว้ (รหัสนำหน้า) — โผล่ครบแม้ยังไม่เคยมีคู่ผสม
+  (window.breedList?window.breedList():[]).forEach(b=>{ if(!map.has(b.key)) map.set(b.key,b.name); });
+  // 2) รหัสเต็มที่เคยใช้จริงในแผน (เช่น SB8-25, AS0)
+  planCodeList().forEach(c=>{ if(!map.has(c)){ const b=breedOf(c); map.set(c, b.known?b.name:'ไม่รู้จักพันธุ์'); } });
+  return Array.from(map.entries())
+    .sort((a,b)=>a[0].localeCompare(b[0],'th'))
+    .map(([v,nm])=>`<option value="${v.replace(/"/g,'&quot;')}">${nm}</option>`).join('');
 }
 // ตัวตรวจสด: โชว์ชื่อ/สีพันธุ์ของรหัสที่กรอก หรือเตือนถ้าไม่รู้จัก
 function planCheck(inId,outId){
