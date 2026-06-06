@@ -117,6 +117,17 @@
   .addbtn{border:none;background:var(--primary);color:#fff;border-radius:11px;padding:10px 18px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap}
   .addbtn:hover{background:var(--primary-d)}
   body:not(.editor) .editonly{display:none!important}   /* คนดู (ยังไม่ login) ไม่เห็นปุ่ม/ส่วนแก้ไข */
+  /* skeleton ขณะโหลดข้อมูล (แทนหน้าจอ gate ทึบ) */
+  body.loading .side{display:none!important}
+  #skel{display:none;margin-top:2px}
+  body.loading #skel{display:block}
+  .sk-stats{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 22px}
+  .sk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .sk-card{background:linear-gradient(100deg,#e9edf0 30%,#f6f8f9 50%,#e9edf0 70%);background-size:200% 100%;animation:sk-shim 1.3s linear infinite;border-radius:14px;border:1px solid var(--line)}
+  .sk-stat{flex:1;min-width:120px;height:78px}
+  .sk-big{height:220px}
+  @keyframes sk-shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @media (prefers-reduced-motion: reduce){ .sk-card{animation:none} }
   #emodal{position:fixed;inset:0;z-index:90;background:rgba(20,28,40,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto}
   #emodal.open{display:flex}
   .embox{background:#fff;border-radius:16px;width:100%;max-width:560px;box-shadow:0 18px 50px rgba(0,0,0,.3);overflow:hidden;margin:auto}
@@ -1517,28 +1528,37 @@ async function initRole(){
 // ฉากกั้นรหัส (บังหน้าจนกว่าจะปลดล็อกสำเร็จ)
 const gate=document.createElement('div');
 gate.id='gate';
-gate.style.cssText='position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#15324f,#1f8a8a);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:24px;font-family:inherit';
+gate.style.cssText='position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#15324f,#1f8a8a);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:24px;font-family:inherit';
 gate.innerHTML='<div style="font-size:52px">🔒</div><div style="font-size:20px;font-weight:800;margin:10px 0 4px">ระบบฟาร์มทดลองผสมพันธุ์ไก่</div><div id="gatemsg" style="color:#cfe6e6;font-size:14px;margin-bottom:20px">กำลังเชื่อมต่อ…</div><button id="gatebtn" style="display:none;border:none;background:#fff;color:#1f8a8a;font-weight:800;font-size:15px;padding:11px 28px;border-radius:24px;cursor:pointer">🔑 ใส่รหัส</button>';
 document.body.appendChild(gate);
 document.getElementById('gatebtn').onclick=()=>loadFromSheet();
 function showGate(msg,btn){ gate.style.display='flex'; document.getElementById('gatemsg').textContent=msg; document.getElementById('gatebtn').style.display=btn?'inline-block':'none'; }
 function hideGate(){ gate.style.display='none'; }
 
+// Skeleton placeholder ขณะโหลดข้อมูล (shimmer) — แสดงโครงหน้าแทน gate ทึบ
+const skel=document.createElement('div');
+skel.id='skel';
+skel.innerHTML='<div class="sk-stats">'+Array(5).fill('<div class="sk-card sk-stat"></div>').join('')
+  +'</div><div class="sk-grid">'+Array(6).fill('<div class="sk-card sk-big"></div>').join('')+'</div>';
+(function(){ const t=document.querySelector('.wrap .tabs'); if(t) t.insertAdjacentElement('afterend',skel); else document.body.appendChild(skel); })();
+function showSkel(){ document.body.classList.add('loading'); }
+function hideSkel(){ document.body.classList.remove('loading'); }
+
 function loadFromSheet(){
-  if(!SHEET_API_URL){ hideGate(); setStatus('idle'); return; }
-  showGate('กำลังเชื่อมต่อ…',false); setStatus('loading');
+  if(!SHEET_API_URL){ hideGate(); hideSkel(); setStatus('idle'); return; }
+  hideGate(); showSkel(); setStatus('loading');
   const cb='__sf_cb_'+Date.now();
   const s=document.createElement('script');
   const cleanup=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;} if(s.parentNode)s.parentNode.removeChild(s); };
-  const timer=setTimeout(()=>{ cleanup(); setStatus('error','หมดเวลาเชื่อมต่อ'); showGate('เชื่อมต่อไม่ได้ — ลองใหม่',true); },20000);
+  const timer=setTimeout(()=>{ cleanup(); hideSkel(); setStatus('error','หมดเวลาเชื่อมต่อ'); showGate('เชื่อมต่อไม่ได้ — ลองใหม่',true); },20000);
   window[cb]=function(data){ clearTimeout(timer); cleanup();
     try{
-      if(data&&data.needKey){ clearKey(); setStatus('error','รหัสไม่ถูกต้อง'); showGate('รหัสไม่ถูกต้อง — ลองใหม่',true); return; }
+      if(data&&data.needKey){ clearKey(); hideSkel(); setStatus('error','รหัสไม่ถูกต้อง'); showGate('รหัสไม่ถูกต้อง — ลองใหม่',true); return; }
       const empty = (!data.PLAN||!data.PLAN.rows.length) && (!data.LOCKBOOK||!data.LOCKBOOK.length) && (!data.ONHAND||!data.ONHAND.rows.length);
-      if(empty){ setStatus('error','Sheet ว่าง — ยังไม่ได้รัน seedData'); hideGate(); return; }
-      reloadAll(data); setStatus('ok'); hideGate();
-    }catch(e){ setStatus('error',e.message); showGate('เกิดข้อผิดพลาด — ลองใหม่',true); } };
-  s.onerror=()=>{ clearTimeout(timer); cleanup(); setStatus('error','โหลดสคริปต์ไม่สำเร็จ'); showGate('เชื่อมต่อไม่ได้ — ลองใหม่',true); };
+      if(empty){ hideSkel(); setStatus('error','Sheet ว่าง — ยังไม่ได้รัน seedData'); hideGate(); return; }
+      reloadAll(data); hideSkel(); setStatus('ok'); hideGate();
+    }catch(e){ hideSkel(); setStatus('error',e.message); showGate('เกิดข้อผิดพลาด — ลองใหม่',true); } };
+  s.onerror=()=>{ clearTimeout(timer); cleanup(); hideSkel(); setStatus('error','โหลดสคริปต์ไม่สำเร็จ'); showGate('เชื่อมต่อไม่ได้ — ลองใหม่',true); };
   s.src=SHEET_API_URL+(SHEET_API_URL.indexOf('?')<0?'?':'&')+'callback='+cb+'&key='+encodeURIComponent(getKey())+'&t='+Date.now();
   document.body.appendChild(s);
 }
