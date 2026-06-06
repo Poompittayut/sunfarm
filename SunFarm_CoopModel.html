@@ -1239,6 +1239,7 @@ const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyb2xigoUDKr8C9hZ
 
 // แทนที่ข้อมูลทั้งหมดด้วยชุดใหม่จาก Sheet แล้ววาดใหม่ทุกแท็บ
 function reloadAll(data){
+  if(window.setBreeds) setBreeds(data.BREEDS);   // ตั้งสี/ชื่อพันธุ์จากชีท (ว่าง→ค่า default)
   if(data.PLAN) PLAN=data.PLAN;
   if(data.BREEDER) BREEDER=data.BREEDER;
   if(data.GROWER) GROWER=data.GROWER;

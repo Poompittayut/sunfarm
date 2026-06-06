@@ -672,6 +672,7 @@ function loadFromSheet(){
     try{
       if(data&&data.needKey){ clearKey(); setStatus('error','รหัสไม่ถูกต้อง'); showGate('รหัสไม่ถูกต้อง — ลองใหม่',true); return; }
       if(!data.PLAN||!data.PLAN.rows||!data.PLAN.rows.length){ setStatus('error','Sheet ว่าง — ยังไม่ได้รัน seedData'); showGate('ยังไม่มีข้อมูลแผนผสมใน Sheet',true); return; }
+      if(window.setBreeds) setBreeds(data.BREEDS);   // ตั้งสี/ชื่อพันธุ์จากชีท (ว่าง→ค่า default)
       buildTree(data.PLAN, data.ONHAND); setStatus('ok'); hideGate();
     }catch(e){ setStatus('error',e.message); showGate('เกิดข้อผิดพลาด — ลองใหม่',true); } };
   s.onerror=()=>{ clearTimeout(timer); cleanup(); setStatus('error','โหลดสคริปต์ไม่สำเร็จ'); showGate('เชื่อมต่อไม่ได้ — ลองใหม่',true); };

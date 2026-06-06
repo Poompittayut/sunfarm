@@ -131,7 +131,8 @@ function buildAll_(){
     PLAN:buildPLAN_(), BREEDER:buildCoop_('breeder',19,0), GROWER:buildCoop_('grower',75,20),
     LOCKBOOK:buildLOCK_(), EGGS:buildEGGS_(), ONHAND:buildONHAND_(),
     LEG_BREEDER:map2_('สีพันธุ์','color','name'), LEG_GROWER:map2_('สีรุ่น','color','name'),
-    META:buildMETA_(), TAGCOL:map2_('สีแท็ก','name','color'), SECCOL:map2_('สีsection','section','color')
+    META:buildMETA_(), TAGCOL:map2_('สีแท็ก','name','color'), SECCOL:map2_('สีsection','section','color'),
+    BREEDS:objsOf_('พันธุ์')   // นิยามสายพันธุ์ (สี/ชื่อ) ที่ผู้ดูแลเพิ่มเองผ่านเว็บ
   };
 }
 function doGet(e){
@@ -165,6 +166,8 @@ function handleAction_(a,e){
     if(a==='addBird')   return act_addBird_(e);
     if(a==='addFamily') return act_addFamily_(e);
     if(a==='updateBird')return act_updateBird_(e);
+    if(a==='addBreed')  return act_addBreed_(e);
+    if(a==='deleteBreed')return act_deleteBreed_(e);
     return {ok:false, error:'ไม่รู้จัก action: '+a};
   }catch(err){ return {ok:false, error:String(err)}; }
   finally{ lock.releaseLock(); }
@@ -273,4 +276,56 @@ function act_addFamily_(e){
     sh.getRange(rn,1,rows.length,8).setValues(rows);
   }
   return {ok:true, added:rows.length};
+}
+
+/* ===== จัดการสายพันธุ์ (ผู้ดูแลเพิ่มเองผ่านเว็บ) ===== */
+// สร้างชีท "พันธุ์" + เติมค่า default ครบ 8 พันธุ์ ถ้ายังไม่มี (ให้ตรงกับ breeds.js)
+function ensureBreedSheet_(){
+  var ss=SpreadsheetApp.getActive();
+  var sh=ss.getSheetByName('พันธุ์');
+  if(sh) return sh;
+  sh=ss.insertSheet('พันธุ์');
+  var rows=[['key','name','color','emoji'],
+    ['ประดู,PD','ประดู่หางดำ','#5b5048','🐓'],
+    ['SPL,ลูกผสม','ลูกผสม SPL','#e0a458','🐥'],
+    ['SB','SB8','#c97b5a','🐔'],
+    ['SF','Lohmann SF','#5b9aa0','🐔'],
+    ['SM','Lohmann SM','#6f9a8d','🐔'],
+    ['SL','Lohmann (SL)','#7a9a5b','🐔'],
+    ['MISSEX,คละ','คละเพศ','#9aa0a6','🐔'],
+    ['AUS,ออส,AS','ออสตาร์ลอป (AUS)','#b0673a','🐓']];
+  sh.getRange(1,1,rows.length,4).setNumberFormat('@');
+  sh.getRange(1,1,rows.length,4).setValues(rows);
+  return sh;
+}
+// เพิ่ม/แก้สายพันธุ์ (ถ้าชื่อซ้ำ = อัปเดตแถวเดิม) · param: kw(รหัสนำหน้า), name, color, emoji
+function act_addBreed_(e){
+  var p=e.parameter;
+  var kw=String(p.kw||'').trim(), name=String(p.name||'').trim();
+  if(!kw||!name) return {ok:false,error:'ต้องมีรหัสนำหน้า + ชื่อพันธุ์'};
+  var color=String(p.color||'#9a9486').trim()||'#9a9486', emoji=String(p.emoji||'').trim()||'🐔';
+  var sh=ensureBreedSheet_();
+  var data=sh.getDataRange().getValues();
+  for(var i=1;i<data.length;i++){
+    if(String(data[i][1]).trim()===name){
+      sh.getRange(i+1,1,1,4).setNumberFormat('@');
+      sh.getRange(i+1,1,1,4).setValues([[kw,name,color,emoji]]);
+      return {ok:true, updated:true, name:name};
+    }
+  }
+  var rn=sh.getLastRow()+1;
+  sh.getRange(rn,1,1,4).setNumberFormat('@');
+  sh.getRange(rn,1,1,4).setValues([[kw,name,color,emoji]]);
+  return {ok:true, added:true, name:name};
+}
+// ลบสายพันธุ์ตามชื่อ
+function act_deleteBreed_(e){
+  var name=String((e.parameter&&e.parameter.name)||'').trim();
+  if(!name) return {ok:false,error:'ไม่ได้ระบุชื่อพันธุ์'};
+  var sh=getSheet_('พันธุ์'); if(!sh) return {ok:false,error:'ยังไม่มีชีทพันธุ์'};
+  var data=sh.getDataRange().getValues();
+  for(var i=data.length-1;i>=1;i--){
+    if(String(data[i][1]).trim()===name){ sh.deleteRow(i+1); return {ok:true, deleted:name}; }
+  }
+  return {ok:false, error:'ไม่พบพันธุ์: '+name};
 }
