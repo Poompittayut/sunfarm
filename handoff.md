@@ -1,6 +1,6 @@
 # Handoff — ระบบผสมสายพันธุ์ไก่ (Sunfarm)
 
-เอกสารส่งต่องาน · อัปเดตล่าสุด: 2026-06-02 (เพิ่มแท็บเมทริกซ์ผสม + ผูก Google Sheet)
+เอกสารส่งต่องาน · อัปเดตล่าสุด: 2026-06-06 (เพิ่มระบบ login แยกคนดู/คนแก้ไข · ฝังจัดการสายพันธุ์เข้า CoopModel · แก้/ลบคู่ผสม · แก้กรงผังเล้า · ตารางแก้ไข้รายวัน)
 
 ---
 
@@ -20,17 +20,17 @@
 | `SB Tag (1).xlsx` | **ไฟล์ต้นฉบับ** — seed ครั้งแรกจากที่นี่ (ปัจจุบันข้อมูลจริงอยู่ใน Google Sheet) · gitignored | ของลูกค้า — ห้ามแก้ |
 | `SunFarm_CoopModel.html` | **ตัวหลัก** — HTML model โต้ตอบได้ (เปิดไฟล์เดียวจบ ไม่ต้องมี server) | ✅ ทำแล้ว |
 | `handoff.md` | ไฟล์นี้ | — |
-| `SunFarm_AppsScript.gs` | **Apps Script** = seed ข้อมูล + เสิร์ฟ JSON (read-only) ให้ HTML ดึงสด | ✅ ทำแล้ว |
+| `SunFarm_AppsScript.gs` | **Apps Script** = seed ข้อมูล + เสิร์ฟ JSON (อ่านเปิดให้ทุกคน) + รับ action เขียนกลับ (ต้องมี WRITE_KEY) | ✅ ทำแล้ว |
 | `SETUP_GoogleSheet.md` | คู่มือ deploy Apps Script + ผูก HTML กับ Sheet ทีละขั้น | ✅ ทำแล้ว |
 | `SunFarm_Form.html` | **ฟอร์มกรอกข้อมูล — สำหรับคนงานหน้างาน (มือถือ)** · เบา/เร็ว/โฟกัส · ปรับ UI ให้เหมาะมือถือแล้ว (ช่องกรอก 16px กัน iOS zoom · ปุ่มบันทึก sticky ลอยล่างจอ · ปุ่ม/ช่องใหญ่แตะง่าย) · เขียน Sheet ผ่าน action เดียวกับ CoopModel | ✅ ใช้คู่กับ CoopModel |
-| `SunFarm_FamilyTree.html` | **ผังเครือญาติการผสมพันธุ์** — root tree บนลงล่าง (พ่อแม่พันธุ์ → จุดผสม × → ลูกพันธุ์) สำหรับคนทั่วไปดูง่าย · ใช้ `PLAN` ดึงสดจาก Sheet (gate รหัสเหมือน CoopModel) | ✅ ทำแล้ว |
+| `SunFarm_FamilyTree.html` | **ผังเครือญาติการผสมพันธุ์** — root tree บนลงล่าง (พ่อแม่พันธุ์ → จุดผสม × → ลูกพันธุ์) สำหรับคนทั่วไปดูง่าย · ใช้ `PLAN` ดึงสดจาก Sheet · ⚠️ **ยังมีโค้ด gate/getKey เดิม (ยังไม่ได้อัปเดตตามระบบ login ใหม่ของ CoopModel)** — read เปิดแล้วก็โหลดได้ แต่ควรปรับให้เลิก prompt รหัส (ดู Next steps) | ✅ ทำแล้ว (รอปรับ login) |
 | ~~`SunFarm_Breeds.html`~~ | **ลบแล้ว** — จัดการสายพันธุ์ย้ายไปฝังเป็น modal ใน CoopModel (ปุ่ม 🎨 จัดการสายพันธุ์ ในแท็บแผนทดลอง) เพื่อให้จบในหน้าเดียว | ❌ ลบออก |
 | `breeds.js` | **ตารางสายพันธุ์กลาง** (`window.BREEDS`/`breedOf`/`setBreeds`) ทุกหน้าโหลด · ต้อง deploy คู่ HTML เสมอ | ✅ ทำแล้ว |
-| `index.html` | หน้า landing (4 ปุ่ม: ฟอร์ม / ภาพรวม / ผังเครือญาติ / จัดการสายพันธุ์) — GitHub Pages เปิดเป็นหน้าแรก | ✅ ทำแล้ว |
+| `index.html` | หน้า landing (**3 ปุ่ม:** ฟอร์ม / ภาพรวม / ผังเครือญาติ — ปุ่ม "จัดการสายพันธุ์" เอาออกแล้ว ย้ายไปอยู่ใน CoopModel) — GitHub Pages เปิดเป็นหน้าแรก | ✅ ทำแล้ว |
 | `README.md` | อธิบายโปรเจกต์สำหรับ repo | ✅ ทำแล้ว |
 
 > โปรเจกต์อยู่ใน **git repo** (branch `main`, โฮสต์ GitHub Pages) · ไฟล์เก่า `SunFarm_Dashboard.html` / `SunFarm_AppsScript_Fixed.gs` ถูกลบออกแล้ว
-> ⚠️ `SunFarm_CoopModel.html` เป็น single-file แต่ **ข้อมูล const ถูกถอดออกหมด (ค่าว่าง)** — ดึงสดจาก Sheet API ที่ต้องใส่รหัสก่อน (เปิดไฟล์ตรงๆ จะเจอ gate ขอรหัส · ดูข้อ 8.7)
+> ⚠️ `SunFarm_CoopModel.html` เป็น single-file แต่ **ข้อมูล const ถูกถอดออกหมด (ค่าว่าง)** — ดึงสดจาก Sheet API · **ตอนนี้อ่านได้เลยไม่ต้องใส่รหัส** (คนดู) · ใส่รหัสเฉพาะตอน "เข้าสู่ระบบ" เพื่อแก้ไข (ดูข้อ 8.7 ระบบ login)
 
 ---
 
@@ -66,9 +66,9 @@ SB   - 26    - G8         - F01      - F        - 001
 |-----------|-------------|----------|
 | (สร้างสดจาก PLAN) | 🔀 เมทริกซ์ผสม **(แท็บแรก/หน้าแรก)** | ตารางไขว้ พ่อ×แม่→ลูก · purebred(ทแยง)/crossbred · `renderMatrix()` · **คลิกคู่ผสม (ช่อง หรือ รายการล่าง) → ไปแท็บแผนทดลอง กรองเฉพาะคู่นั้น** ผ่าน `gotoPlanPair(pa,mo)` |
 | `แผนทดลอง` | 🗺️ แผนทดลอง | **การ์ดจัดกลุ่มตามสายพันธุ์** (แต่ละสาย=หัวข้อ+บล็อก · ชื่อ/สี จาก `breedName`+`breedColor`) · **คลิกหัวข้อ = ย่อ/ขยายสายนั้น** (chevron ▾/▸ · จำสถานะใน `planCollapsed` Set ข้าม render/reload) เผื่อโฟกัสทีละสาย · คลิกคู่ผสม(จากเมทริกซ์)→`planFilter` แสดง flat + banner "ดูทั้งหมด" · หัวการ์ด=สีพันธุ์ |
-| `ผังเล้าทดลอง` | 🏠 ผังเล้า | มี sub-toggle: ฝั่งไก่พันธุ์(19กรง) / ฝั่งไก่รุ่น(75กรง) |
+| `ผังเล้าทดลอง` | 🏠 ผังเล้า | มี sub-toggle: ฝั่งไก่พันธุ์(19กรง) / ฝั่งไก่รุ่น(75กรง) · **แก้ไข inline:** editor คลิกกรง → modal แก้จำนวน/สายพันธุ์(สีกรง)/ล้างกรง (`openCage/saveCage`→ action `updateCage` หาแถวจาก side+row+sex+cage) — กรงว่างคลิกได้(เพิ่มใหม่) · ⚠️ ยอด "รวม"/สถิติมาจาก recTotal (ชีท `ผังเล้ารวม`) แยกจากจำนวนกรง จึงไม่เปลี่ยนตามการแก้กรงทีละช่อง |
 | `Lockbook` | 📒 Lockbook | 62 Family · ฟิลเตอร์ตาม section · หัวการ์ดสีพันธุ์ · **แถบ "🧬 จากแผน" บนการ์ด → คลิก "ดูแผน" กระโดดไปแท็บแผนกรองคู่นั้น** (`planForSection()` + `gotoPlanPair()`) — เชื่อม 2 ทางกับแผนทดลอง (เฉพาะสาย SB8 ที่มี section ตรงกับแผน) |
-| `ไข่รายวัน` | 🥚 ไข่รายวัน | 40 คู่ผสม + กราฟ sparkline |
+| `ไข่รายวัน` | 🥚 ไข่รายวัน | **2 มุมมอง สลับด้วย `#eggviewtoggle` (`eggView`):** (1) **การ์ดสรุป** (default) · (2) **ตารางแก้ไข คู่ผสม × วัน** (`renderEggTable`) — แถว=คู่ผสม (ตรึงซ้าย) × คอลัมน์=วันที่ + คอลัมน์รวม · editor คลิกช่องแก้จำนวนไข่ได้ทุกวัน **รวมย้อนหลัง** (เว้นว่าง=ลบค่า) · พิมพ์→เก็บ buffer `eggPending` (key=mo\|dateIdx · ช่อง dirty=coral · ยอดรวมแถวอัปเดตสด · แก้กลับเท่าเดิม=หลุด pending) · แถบล่าง `#eggbar` ปุ่มส่ง/ยกเลิก · **ส่ง = `submitEggs` จัดกลุ่มตามวัน → ยิง `eggBatch` ทีละวัน (chunk 15) → `loadFromSheet` ครั้งเดียว** (ไม่ต้องแก้ .gs · ใช้ eggBatch เดิมที่ set ค่าตาม index วันอยู่แล้ว) · viewer เห็นตาราง read-only · **เรียงตามวันเก็บล่าสุด ใหม่→เก่า** (`eggLastIdx` = ดัชนีวันที่มีข้อมูลตัวท้าย · เสมอกัน→ไข่รวมมากก่อน · `eggSortedList()`) + **แบ่งหน้า 20 การ์ด/หน้า** (`EGG_PER_PAGE` · `eggPage` · nav `#eggnav` ใต้ stats บอก "คู่ที่ x–y จาก n" · เปลี่ยนฟิลเตอร์/โหลดข้อมูลใหม่ = กลับหน้า 1 → ล่าสุดโชว์ก่อนเสมอ · `gotoEgg` คำนวณหน้าที่การ์ดอยู่ก่อนกระโดด) · การ์ดต่อคู่ผสม · **ตัดกราฟ sparkline รายวันออกแล้ว** (ไม่มีคนดูรายวัน) เน้นตัวเลขใช้งานจริง: ไข่เก็บรวม/สต็อกยกมา/ครั้งที่เก็บ/เก็บล่าสุด + กล่องเด่น **"🥚 คงเหลือรอเข้าฟัก"** (= เก็บรวม + สต็อก − เข้าฟักแล้ว · clamp ≥0 · `.eremain`) · footer โชว์ "เข้าฟักแล้ว N ฟอง → ฟักได้ M ตัว (รอบ)" (`setSum/chicks` จาก `ONHAND_BY_FAM[sec\|fam]` · คู่ที่ไม่มี family → "ยังไม่มีรอบเข้าฟักที่ผูกกับคู่นี้") · ฟังก์ชัน `ecardHtml` (ลบ `sparkHtml/hatchFootHtml` เดิม) · ข้อมูลรายวันใน Sheet เก็บเหมือนเดิม แค่ไม่โชว์กราฟ |
 | `on hand` | 🐤 ตู้ฟัก/ลูกไก่ | การ์ดรายรอบ funnel + KPI · **2 มุมมอง:** (1) **"ทั้งหมด" = โชว์แค่กราฟสรุป "ผลฟักแยกสายพันธุ์"** (`renderOhSummary()` · funnel ต่อสาย ไข่เข้า→มีเชื้อ→ลูกไก่ + %ฟัก · สีตาม `breedColor` · เรียงตามจำนวนลูก · **คลิกแถว → ไปดูสายนั้น**) ไม่มีการ์ดรายรอบ · (2) **กดชิป/แถวกราฟ/family = โชว์แค่การ์ดรายรอบของสายนั้น** (ซ่อนกราฟ) · สลับไปมาใน `renderOnhand()` |
 | `P2` | ❌ ยังไม่ทำ | ผังเล้าหลังที่ 2 (SPL ชุด4-9) |
 | `อัพเดท`, `แผน Super` | ❌ ยังไม่ดู | ยังไม่ได้ตรวจ |
@@ -88,7 +88,7 @@ SB   - 26    - G8         - F01      - F        - 001
 
 > ⚠️ **ปัจจุบัน const เหล่านี้เริ่มเป็นค่าว่าง** (`let PLAN={rows:[]}`, `let EGGS={dates:[],rows:[]}`, `let LOCKBOOK=[]` ฯลฯ) — `reloadAll()` เติมข้อมูลจาก Sheet API ตอนรันไทม์ (โครงสร้างยังเป็นรูปเดิมตามตารางข้างบน) · ดูข้อ 8.5/8.7
 
-**ฟังก์ชัน render หลัก:** `renderCoop / renderLockbook / renderEggs / renderOnhand / renderPlan / renderMatrix`
+**ฟังก์ชัน render หลัก:** `renderCoop / renderLockbook / renderEggs (+renderEggTable มุมมองตาราง) / renderOnhand / renderPlan / renderMatrix / renderBreedList`
 **สีกรง = สีพื้นเซลล์จริงจาก Excel** (แมปสี hex → ชื่อพันธุ์ ใน `LEG_BREEDER` / `LEG_GROWER`)
 
 **การเชื่อมข้ามแท็บ (คลิกแล้วกระโดด):**
@@ -163,7 +163,7 @@ ws = wb['ชื่อชีท']
 
 - กลไก: `SunFarm_AppsScript.gs` (deploy เป็น Web app) → ส่ง JSON รูปทรงเดียวกับ const เดิมเป๊ะ → HTML ดึงผ่าน **JSONP** (เลี่ยง CORS เปิดไฟล์ตรงๆ ได้)
 - เปิดใช้: วาง Web app URL ในตัวแปร `const SHEET_API_URL` (ท้าย `<script>`) · ว่าง = ใช้ข้อมูลฝังในไฟล์
-- ฝั่ง HTML: data const เปลี่ยนจาก `const`→`let`, มี `reloadAll(data)` แทนที่ข้อมูล+วาดใหม่ทุกแท็บ, `rebuildEggMap()/rebuildOnhandMap()`, แถบสถานะ+ปุ่ม ↻ รีเฟรช (มุมขวาล่าง, สร้างใน JS ชื่อ `#databar`)
+- ฝั่ง HTML: data const เปลี่ยนจาก `const`→`let`, มี `reloadAll(data)` แทนที่ข้อมูล+วาดใหม่ทุกแท็บ, `rebuildEggMap()/rebuildOnhandMap()`, แถบสถานะ+ปุ่ม ↻ รีเฟรช (`#databar` · **ย้ายไปมุมขวาบนในแถบหัว `#topright` คู่กับปุ่มเข้าสู่ระบบ** · setStatus() อัปเดตจุดสี+ข้อความ)
 - ฝั่ง Sheet: 12 แท็บ (flat 1 แถว=1 รายการ) · `seedData()` สร้าง+ใส่ข้อมูลตั้งต้นอัตโนมัติ · ทุกช่อง format ข้อความ (กันวันที่เพี้ยน) · `doGet()` อ่านชีท→ประกอบ JSON
 - **ตรวจแล้ว:** logic ประกอบกลับให้ผลตรงกับ const เดิมทั้ง 11 ชุด (verify ด้วย Python simulation)
 - คู่มือ deploy: `SETUP_GoogleSheet.md`
@@ -178,30 +178,44 @@ ws = wb['ชื่อชีท']
 ```
 
 - **3 ฟอร์ม:** 🥚 ไข่รายวัน (เลือกวัน→กรอกจำนวนต่อคู่ผสม, ส่งเป็น chunk ละ 15 ผ่าน `eggBatch`) · 🐤 ผลฟัก (`addHatch` คำนวณ se/sf/dpct ให้) · 📋 เพิ่มไก่/Family (`addBird`/`addFamily`)
-- **Apps Script เขียนกลับ:** `doGet` แตกตาม `action` → `handleAction_` (มี `LockService` กันชนกัน) · actions: `eggBatch/addHatch/addBird/addFamily/ping`
+- **Apps Script เขียนกลับ:** `doGet` แตกตาม `action` → `handleAction_` (มี `LockService` กันชนกัน) · actions ทั้งหมด: `ping` (เปิด) · `login` (ตรวจรหัส) · `eggBatch/addHatch/addBird/addFamily/updateBird` · `updateCage/cageBatch` (แก้กรง) · `addBreed/deleteBreed` (สายพันธุ์) · `addPlan/editPlan/deletePlan` (คู่ผสม) — ทุก action เขียนต้องมี `key===WRITE_KEY`
 - `eggBatch` หา row ด้วย `mo` (รหัสแม่ unique) แล้ว set ช่อง daily ตาม index ของวันที่ (เพิ่มวันที่ใหม่ใน `ไข่วันที่` อัตโนมัติ)
 - เขียนผ่าน **JSONP GET** (ไม่ใช่ POST) เพื่อเลี่ยง CORS จาก `file://` · payload เล็ก
 - **แก้ inline ในหน้าดู (CoopModel):** แท็บ Lockbook คลิกแถวไก่ได้เลย → กรอกรหัส/ห่วง → เซฟเข้า Sheet อัตโนมัติ (action `updateBird` หาแถวจาก section+family+sex+idx แล้ว set code/band · ฟังก์ชันฝั่ง HTML: `enterEdit/saveEdit/restoreRow/apiWrite`) — ไม่ต้องเปิดชีท
+- **แก้กรงในผังเล้า (CoopModel) — แบบ batch (แก้หลายกรงแล้วส่งทีเดียว):** editor คลิกกรง → modal แก้จำนวน/สายพันธุ์(เลือกจาก legend = สีกรง)/ล้างกรง → **`saveCage` เก็บลง buffer `cagePending` (key=side\|row\|sex\|cage) ไม่ส่ง Sheet ทันที** · `applyCageLocal` อัปเดต model+legend ในหน่วยความจำให้เห็นผลทันที + `rerenderCoopSide` วาดใหม่เฉพาะฝั่งนั้น · กรงที่แก้ค้าง = คลาส `.dirty` (กรอบ coral) · แถบลอยล่างกลางจอ (`#cagebar` · `updateCageBar`) บอกจำนวน + ปุ่ม **ส่งข้อมูล**(`submitCages`)/ยกเลิก(`cancelCages`) · กด "ส่งข้อมูล" → action **`cageBatch`** (items=JSON array · chunk ละ 20) ส่งรอบเดียว แล้ว `loadFromSheet()` รีเฟรชครั้งเดียวตอนจบ · ฟังก์ชันฝั่ง HTML: `openCage/saveCage/applyCageLocal/rerenderCoopSide/updateCageBar/submitCages/cancelCages/cageBreedOptions/normHex` · `.gs`: `act_cageBatch_` (อ่านชีทรอบเดียว→จับคู่ใน memory→เขียน · ไม่เจอ→ต่อท้าย) · ยังมี `act_updateCage_` (แก้กรงเดียว) ไว้สำรอง
+  - **เพิ่มพันธุ์/สีกรงใหม่ได้จากในกรงเลย:** มีปุ่ม "➕ เพิ่มพันธุ์ใหม่" แยกใต้ dropdown (toggle `#cgNewToggle` · เปิด→โชว์กล่องกรอกชื่อ+color picker, disable dropdown, สลับป้ายเป็น "↩ ใช้พันธุ์ที่มีอยู่แล้ว") · `saveCage` ดูจาก `#cgNewBox` แสดงอยู่ = โหมดเพิ่มใหม่ → ส่ง param `legendName` ไปด้วย · `.gs` `upsertLegend_()` เขียนสี→ชื่อ ลงชีท legend (breeder→`สีพันธุ์` · grower→`สีรุ่น`) ก่อน set กรง · สีเก็บเป็น hex พิมพ์ใหญ่ไม่มี # · ⚠️ legend สีกรงนี้แยกจาก `breeds.js`/`BREEDS` (สีพันธุ์กลางของ plan/matrix) — คนละชุดสีตามดีไซน์เดิม ("สีกรง = สีข้อมูล")
 - **กรอกข้อมูลครบใน CoopModel (รวมจากฟอร์มเดิม) — ทำแล้ว:** ปุ่ม **➕ ในแต่ละแท็บ → เด้ง modal** (ไข่รายวัน=`openEgg/saveEgg`→`eggBatch` chunk 15 · ผลฟัก=`openHatch/saveHatch`→`addHatch` + KPI สด `calcKpi` · เพิ่มไก่/Family=`openBird/saveBird`→`addBird`/`addFamily` · **เพิ่มคู่ผสม=`openPlan/savePlan`→`addPlan`** เขียนชีท "แผนทดลอง" → โผล่เมทริกซ์/แผน/ผังเครือญาติทันที) · ใช้ `apiWrite` + `etoast/openModal/closeModal/toDM` · เซฟเสร็จ `loadFromSheet()` รีเฟรชอัตโนมัติ
-- **เป้าหมาย: ผู้ดูแลทำครบจบที่เว็บ ไม่ต้องเปิด Google Sheet** — เพิ่มได้: สายพันธุ์(สี) · คู่ผสม(แผน) · ไก่/family · ไข่ · ผลฟัก · แก้รหัสไก่ inline · (ยังไม่มี: แก้/ลบ คู่ผสม-PLAN ผ่านเว็บ — ทำต่อได้)
+- **แก้/ลบ คู่ผสม (PLAN) ผ่านเว็บ — ทำแล้ว:** การ์ดคู่ผสมแต่ละใบมีปุ่ม ✏️/🗑️ (`.pact`) · แก้=`openPlan(idx)` เติมค่าเดิม→`savePlan` ส่ง `editPlan` · ลบ=`deletePlan(idx)` ยืนยันก่อน→`deletePlan` · ระบุแถวด้วย index ใน PLAN.rows (`.gs findPlanRow_` map→แถวจริง) + ส่ง `chk=pa\|mo\|ch` กันแก้/ลบผิดแถวถ้าชีทเปลี่ยน (ตอบ `stale`) · ฟอร์มเพิ่มคู่ผสมมี **autocomplete รหัส** (`planCodeOptions` รวมรหัสนำหน้าทุกพันธุ์ที่ลงทะเบียน + รหัสที่เคยใช้) + ตัวตรวจพันธุ์สด (`planCheck`)
+- **เป้าหมาย: ผู้ดูแลทำครบจบที่เว็บ ไม่ต้องเปิด Google Sheet** — เพิ่ม/แก้/ลบได้: สายพันธุ์(สี) · คู่ผสม(แผน) · ไก่/family · ไข่(ตาราง) · ผลฟัก · กรงผังเล้า · แก้รหัสไก่ inline ✅ ครบ
 - ⚠️ **ต้อง redeploy Apps Script (New version)** หลังแก้ `.gs` ถึงจะมี write-back/updateBird (URL เดิมไม่เปลี่ยน)
 - ⚠️ ความปลอดภัย: endpoint เปิด "Anyone" + เขียนได้ = ใครมี URL ก็เขียนได้ (โอเคสำหรับใช้ภายใน) · ถ้าต้องการกันควรเพิ่ม token param
 
 ---
 
-## 8.7 ระบบรหัสกันคนนอก + โฮสต์ GitHub Pages — ทำแล้ว
+## 8.7 ระบบ login แยกคนดู/คนแก้ไข + โฮสต์ GitHub Pages — ทำแล้ว
 
-- **รหัสเขียน (WRITE_KEY):** Apps Script ตรวจ `e.parameter.key === WRITE_KEY` ก่อนทุก action เขียน (อ่านไม่ต้องใช้รหัส) · ฟอร์มเก็บรหัสใน `localStorage('sf_key')` ถามครั้งแรกครั้งเดียว ส่งแนบทุกครั้งที่เขียน · รหัสผิด → `needKey` → ฟอร์มล้าง+ถามใหม่
-- ⚠️ **WRITE_KEY อยู่ใน `.gs` เท่านั้น (ฝั่ง Google) ห้าม commit รหัสจริง** — ไฟล์ `.gs` ใน repo มีค่า placeholder `"เปลี่ยนรหัสนี้"` · ตั้งรหัสจริงเฉพาะในหน้า Apps Script แล้ว redeploy
-- **`index.html`:** หน้าแรก (landing) มี 2 ปุ่ม → ฟอร์ม / ภาพรวม · เป็นไฟล์ที่ GitHub Pages เปิดเป็นหน้าแรก
-- **โฮสต์:** GitHub Pages (repo public) · URL = `https://poompittayut.github.io/sunfarm/`
+**โมเดลสิทธิ์ปัจจุบัน: อ่านเปิดให้ทุกคน · เขียนต้อง login**
+- **คนดู (viewer):** เปิดเข้ามาเห็นข้อมูลได้เลย **ไม่ต้องใส่รหัส** · ปุ่ม/ส่วนแก้ไขทั้งหมดถูกซ่อน
+- **คนแก้ไข (editor):** กดปุ่ม **🔑 เข้าสู่ระบบ** (มุมขวาบนในแถบหัว `#topright`) → ใส่รหัส → เห็นปุ่มแก้ไขครบ · ปุ่มเปลี่ยนเป็น **👤 ออกจากระบบ**
 
-### ล็อกทั้งระบบ (รหัสเดียว ทั้งดู+กรอก) — ทำแล้ว
-- `doGet` อ่านข้อมูล (ไม่มี action) ก็ต้องมี `key===WRITE_KEY` ด้วย (ping ยังเปิด)
-- **ถอด embedded data ออกจาก `SunFarm_CoopModel.html` ทั้งหมด** (PLAN/BREEDER/GROWER/LOCKBOOK/EGGS/ONHAND/LEG_*/META/TAGCOL/SECCOL/BREEDER_TBL/GROWER_TBL = ว่าง) เพราะไฟล์อยู่บน repo public → ข้อมูลมาจาก API (มีรหัส) เท่านั้น
-- CoopModel มี **gate overlay** (`#gate`) บังหน้าจนใส่รหัสถูก · ส่ง `key` ทุกครั้งที่โหลด · `needKey` → ล้างรหัส+ขอใหม่
-- Form `boot()` ส่ง key ด้วย · รหัสผิด → ปุ่มลองใหม่
-- ⚠️ แก้ `doGet` แล้ว **ต้อง redeploy** ถึงจะ enforce read-lock
+**ฝั่ง `.gs`:**
+- `doGet` (ไม่มี action) = `buildAll_()` **เปิดให้อ่านโดยไม่ต้องรหัส**
+- action `login` = ผ่าน key-check (`key===WRITE_KEY`) แล้วคืน `{ok:true, role:'editor'}` ใช้ตรวจรหัสตอน login
+- ทุก action เขียนยังต้องมี `key===WRITE_KEY` (อ่านฟรี เขียนล็อก)
+- ⚠️ **WRITE_KEY อยู่ใน `.gs` เท่านั้น (ฝั่ง Google) ห้าม commit รหัสจริง** — ไฟล์ `.gs` ใน repo มีค่า placeholder `"เปลี่ยนรหัสนี้"` · รหัสจริงตั้งเฉพาะในหน้า Apps Script แล้ว redeploy (**รหัสจริงไม่เขียนไว้ในเอกสาร/repo — สอบถามเจ้าของระบบ**)
+
+**ฝั่ง HTML (CoopModel):**
+- `let isEditor` · `applyRole()` toggle `document.body.classList('editor')` · `updateLoginBtn()` สลับข้อความ/handler ปุ่ม
+- `doLogin()` → ใส่รหัส → `apiWrite({action:'login'})` ตรวจกับเซิร์ฟเวอร์ · ถูก→`isEditor=true` + เก็บใน `localStorage('sf_key')` · `doLogout()` ล้างรหัส
+- `initRole()` ตอนเปิดหน้า: ถ้ามีรหัสค้าง→ตรวจซ้ำกับเซิร์ฟเวอร์ (valid→editor เลย)
+- `getKey()` **ไม่ prompt แล้ว** (คืนรหัสที่เก็บ หรือค่าว่าง)
+- **ซ่อนปุ่มแก้ไข:** ทุกปุ่ม/ส่วนแก้ไขติดคลาส **`editonly`** + CSS `body:not(.editor) .editonly{display:none}` (เพิ่มคู่ผสม·จัดการสายพันธุ์·✏️/🗑️การ์ด·เพิ่มไก่/ไข่/ผลฟัก) + กันที่ JS (`enterEdit` lockbook, แก้กรง, ตารางไข่ เช็ค `isEditor`) — กัน 3 ชั้น (CSS + JS + เซิร์ฟเวอร์ WRITE_KEY)
+- `#gate` overlay เหลือไว้แค่สถานะ "กำลังเชื่อมต่อ/error" (ไม่ใช่ด่านรหัสอีกแล้ว)
+- ⚠️ embedded data ยังถูกถอดออกหมด (ว่าง) → ข้อมูลมาจาก API เท่านั้น
+
+**`index.html`:** landing **3 ปุ่ม** → ฟอร์ม / ภาพรวม / ผังเครือญาติ (จัดการสายพันธุ์ย้ายเข้า CoopModel แล้ว)
+**โฮสต์:** GitHub Pages (repo public) · URL = `https://poompittayut.github.io/sunfarm/`
+⚠️ แก้ `doGet`/เพิ่ม action แล้ว **ต้อง redeploy Apps Script (New version)** ถึงจะมีผล
 
 ---
 
@@ -209,7 +223,7 @@ ws = wb['ชื่อชีท']
 
 หน้า "Flow ผสมพันธุ์แบบ root tree" สำหรับคนทั่วไป (แยกจาก CoopModel ที่เน้นข้อมูลละเอียด)
 
-- **ข้อมูล:** ใช้ `PLAN.rows` (โครงผัง) + `ONHAND.rows` (ผลฟัก) — ดึงสดจาก Sheet ผ่าน gate/รหัส/JSONP **ชุดเดียวกับ CoopModel เป๊ะ** (copy `SHEET_API_URL`, `getKey/loadFromSheet/setStatus`, `#gate`, `#databar`) · ไม่ต้อง redeploy `.gs` (อ่านอย่างเดียว)
+- **ข้อมูล:** ใช้ `PLAN.rows` (โครงผัง) + `ONHAND.rows` (ผลฟัก) — ดึงสดจาก Sheet ผ่าน JSONP · ไม่ต้อง redeploy `.gs` (อ่านอย่างเดียว) · ⚠️ **ยังเป็นโค้ด gate/getKey เดิม (copy จาก CoopModel เวอร์ชันก่อนทำ login)** — read เปิดแล้วก็โหลดได้ แต่ `getKey` ยังอาจ prompt รหัส ควรปรับให้ตรงกับ CoopModel ใหม่ (ดู Next steps)
 - **ผลฟัก (ONHAND):** ม้วนยอด eggset/fert/chick/รอบ เข้าโหนด "พันธุ์ลูก" ด้วยกุญแจ `ch` · onhand `pa/mo` เป็นชื่อยาวคนละแบบกับ PLAN **แต่ `ch` ตรงกัน** จึง join ด้วย `ch` · รหัสระดับ family map กลับเป็นพันธุ์ลูกใน `ohChToNode()` (ตรงตัว → ตัดท้าย `-F\d+` → กฎ `SB-25/26-G8*`→`SB8G0`) · `Lohmann SM-*` ไม่มีโหนดในผัง = ไม่แสดง · โชว์: ป้าย 🐤 บนการ์ดลูก (เทา=เข้าฟักแต่ยังไม่ออก) + section ใน panel + สถิติรวมหัวหน้า · ฟังก์ชัน `hatchBlockHtml()`
 - **node = ระดับสายพันธุ์** (1 รหัส pa/mo/ch = 1 node) · **สลับทิศได้** ปุ่ม `#orientBtn` (ตัวแปร `ORIENT` = `'LR'` ซ้าย→ขวา ค่าเริ่มต้น / `'TB'` บนลงล่าง) · `layout()` คิดพิกัดเป็นแกน depth(รุ่น)/cross(พี่น้อง) แล้ว map เป็น x/y ตามทิศ · `vpath()`+จุดต่อ (exitPt/entryPt) ปรับโค้งตามทิศ
 - **กลไก:** `buildGraph()` รวม union (คู่ผสมไม่ซ้ำ key=`pa|mo|ch`, aggregate หลายชุดเข้าด้วยกัน) → `genOf()` คิด generation แบบ longest-path (cycle guard: ข้าม edge ที่ `ch===pa||ch===mo` = "รักษาสาย") → `layout()` แบบ tidy-tree **บนลงล่าง ลดเส้นไขว้**: วางลูกชั้นล่างก่อน (กริด, กลุ่มสายพันธุ์ติดกัน) แล้วไล่ขึ้นวางพ่อแม่ให้อยู่เหนือ "จุดกึ่งกลางของลูกตัวเอง" · คลายการชนด้วย relaxation (ดันคู่ทับกันออกคนละครึ่ง = คร่อมลูกสมมาตร) · union วางเหนือลูกตรงๆ (กระจายถ้าหลาย union ชี้ลูกเดียวกัน) → `render()` วาดการ์ด/union/เส้น SVG
@@ -223,6 +237,7 @@ ws = wb['ชื่อชีท']
 ## 9. Next steps (ยังไม่ได้ทำ)
 
 - [ ] แท็บ/หน้า `P2` (ผังเล้าหลังที่ 2 — SPL ชุด 4-9, ประดู่ดำ ชุด 3)
+- [ ] **ปรับ `SunFarm_FamilyTree.html` + `SunFarm_Form.html` ให้ตรงกับระบบ login ใหม่** (เลิก prompt รหัสตอนดู · Form อาจใส่ปุ่ม login แบบ CoopModel) — ตอนนี้ read เปิดแล้วจึงโหลดได้ แต่ flow รหัสยังเป็นแบบเก่า
 - [ ] ดูชีท `อัพเดท` และ `แผน Super`
 - [ ] (ถ้าต้องการ DB จริงแทน Google Sheet) ทำ backend — โครงสร้างตารางอ้างอิงตาม Data Model ข้อ 3 ของไฟล์นี้ (เล้า→ฝั่ง→แถว→กรง→ช่อง / Family / cross / hatch)
 - [ ] ยืนยัน 3 ประเด็นค้างในข้อ 7 กับเจ้าของไฟล์
