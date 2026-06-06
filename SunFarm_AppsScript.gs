@@ -138,10 +138,8 @@ function buildAll_(){
 function doGet(e){
   var p=(e&&e.parameter)||{};
   var out;
-  if(p.action){ out = handleAction_(p.action,e); }            // ping/เขียน (handleAction_ ตรวจรหัสเอง)
-  else if(String(p.key||'') !== WRITE_KEY){                    // อ่านข้อมูลก็ต้องมีรหัส
-    out = {ok:false, error:'รหัสผ่านไม่ถูกต้อง', needKey:true};
-  } else { out = buildAll_(); }
+  if(p.action){ out = handleAction_(p.action,e); }            // ping/login/เขียน (handleAction_ ตรวจรหัสเอง)
+  else { out = buildAll_(); }                                 // อ่านข้อมูล = เปิดให้ทุกคน (ดูอย่างเดียวไม่ต้องรหัส)
   var payload=JSON.stringify(out);
   if(p.callback) return ContentService.createTextOutput(p.callback+'('+payload+')').setMimeType(ContentService.MimeType.JAVASCRIPT);
   return ContentService.createTextOutput(payload).setMimeType(ContentService.MimeType.JSON);
@@ -155,9 +153,10 @@ var WRITE_KEY = "เปลี่ยนรหัสนี้";
 
 function handleAction_(a,e){
   if(a==='ping') return {ok:true, t:new Date().toString()};
-  // ต้องมีรหัสถูกต้องถึงจะเขียนได้ (อ่านข้อมูลไม่ต้องใช้รหัส)
+  // ต้องมีรหัสถูกต้องถึงจะเขียน/เข้าระบบได้ (อ่านข้อมูลไม่ต้องใช้รหัส)
   if(String((e.parameter&&e.parameter.key)||'') !== WRITE_KEY)
     return {ok:false, error:'รหัสผ่านไม่ถูกต้อง', needKey:true};
+  if(a==='login') return {ok:true, role:'editor'};   // ตรวจรหัสผ่านแล้วถูกต้อง = เป็นผู้แก้ไข
   var lock=LockService.getScriptLock();
   try{ lock.waitLock(20000); }catch(err){ return {ok:false,error:'ระบบกำลังถูกใช้งาน ลองใหม่อีกครั้ง'}; }
   try{

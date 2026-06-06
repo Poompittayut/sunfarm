@@ -111,6 +111,7 @@
   .filterbar .addbtn{flex:none;margin-left:auto}
   .addbtn{border:none;background:var(--primary);color:#fff;border-radius:11px;padding:10px 18px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap}
   .addbtn:hover{background:var(--primary-d)}
+  body:not(.editor) .editonly{display:none!important}   /* คนดู (ยังไม่ login) ไม่เห็นปุ่ม/ส่วนแก้ไข */
   #emodal{position:fixed;inset:0;z-index:90;background:rgba(20,28,40,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto}
   #emodal.open{display:flex}
   .embox{background:#fff;border-radius:16px;width:100%;max-width:560px;box-shadow:0 18px 50px rgba(0,0,0,.3);overflow:hidden;margin:auto}
@@ -392,8 +393,8 @@
     <div class="hint" style="margin-bottom:14px">🗺️ <b>แผนแม่บทการทดลองผสมพันธุ์</b> — กำหนดคู่ผสม (พ่อ × แม่ → ลูก), จำนวน family, วิธีเก็บไข่ และตารางฟัก · หน้าอื่นคือการลงมือทำตามแผนนี้ (เล้า → ทะเบียน → ไข่ → ฟัก)</div>
     <div class="planbar">
       <div class="stats" id="stats-plan"></div>
-      <button class="addbtn alt" id="mgBreeds">🎨 จัดการสายพันธุ์</button>
-      <button class="addbtn" id="addPlan">➕ เพิ่มคู่ผสม</button>
+      <button class="addbtn alt editonly" id="mgBreeds">🎨 จัดการสายพันธุ์</button>
+      <button class="addbtn editonly" id="addPlan">➕ เพิ่มคู่ผสม</button>
     </div>
     <div class="egggrid" id="plangrid"></div>
     <div class="breeds" id="planfuture"></div>
@@ -459,7 +460,7 @@
   <!-- ===== Lockbook ===== -->
   <section class="side" id="lockbook">
     <div class="hint" style="margin-bottom:14px">📒 ทะเบียนไก่รายตัว จัดกลุ่มเป็น <b>Family</b> (1 ตัวผู้ + ~10 ตัวเมีย ต่อ family) — รหัสเช่น <code>SB-26-G8-F01-F-001</code> = ไลน์ · ปีเกิด · รุ่น G · Family · เพศ · ลำดับตัว · <b>เชื่อมกับผังเล้า:</b> แต่ละกรงบนผังเล้า = 1 Family ที่นี่</div>
-    <div class="filterbar"><div class="lbfilter" id="lbfilter"></div><button class="addbtn" id="addBird">➕ เพิ่มไก่ / Family</button></div>
+    <div class="filterbar"><div class="lbfilter" id="lbfilter"></div><button class="addbtn editonly" id="addBird">➕ เพิ่มไก่ / Family</button></div>
     <div class="stats" id="stats-lockbook"></div>
     <div class="lbgrid" id="lbgrid"></div>
   </section>
@@ -467,7 +468,7 @@
   <!-- ===== ไข่รายวัน ===== -->
   <section class="side" id="eggs">
     <div class="hint" style="margin-bottom:14px">🥚 บันทึก <b>จำนวนไข่รายวันต่อคู่ผสม</b> (พ่อ × แม่ → ลูก) ตั้งแต่ 20 เม.ย. 2026 · <b>เชื่อมกับ Lockbook:</b> รหัสพ่อ/แม่ = ไก่รายตัวใน Lockbook, รหัสลูก = Family รุ่นใหม่ที่จะเข้าตู้ฟัก</div>
-    <div class="filterbar"><div class="lbfilter" id="eggfilter"></div><button class="addbtn" id="addEgg">➕ บันทึกไข่รายวัน</button></div>
+    <div class="filterbar"><div class="lbfilter" id="eggfilter"></div><button class="addbtn editonly" id="addEgg">➕ บันทึกไข่รายวัน</button></div>
     <div class="stats" id="stats-eggs"></div>
     <div class="egggrid" id="egggrid"></div>
   </section>
@@ -476,7 +477,7 @@
   <section class="side" id="onhand">
     <div class="hint" style="margin-bottom:14px">🐤 ผลการ <b>ฟักไข่รายครอบครัว</b> (ตู้ฟัก → ลูกไก่) · ไข่เข้าฟัก → ฟักเป็นลูกไก่ + KPI %ฟัก/%เชื้อ/%ตายโคม · <b>เชื่อมกับไข่รายวัน/Lockbook:</b> รหัสพ่อ/แม่/ลูก คีย์เดียวกัน · รหัสลูก = รุ่นถัดไป</div>
     <div id="ohbanner"></div>
-    <div class="filterbar"><div class="lbfilter" id="ohfilter"></div><button class="addbtn" id="addHatch">➕ บันทึกผลฟัก</button></div>
+    <div class="filterbar"><div class="lbfilter" id="ohfilter"></div><button class="addbtn editonly" id="addHatch">➕ บันทึกผลฟัก</button></div>
     <div class="stats" id="stats-onhand"></div>
     <div id="ohsummary"></div>
     <div class="egggrid" id="ohgrid"></div>
@@ -723,6 +724,7 @@ function findBird(row){
   return {fam,bird,tagc};
 }
 function enterEdit(row){
+  if(!isEditor) return;   // คนดูแก้รหัสไก่ไม่ได้
   if(editingRow && editingRow!==row) restoreRow(editingRow);
   const b=findBird(row); if(!b||!b.bird) return;
   editingRow=row; row.classList.add('editing');
@@ -1038,7 +1040,7 @@ function pcardHtml(r){
         <div class="pname" style="color:${tc}">${r.line}</div>
         <span class="pmethod ${mc}">${ml}</span>
       </div>
-      <div class="pact">
+      <div class="pact editonly">
         <button class="picon pedit" data-pidx="${idx}" title="แก้ไขคู่ผสม">✏️</button>
         <button class="picon pdel" data-pidx="${idx}" title="ลบคู่ผสม">🗑️</button>
       </div>
@@ -1307,7 +1309,7 @@ function reloadAll(data){
 const dataBar=document.createElement('div');
 dataBar.id='databar';
 dataBar.style.cssText='position:fixed;right:16px;bottom:16px;z-index:50;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:30px;padding:7px 9px 7px 15px;box-shadow:var(--shadow);font-size:12.5px;font-weight:600;color:var(--ink)';
-dataBar.innerHTML='<span id="dbdot" style="width:9px;height:9px;border-radius:50%;background:#c4c9cd;flex:none"></span><span id="dbtext">ข้อมูลฝังในไฟล์</span><button id="dbbtn" style="border:none;background:var(--primary);color:#fff;border-radius:20px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:12.5px">↻ รีเฟรช</button>';
+dataBar.innerHTML='<span id="dbdot" style="width:9px;height:9px;border-radius:50%;background:#c4c9cd;flex:none"></span><span id="dbtext">ข้อมูลฝังในไฟล์</span><button id="loginbtn" style="border:1px solid var(--primary);background:#fff;color:var(--primary);border-radius:20px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:12.5px">🔑 เข้าสู่ระบบ</button><button id="dbbtn" style="border:none;background:var(--primary);color:#fff;border-radius:20px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:12.5px">↻ รีเฟรช</button>';
 document.body.appendChild(dataBar);
 document.getElementById('dbbtn').onclick=loadFromSheet;
 function setStatus(state,msg){
@@ -1321,12 +1323,40 @@ function setStatus(state,msg){
 
 // โหลดข้อมูลจาก Sheet ผ่าน JSONP (เลี่ยง CORS · เปิดไฟล์ตรงๆ ก็ได้)
 // รหัสเข้าระบบ (เก็บในเครื่อง ถามครั้งแรกครั้งเดียว)
-function getKey(){
-  let k=localStorage.getItem('sf_key');
-  if(!k){ k=prompt('🔒 ใส่รหัสผ่านเพื่อเข้าดูข้อมูล (สอบถามผู้ดูแลระบบ)')||''; if(k) localStorage.setItem('sf_key',k); }
-  return k;
-}
+// คนดูไม่ต้องใส่รหัส — getKey คืนรหัสที่เก็บไว้ (ถ้า login แล้ว) หรือค่าว่าง · ไม่ prompt
+function getKey(){ return localStorage.getItem('sf_key')||''; }
 function clearKey(){ localStorage.removeItem('sf_key'); }
+
+/* ===== ระบบ login: แยกคนดู (viewer) กับ คนแก้ไข (editor) ===== */
+let isEditor=false;
+function applyRole(){ document.body.classList.toggle('editor', isEditor); updateLoginBtn(); }
+function updateLoginBtn(){
+  const b=document.getElementById('loginbtn'); if(!b) return;
+  b.textContent = isEditor ? '👤 ออกจากระบบ' : '🔑 เข้าสู่ระบบ';
+  b.title = isEditor ? 'ออกจากโหมดแก้ไข' : 'เข้าสู่ระบบเพื่อแก้ไขข้อมูล';
+  b.onclick = isEditor ? doLogout : doLogin;
+}
+async function doLogin(){
+  const pw=prompt('🔑 ใส่รหัสผ่านผู้แก้ไข');
+  if(pw==null) return;
+  if(!pw.trim()){ etoast('ยังไม่ได้ใส่รหัส','err'); return; }
+  localStorage.setItem('sf_key', pw.trim());
+  try{
+    const r=await apiWrite({action:'login'});
+    if(r&&r.ok&&!r.needKey){ isEditor=true; applyRole(); etoast('✅ เข้าสู่ระบบแก้ไขแล้ว','ok'); }
+    else { clearKey(); isEditor=false; applyRole(); etoast('❌ รหัสไม่ถูกต้อง','err'); }
+  }catch(e){ clearKey(); isEditor=false; applyRole(); etoast('❌ '+e.message,'err'); }
+}
+function doLogout(){ clearKey(); isEditor=false; applyRole(); etoast('ออกจากโหมดแก้ไขแล้ว','ok'); }
+// ตอนเปิดหน้า: ถ้ามีรหัสค้างใน localStorage → ตรวจกับเซิร์ฟเวอร์ว่ายังถูกอยู่ไหม
+async function initRole(){
+  isEditor=false; applyRole();
+  if(localStorage.getItem('sf_key') && SHEET_API_URL){
+    try{ const r=await apiWrite({action:'login'}); isEditor=!!(r&&r.ok&&!r.needKey); if(!isEditor) clearKey(); }
+    catch(e){ isEditor=false; }
+    applyRole();
+  }
+}
 
 // ฉากกั้นรหัส (บังหน้าจนกว่าจะปลดล็อกสำเร็จ)
 const gate=document.createElement('div');
@@ -1710,6 +1740,7 @@ document.getElementById('addBird').onclick=openBird;
 document.getElementById('addPlan').onclick=openPlan;
 
 // เปิดหน้า: ต้องปลดล็อกด้วยรหัสก่อนเสมอ
+initRole();
 if(SHEET_API_URL) loadFromSheet(); else { hideGate(); setStatus('idle'); }
 </script>
 </body>
