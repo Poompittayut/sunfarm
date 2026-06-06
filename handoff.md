@@ -24,7 +24,7 @@
 | `SETUP_GoogleSheet.md` | คู่มือ deploy Apps Script + ผูก HTML กับ Sheet ทีละขั้น | ✅ ทำแล้ว |
 | `SunFarm_Form.html` | **ฟอร์มกรอกข้อมูล — สำหรับคนงานหน้างาน (มือถือ)** · เบา/เร็ว/โฟกัส · ปรับ UI ให้เหมาะมือถือแล้ว (ช่องกรอก 16px กัน iOS zoom · ปุ่มบันทึก sticky ลอยล่างจอ · ปุ่ม/ช่องใหญ่แตะง่าย) · เขียน Sheet ผ่าน action เดียวกับ CoopModel | ✅ ใช้คู่กับ CoopModel |
 | `SunFarm_FamilyTree.html` | **ผังเครือญาติการผสมพันธุ์** — root tree บนลงล่าง (พ่อแม่พันธุ์ → จุดผสม × → ลูกพันธุ์) สำหรับคนทั่วไปดูง่าย · ใช้ `PLAN` ดึงสดจาก Sheet (gate รหัสเหมือน CoopModel) | ✅ ทำแล้ว |
-| `SunFarm_Breeds.html` | **จัดการสายพันธุ์ (ผู้ดูแล)** — ดู/เพิ่ม/แก้/ลบ สี+ชื่อสายพันธุ์เองผ่านเว็บ → เขียนชีท "พันธุ์" · มือถือใช้ได้ · โหลด `breeds.js` | ✅ ทำแล้ว (ต้อง redeploy .gs) |
+| ~~`SunFarm_Breeds.html`~~ | **ลบแล้ว** — จัดการสายพันธุ์ย้ายไปฝังเป็น modal ใน CoopModel (ปุ่ม 🎨 จัดการสายพันธุ์ ในแท็บแผนทดลอง) เพื่อให้จบในหน้าเดียว | ❌ ลบออก |
 | `breeds.js` | **ตารางสายพันธุ์กลาง** (`window.BREEDS`/`breedOf`/`setBreeds`) ทุกหน้าโหลด · ต้อง deploy คู่ HTML เสมอ | ✅ ทำแล้ว |
 | `index.html` | หน้า landing (4 ปุ่ม: ฟอร์ม / ภาพรวม / ผังเครือญาติ / จัดการสายพันธุ์) — GitHub Pages เปิดเป็นหน้าแรก | ✅ ทำแล้ว |
 | `README.md` | อธิบายโปรเจกต์สำหรับ repo | ✅ ทำแล้ว |
@@ -119,7 +119,7 @@ SB   - 26    - G8         - F01      - F        - 001
 
 > ⚠️ บทเรียน: ตอนแรกใส่ cyan ลงในสีกลาง (panel2/line/ink) ทำให้ทั้งจอดู "ติดฟ้า" — แก้โดยทำสีกลางให้เป็นเทากลางจริง เหลือสีเฉพาะ teal/coral/navy/pink ที่ตั้งใจ
 > **สี/ชื่อพันธุ์ = `breeds.js` (`window.BREEDS`/`breedOf`) + แก้ผ่านเว็บได้:**
->  - **ผู้ดูแลเพิ่ม/แก้/ลบสายพันธุ์เองผ่านเว็บ** ที่หน้า **`SunFarm_Breeds.html`** (ปุ่ม "🎨 จัดการสายพันธุ์" ใน index) — กรอกชื่อ/รหัสนำหน้า/เลือกสี(color picker)/emoji → เขียนลงชีท **"พันธุ์"** (action `addBreed`/`deleteBreed` · ⚠️ ใช้ param `kw` ไม่ใช่ `key` เพราะ key=รหัสผ่าน)
+>  - **ผู้ดูแลเพิ่ม/แก้/ลบสายพันธุ์เองผ่านเว็บ** ที่ **modal ใน CoopModel** (ปุ่ม "🎨 จัดการสายพันธุ์" ในแท็บแผนทดลอง · `openBreeds/saveBreed/deleteBreed/renderBreedList`) — กรอกชื่อ/รหัสนำหน้า/เลือกสี(color picker)/emoji → เขียนลงชีท **"พันธุ์"** (action `addBreed`/`deleteBreed` · ⚠️ ใช้ param `kw` ไม่ใช่ `key` เพราะ key=รหัสผ่าน) · บันทึกแล้ว `silentReload()` รีโหลดเงียบไม่เด้ง gate
 >  - `.gs`: `buildAll_` ส่ง `BREEDS:objsOf_('พันธุ์')` · `ensureBreedSheet_()` สร้างชีท+เติม 8 default อัตโนมัติตอนเพิ่มครั้งแรก (ไม่ต้อง re-seed) · **ต้อง redeploy Apps Script** ฟีเจอร์นี้ถึงทำงาน
 >  - HTML: ตอนโหลดข้อมูลเรียก `setBreeds(data.BREEDS)` (ชีทว่าง→ใช้ค่า default จาก `BREEDS_DEFAULT`) → `breedOf` อัปเดต → ทุกหน้าได้สี/ชื่อ/กลุ่มใหม่อัตโนมัติ · มี guard `if(window.setBreeds)` กันพังถ้า breeds.js เวอร์ชันเก่าถูก cache
 >  - **เพิ่มพันธุ์แบบแก้โค้ด** (สำรอง): เติม 1 แถวใน `breeds.js` `BREEDS` ก็ยังได้ · ค่าสีหลัก: SB8 `#c97b5a` · SPL `#e0a458` · Lohmann SM `#6f9a8d` · SF `#5b9aa0` · SL `#7a9a5b` · ประดู่หางดำ `#5b5048` · AUS `#b0673a` · คละเพศ `#9aa0a6` · ไม่รู้จัก→อื่นๆ `#9a9486`
