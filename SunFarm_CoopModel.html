@@ -479,6 +479,8 @@
 <div id="emodal"><div class="embox"><div class="emhead"><span class="emt" id="emtitle"></span><span class="emx" id="emclose">✕</span></div><div class="embody" id="embody"></div></div></div>
 <div id="etoast"></div>
 
+<!-- ตารางสายพันธุ์กลาง (เพิ่มพันธุ์ใหม่ที่ breeds.js ที่เดียว) -->
+<script src="breeds.js"></script>
 <script>
 /* ===== สี → สายพันธุ์ (อ้างอิงสีพื้นเซลล์ในชีท "ผังเล้าทดลอง") ===== */
 let LEG_BREEDER = {};
@@ -620,34 +622,10 @@ function birdRowHtml(sec,fam,sex,bird,tagc){
   return `<div class="frow" data-sec="${sec}" data-fam="${fam}" data-sex="${sex}" data-idx="${bird[0]}" title="คลิกเพื่อแก้รหัส/ห่วง">`
     +`<span class="tag" style="background:${tagc}"></span>${codeHtml}<span class="fband">${bandHtml}</span><span class="fedit">✎</span></div>`;
 }
-/* ===== สีพันธุ์มาตรฐาน (ชุดเดียว · ใช้ทุกแท็บ + ตรงกับหน้าผังเครือญาติ) =====
-   รับได้ทั้งรหัส (SB8-26, SPL, PD0…) และชื่อกลุ่ม/section (SB8 44WK, L SM, ประดู่ดำ (PD)…) */
-function breedColor(s){
-  const t=(s==null?'':s).toString(), u=t.toUpperCase();
-  if(/ประดู|PD/.test(t))              return '#5b5048';  // ประดู่หางดำ
-  if(/SPL/.test(u)||/ลูกผสม/.test(t)) return '#e0a458';  // ลูกผสม SPL
-  if(/SB/.test(u))                    return '#c97b5a';  // SB8 (44/69WK, G0)
-  if(/SF/.test(u))                    return '#5b9aa0';  // Lohmann SF
-  if(/SM/.test(u))                    return '#6f9a8d';  // Lohmann SM
-  if(/SL/.test(u))                    return '#7a9a5b';  // SL
-  if(/MISSEX/.test(u)||/คละ/.test(t))         return '#9aa0a6';  // คละเพศ
-  if(/AUS|^AS|\bAS\b/.test(u)||/ออส/.test(t)) return '#b0673a';  // ออสตาร์ลอป (AUS)
-  return '#9a9486';                                      // อื่นๆ
-}
+/* ===== สี/ชื่อพันธุ์ — ดึงจากตารางกลาง breeds.js (window.breedOf) ===== */
+function breedColor(s){ return breedOf(s).color; }
+function breedName(s){ const b=breedOf(s); return b.known ? b.name : 'อื่นๆ'; }
 function famHeadColor(s){ return breedColor(s); }
-// ชื่อสายพันธุ์ (regex ชุดเดียวกับ breedColor → ชื่อ↔สี ตรงกันเสมอ)
-function breedName(s){
-  const t=(s==null?'':s).toString(), u=t.toUpperCase();
-  if(/ประดู|PD/.test(t))              return 'ประดู่หางดำ';
-  if(/SPL/.test(u)||/ลูกผสม/.test(t)) return 'ลูกผสม SPL';
-  if(/SB/.test(u))                    return 'SB8';
-  if(/SF/.test(u))                    return 'Lohmann SF';
-  if(/SM/.test(u))                    return 'Lohmann SM';
-  if(/SL/.test(u))                    return 'Lohmann (SL)';
-  if(/MISSEX/.test(u)||/คละ/.test(t)) return 'คละเพศ';
-  if(/AUS|^AS|\bAS\b/.test(u)||/ออส/.test(t)) return 'ออสตาร์ลอป (AUS)';
-  return 'อื่นๆ';
-}
 // หา "คู่ผสมในแผน" ที่ Family นี้สังกัด (จาก section ของ Lockbook) — ใช้ map เดียวกับ planLinks
 function planForSection(sec){ return (PLAN.rows||[]).find(r=>planLinks(r).lock===sec) || null; }
 function fcardHtml(fam){

@@ -153,6 +153,8 @@
     <div class="pbody" id="pbody"></div>
   </div>
 
+<!-- ตารางสายพันธุ์กลาง (เพิ่มพันธุ์ใหม่ที่ breeds.js ที่เดียว) -->
+<script src="breeds.js"></script>
 <script>
 /* ============ ข้อมูล (ดึงสดจาก Sheet เท่านั้น) ============ */
 let PLAN={rows:[]};
@@ -160,21 +162,11 @@ let GRAPH=null;
 
 /* ============ helper พันธุ์ ============ */
 function mxBase(s){return (s||'—').replace(/-.*$/,'').toUpperCase();}
+// ดึงจากตารางกลาง breeds.js (window.breedOf) — เพิ่มพันธุ์ใหม่ที่ไฟล์เดียว
 function breedMeta(code){
   const c=(code==null?'':code).toString();
-  const U=c.toUpperCase();
-  const map=[
-    [/^SPL/,    {name:'ลูกผสม SPL',      emoji:'🐥', color:'#e0a458'}],
-    [/^SB/,     {name:'SB8',             emoji:'🐔', color:'#c97b5a'}],
-    [/^SM/,     {name:'Lohmann SM',      emoji:'🐔', color:'#6f9a8d'}],
-    [/^SF/,     {name:'Lohmann SF',      emoji:'🐔', color:'#5b9aa0'}],
-    [/^SL/,     {name:'Lohmann (SL)',    emoji:'🐔', color:'#7a9a5b'}],
-    [/^MISSEX/, {name:'คละเพศ (missex)', emoji:'🐔', color:'#9aa0a6'}],
-    [/^PD/,     {name:'ประดู่หางดำ',     emoji:'🐓', color:'#5b5048'}],
-    [/^AS/,     {name:'ออสตาร์ลอป (AUS)',emoji:'🐓', color:'#b0673a'}],
-  ];
-  for(const [re,m] of map){ if(re.test(U)) return m; }
-  return {name:c||'—', emoji:'🐔', color:'#7e858b'};
+  const b=breedOf(c);
+  return { name: b.known ? b.name : (c||'—'), emoji:b.emoji, color:b.color };
 }
 const fmt=n=>(n==null||n===''?'—':Number(n).toLocaleString());
 
