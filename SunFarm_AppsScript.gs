@@ -168,6 +168,7 @@ function handleAction_(a,e){
     if(a==='updateBird')return act_updateBird_(e);
     if(a==='addBreed')  return act_addBreed_(e);
     if(a==='deleteBreed')return act_deleteBreed_(e);
+    if(a==='addPlan')   return act_addPlan_(e);
     return {ok:false, error:'ไม่รู้จัก action: '+a};
   }catch(err){ return {ok:false, error:String(err)}; }
   finally{ lock.releaseLock(); }
@@ -328,4 +329,18 @@ function act_deleteBreed_(e){
     if(String(data[i][1]).trim()===name){ sh.deleteRow(i+1); return {ok:true, deleted:name}; }
   }
   return {ok:false, error:'ไม่พบพันธุ์: '+name};
+}
+
+// เพิ่มคู่ผสมในแผนทดลอง (พ่อ × แม่ → ลูก) → ต่อท้ายชีท "แผนทดลอง"
+function act_addPlan_(e){
+  var p=e.parameter;
+  var pa=String(p.pa||'').trim(), mo=String(p.mo||'').trim(), ch=String(p.ch||'').trim();
+  if(!pa||!mo||!ch) return {ok:false,error:'ต้องมี พ่อ × แม่ → ลูก ครบ'};
+  var line=String(p.line||'').trim()||ch;
+  function num(x){ var v=parseFloat(x); return isNaN(v)?'':v; }
+  var batches=String(p.batches||'').split(/[,\n;|]/).map(function(s){return s.trim();}).filter(String).join(' | ');
+  // คอลัมน์: line,pa,mo,ch,nm,nf,nfam,loc,method,batches
+  writeRow_('แผนทดลอง',[line,pa,mo,ch,num(p.nm),num(p.nf),num(p.nfam),
+    String(p.loc||'').trim(),String(p.method||'').trim(),batches]);
+  return {ok:true, line:line, ch:ch};
 }

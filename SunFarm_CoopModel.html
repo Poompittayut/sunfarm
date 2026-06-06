@@ -370,6 +370,7 @@
   <!-- ===== แผนทดลอง (overview) ===== -->
   <section class="side" id="plan">
     <div class="hint" style="margin-bottom:14px">🗺️ <b>แผนแม่บทการทดลองผสมพันธุ์</b> — กำหนดคู่ผสม (พ่อ × แม่ → ลูก), จำนวน family, วิธีเก็บไข่ และตารางฟัก · หน้าอื่นคือการลงมือทำตามแผนนี้ (เล้า → ทะเบียน → ไข่ → ฟัก)</div>
+    <div class="filterbar"><button class="addbtn" id="addPlan">➕ เพิ่มคู่ผสม</button></div>
     <div class="stats" id="stats-plan"></div>
     <div class="egggrid" id="plangrid"></div>
     <div class="breeds" id="planfuture"></div>
@@ -1465,9 +1466,44 @@ async function saveBird(getMode){
     closeModal(); loadFromSheet();
   }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 บันทึกเข้าทะเบียน'; }
 }
+/* ---- ➕ เพิ่มคู่ผสม (แผนทดลอง) ---- */
+function openPlan(){
+  openModal('➕ เพิ่มคู่ผสม (แผนทดลอง)',
+    `<label>ชื่อสายทดลอง <small>(เว้นว่าง = ใช้ชื่อลูก)</small></label><input type="text" id="plLine" placeholder="เช่น โรดไอแลน R1">
+     <div class="eg3">
+       <div><label>♂ พ่อพันธุ์ <span class="req">*</span></label><input type="text" id="plPa" placeholder="RIR-26"></div>
+       <div><label>♀ แม่พันธุ์ <span class="req">*</span></label><input type="text" id="plMo" placeholder="RIR-26"></div>
+       <div><label>ลูกที่ได้ <span class="req">*</span></label><input type="text" id="plCh" placeholder="RIR-G0"></div>
+     </div>
+     <div class="ehint">รหัสควรขึ้นต้นด้วย <b>รหัสนำหน้าของสายพันธุ์</b> (ที่ตั้งในเมนู 🎨 จัดการสายพันธุ์) เพื่อให้ได้สีถูก เช่น RIR-26 → ได้สีโรดไอแลน</div>
+     <div class="eg3">
+       <div><label>พ่อ (ตัว)</label><input type="number" id="plNm" inputmode="numeric"></div>
+       <div><label>แม่ (ตัว)</label><input type="number" id="plNf" inputmode="numeric"></div>
+       <div><label>Family</label><input type="number" id="plFam" inputmode="numeric"></div>
+     </div>
+     <label>สถานที่</label><input type="text" id="plLoc" placeholder="เช่น เล้าทดลอง / H7">
+     <label>วิธีเก็บไข่</label>
+     <select id="plMethod"><option>เก็บไข่แยกครอบครัว</option><option>เก็บไข่รวมไม่แยกครอบครัว</option><option>ยังไม่ไข่</option></select>
+     <label>ตารางฟัก <small>(วันที่ คั่นด้วย , — เว้นว่างได้)</small></label><input type="text" id="plBatch" placeholder="15/1/26, 22/1/26">
+     <button class="ebtn" id="plSave">💾 บันทึกคู่ผสม</button>`);
+  document.getElementById('plSave').onclick=savePlan;
+}
+async function savePlan(){
+  const g=id=>document.getElementById(id).value.trim();
+  if(!g('plPa')||!g('plMo')||!g('plCh')){ etoast('กรอก พ่อ × แม่ → ลูก ก่อน','err'); return; }
+  const btn=document.getElementById('plSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
+  try{
+    const r=await apiWrite({action:'addPlan',line:g('plLine'),pa:g('plPa'),mo:g('plMo'),ch:g('plCh'),
+      nm:g('plNm'),nf:g('plNf'),nfam:g('plFam'),loc:g('plLoc'),method:g('plMethod'),batches:g('plBatch')});
+    if(r&&r.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+    if(!r||!r.ok) throw new Error((r&&r.error)||'บันทึกไม่สำเร็จ');
+    etoast('✅ เพิ่มคู่ผสม '+(r.line||g('plCh')),'ok'); closeModal(); loadFromSheet();
+  }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 บันทึกคู่ผสม'; }
+}
 document.getElementById('addEgg').onclick=openEgg;
 document.getElementById('addHatch').onclick=openHatch;
 document.getElementById('addBird').onclick=openBird;
+document.getElementById('addPlan').onclick=openPlan;
 
 // เปิดหน้า: ต้องปลดล็อกด้วยรหัสก่อนเสมอ
 if(SHEET_API_URL) loadFromSheet(); else { hideGate(); setStatus('idle'); }
