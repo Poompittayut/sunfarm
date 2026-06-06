@@ -16,8 +16,9 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:"Sukhumvit Set","Noto Sans Thai",-apple-system,"Segoe UI",sans-serif;line-height:1.5;font-size:14px}
-  header{padding:11px 30px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:20}
-  header h1{margin:0;font-size:16px;font-weight:700;color:var(--head)}
+  header{padding:9px 30px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px}
+  header h1{margin:0;font-size:16px;font-weight:700;color:var(--head);margin-right:auto}
+  .topright{display:flex;align-items:center;gap:10px;flex:none}
   .wrap{padding:24px 30px 70px;max-width:1600px;margin:0 auto}
 
   .tabs{display:flex;gap:8px;margin-bottom:20px}
@@ -25,8 +26,8 @@
     color:var(--muted);cursor:pointer;font-size:14px;font-weight:600;transition:.15s}
   .tab:hover{border-color:var(--primary);color:var(--ink)}
   .tab.active{background:#fff;color:var(--ink);border-color:var(--primary);box-shadow:0 0 0 3px var(--seafoam)}
-  .loginbtn{margin-left:auto;align-self:center;border:1px solid var(--primary);background:#fff;color:var(--primary);
-    border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .loginbtn{align-self:center;border:1px solid var(--primary);background:#fff;color:var(--primary);
+    border-radius:9px;padding:6px 13px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
   .loginbtn:hover{background:var(--seafoam);color:var(--primary-d)}
   body.editor .loginbtn{border-color:var(--good);color:var(--good)}
 
@@ -159,6 +160,11 @@
   .subtab.active{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(28,33,40,.1)}
   .coopview{display:none}
   .coopview.active{display:block}
+  /* โหมดแก้ไข: กรงคลิกได้ (ไฮไลต์ตอนชี้) */
+  body.editor .coop .cage{cursor:pointer}
+  body.editor .coop .cage:hover{outline:2px solid var(--primary);outline-offset:-2px;border-radius:7px}
+  /* กรงที่แก้ค้าง (ยังไม่ส่ง) = กรอบ coral + เด้งเบาๆ */
+  .coop .cage.dirty{outline:2px solid var(--accent);outline-offset:-2px;border-radius:7px;box-shadow:0 0 0 3px rgba(242,107,78,.18)}
 
   .legends{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:18px}
   .legbox{display:flex;flex-direction:column;gap:8px}
@@ -208,7 +214,7 @@
   .striplabel.f{background:var(--female)}
   .striplabel.m{background:var(--male)}
 
-  .cage{width:44px;min-width:44px;height:46px;border-radius:9px;border:1px solid var(--line);background:#f3f4f5;
+  .cage{flex:1 1 0;min-width:40px;height:46px;border-radius:9px;border:1px solid var(--line);background:#f3f4f5;
     display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;font-weight:700;position:relative;transition:.12s}
   .cage .cn{position:absolute;top:2px;left:5px;font-size:8px;color:#838b91;font-weight:600}
   .cage .sx{position:absolute;top:1px;right:4px;font-size:9px;font-weight:700}
@@ -299,14 +305,31 @@
   .ecard .eline{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;color:#fff;white-space:nowrap}
   .ecard .epair{font-family:ui-monospace,monospace;font-size:10.5px;color:#6a655c;line-height:1.5;margin-bottom:10px}
   .ecard .epair .pl{color:var(--muted);font-family:inherit}
-  .emetrics{display:flex;gap:16px;margin-bottom:10px}
+  .emetrics{display:flex;gap:16px;margin-bottom:8px}
   .emetrics .em .v{font-size:18px;font-weight:800}
   .emetrics .em .k{font-size:10px;color:var(--muted)}
-  .spark{display:flex;align-items:flex-end;gap:1.5px;height:46px;padding-top:4px}
-  .spark .bar{flex:1;min-width:2px;background:var(--accent);border-radius:2px 2px 0 0;opacity:.85;transition:.1s}
-  .spark .bar:hover{opacity:1;background:#1f6b6b}
-  .spark .bar.nodata{background:#e4e7ea;opacity:.5}
-  .sparkx{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px}
+  .ecard .elast{font-size:11.5px;color:var(--muted);margin-bottom:10px}
+  .ecard .elast b{color:#3b4248;font-weight:700}
+  .eremain{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 13px;border-radius:11px;
+    background:var(--seafoam);border:1px solid #cfe6e6}
+  .eremain .k{font-size:11.5px;font-weight:800;color:var(--primary-d)}
+  .eremain small{display:block;font-size:9.5px;color:var(--muted);font-weight:500;margin-top:2px}
+  .eremain .v{font-size:22px;font-weight:800;color:var(--primary-d);white-space:nowrap}
+  /* ===== ตารางแก้ไขไข่ (คู่ผสม × วัน) ===== */
+  .egtwrap{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+  .egt{border-collapse:separate;border-spacing:0;font-size:12.5px;background:var(--panel)}
+  .egt th,.egt td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;white-space:nowrap}
+  .egt thead th{position:sticky;top:0;background:var(--head);color:#fff;font-weight:700;font-size:11px;z-index:2;padding:7px 6px}
+  .egt .egtcorner{left:0;z-index:3;text-align:left;padding-left:12px}
+  .egt .egtrow{position:sticky;left:0;background:var(--panel2);text-align:left;font-weight:800;z-index:1;padding:5px 12px;min-width:128px}
+  .egt .egtrow small{display:block;font-weight:500;color:var(--muted);font-family:ui-monospace,monospace;font-size:10px}
+  .egt .egtsum{font-weight:800;background:#fff;min-width:58px;padding:4px 8px}
+  .egt thead .egtsum{background:var(--head)}
+  .egt .egtval{padding:6px 4px;min-width:48px} .egt .egtval.nd{color:#c4c9cd}
+  .egt .egtcell{width:50px;border:1px solid transparent;border-radius:6px;padding:6px 2px;text-align:center;font-size:12.5px;font-family:inherit;background:transparent;color:var(--ink)}
+  .egt .egtcell:focus{outline:none;border-color:var(--primary);background:var(--seafoam)}
+  .egt .egtcell.egtdirty{background:rgba(242,107,78,.16);border-color:var(--accent);font-weight:700}
+  .egthint{font-size:12px;color:var(--muted);margin-bottom:10px}
 
   /* ===== ตู้ฟัก / ลูกไก่ (funnel) ===== */
   .ecard .edates{font-size:11px;color:var(--muted);margin-bottom:10px}
@@ -379,6 +402,9 @@
 <div id="tip"></div>
 <header>
   <h1>🐔 โมเดลเล้าทดลอง — ระบบผสมสายพันธุ์ไก่</h1>
+  <div class="topright" id="topright">
+    <button id="loginbtn" class="loginbtn">🔑 เข้าสู่ระบบ</button>
+  </div>
 </header>
 
 <div class="wrap">
@@ -389,7 +415,6 @@
     <div class="tab" data-side="lockbook">📒 Lockbook · ทะเบียน Family</div>
     <div class="tab" data-side="eggs">🥚 ไข่รายวัน</div>
     <div class="tab" data-side="onhand">🐤 ตู้ฟัก / ลูกไก่</div>
-    <button id="loginbtn" class="loginbtn">🔑 เข้าสู่ระบบ</button>
   </div>
 
   <!-- ===== ฝั่งไก่พันธุ์ ===== -->
@@ -411,6 +436,7 @@
       <div class="subtab active" data-view="cv-breeder">ฝั่งไก่พันธุ์ · 19 กรง/แถว</div>
       <div class="subtab" data-view="cv-grower">ฝั่งไก่รุ่น · 75 กรง/แถว</div>
     </div>
+    <div class="hint editonly" style="margin-bottom:14px">✏️ <b>โหมดแก้ไข:</b> คลิกที่กรงเพื่อแก้จำนวนไก่/สายพันธุ์ หรือล้างกรง</div>
 
     <div class="coopview active" id="cv-breeder">
     <div class="legends">
@@ -474,8 +500,14 @@
   <section class="side" id="eggs">
     <div class="hint" style="margin-bottom:14px">🥚 บันทึก <b>จำนวนไข่รายวันต่อคู่ผสม</b> (พ่อ × แม่ → ลูก) ตั้งแต่ 20 เม.ย. 2026 · <b>เชื่อมกับ Lockbook:</b> รหัสพ่อ/แม่ = ไก่รายตัวใน Lockbook, รหัสลูก = Family รุ่นใหม่ที่จะเข้าตู้ฟัก</div>
     <div class="filterbar"><div class="lbfilter" id="eggfilter"></div><button class="addbtn editonly" id="addEgg">➕ บันทึกไข่รายวัน</button></div>
+    <div class="subtoggle" id="eggviewtoggle" style="margin-bottom:16px">
+      <div class="subtab active" data-eggview="card">📇 การ์ดสรุป</div>
+      <div class="subtab" data-eggview="table">📋 ตารางแก้ไข (คู่ × วัน)</div>
+    </div>
     <div class="stats" id="stats-eggs"></div>
+    <div class="cnav" id="eggnav"></div>
     <div class="egggrid" id="egggrid"></div>
+    <div id="eggtable"></div>
   </section>
 
   <!-- ===== ตู้ฟัก / ลูกไก่ (on hand) ===== -->
@@ -542,22 +574,28 @@ let BREEDER = {cages:19,rows:[]};
 let GROWER = {cages:75,chunk:20,rows:[]};
 
 /* ===== render ===== */
-function cageHtml(c,cell,sex,legend){
-  if(cell===undefined) return `<div class="cage empty" data-empty="1" data-cage="${c}" data-sex="${sex==='f'?'เมีย':'ผู้'}"><span class="cn">${c}</span><span class="ct">·</span></div>`;
+let cagePending={};   // กรงที่แก้ค้างไว้ (ยังไม่ส่ง Sheet) · key = side|row|sex|cage
+function cageHtml(c,cell,sex,legend,side,rowName,sub){
+  const sl=sex==='f'?'เมีย':'ผู้';
+  // data-side/row/sub = ตำแหน่งกรง ใช้ตอนแก้ไข (editor คลิกกรง → openCage)
+  const loc=`data-side="${side||''}" data-row="${esc(rowName||'')}" data-sub="${esc(sub||'')}"`;
+  const dirty = cagePending[`${side||''}|${rowName||''}|${sex}|${c}`] ? ' dirty' : '';   // แก้ค้าง = ไฮไลต์
+  if(cell===undefined) return `<div class="cage empty${dirty}" data-empty="1" data-cage="${c}" data-sex="${sl}" data-raw="" data-color="" ${loc}><span class="cn">${c}</span><span class="ct">·</span></div>`;
   const [v,color]=cell;
   const icon=sex==='f'?'♀':'♂';
   const breed = color&&legend[color] ? legend[color] : (color?'(สี #'+color+')':'ไม่มีสี');
   const bg = color ? hexToRgba(color,0.6) : '#f3f4f5';
   const noval = (v===''||v===null) ? ' noval':'';
   const shown = (v===''||v===null) ? '–' : v;
-  return `<div class="cage ${sex}${noval}" style="background:${bg}"
-     data-cage="${c}" data-breed="${breed}" data-sex="${sex==='f'?'เมีย':'ผู้'}" data-count="${shown}" data-color="${color||''}">
+  const raw = (v===''||v===null) ? '' : v;
+  return `<div class="cage ${sex}${noval}${dirty}" style="background:${bg}"
+     data-cage="${c}" data-breed="${esc(breed)}" data-sex="${sl}" data-count="${shown}" data-raw="${raw}" data-color="${color||''}" ${loc}>
     <span class="cn">${c}</span><span class="sx ${sex}">${icon}</span><span class="ct">${shown}</span></div>`;
 }
 // วาดแถบไก่ช่วงกรง from..to · showTotal = แสดงช่อง "รวม" (ยอดรวมทั้งแถว)
-function stripHtml(sex,data,from,to,legend,showTotal){
+function stripHtml(sex,data,from,to,legend,showTotal,side,rowName,sub){
   let html=`<div class="strip"><div class="striplabel ${sex}">${sex==='f'?'♀':'♂'}</div>`;
-  for(let c=from;c<=to;c++){html+=cageHtml(c,data.cages[c],sex,legend);}
+  for(let c=from;c<=to;c++){html+=cageHtml(c,data.cages[c],sex,legend,side,rowName,sub);}
   if(showTotal){
     const t=data.recTotal!=null?data.recTotal:Object.values(data.cages).reduce((a,x)=>a+(typeof x[0]==='number'?x[0]:0),0);
     html+=`<div class="total"><small>รวม</small>${t.toLocaleString()}</div>`;
@@ -575,6 +613,7 @@ function coopNav(elId,pages,cur,chunk,cages){
   return `<div class="cnav">${b}</div>`;
 }
 function renderCoop(elId,model,legend){
+  const side = elId.indexOf('grower')>=0 ? 'grower' : 'breeder';
   const chunk = model.chunk || model.cages;          // ไม่กำหนด = แสดงทั้งแถว (ไม่แบ่งหน้า)
   const pages = Math.ceil(model.cages/chunk);
   const cur = Math.min(coopPage[elId]||0, pages-1);
@@ -582,7 +621,7 @@ function renderCoop(elId,model,legend){
   let rows='';
   model.rows.forEach(r=>{
     rows+=`<div class="row"><div class="rowlabel"><div class="name">${r.name}</div><div class="sub">${r.sub}</div></div>
-      <div class="pair">${stripHtml('f',r.female,start,end,legend,true)}${stripHtml('m',r.male,start,end,legend,true)}</div></div>`;
+      <div class="pair">${stripHtml('f',r.female,start,end,legend,true,side,r.name,r.sub)}${stripHtml('m',r.male,start,end,legend,true,side,r.name,r.sub)}</div></div>`;
   });
   const nav = pages>1 ? coopNav(elId,pages,cur,chunk,model.cages) : '';
   document.getElementById(elId).innerHTML = nav+rows;
@@ -805,56 +844,157 @@ function eggLineOf(r){
   return "อื่นๆ";
 }
 function lineColor(line){return breedColor(line);}   // ← สีพันธุ์มาตรฐานชุดเดียว
-let eggFilter="ทั้งหมด";
+let eggFilter="ทั้งหมด", eggPage=0, eggView='card';
+let eggPending={};   // ช่องไข่ที่แก้ค้าง (ยังไม่ส่ง) · key = mo|dateIndex
+const EGG_PER_PAGE=20;
 function eggId(r){return 'egg-'+(r.sec?r.sec+'-'+r.fam:(r.ch||r.pa)).replace(/[^A-Za-z0-9]/g,'_');}
-
-function sparkHtml(r){
-  const vals=r.d, mx=Math.max(1,...vals.map(v=>v||0));
-  let bars='';
-  vals.forEach((v,i)=>{
-    if(v==null) bars+=`<div class="bar nodata" style="height:2px" title="${fmtDate(EGGS.dates[i])} · ไม่มีข้อมูล"></div>`;
-    else bars+=`<div class="bar" style="height:${Math.max(2,Math.round(v/mx*42))}px" title="${fmtDate(EGGS.dates[i])} · ${v} ฟอง"></div>`;
-  });
-  const firstI=vals.findIndex(v=>v!=null);
-  const lastI=vals.length-1;
-  return `<div class="spark">${bars}</div>
-    <div class="sparkx"><span>${fmtDate(EGGS.dates[firstI<0?0:firstI])}</span><span>${fmtDate(EGGS.dates[lastI])}</span></div>`;
+function eggLastIdx(r){ for(let i=r.d.length-1;i>=0;i--){ if(r.d[i]!=null) return i; } return -1; }
+// รายการคู่ผสมหลังกรอง+เรียง วันเก็บล่าสุด ใหม่→เก่า (เสมอกัน→ไข่รวมมากก่อน)
+function eggSortedList(){
+  const list = eggFilter==="ทั้งหมด" ? EGGS.rows.slice() : EGGS.rows.filter(r=>eggLineOf(r)===eggFilter);
+  return list.sort((a,b)=>{ const d=eggLastIdx(b)-eggLastIdx(a); if(d) return d;
+    return b.d.reduce((s,v)=>s+(v||0),0)-a.d.reduce((s,v)=>s+(v||0),0); });
 }
+
 function ecardHtml(r){
   const line=eggLineOf(r), col=lineColor(line);
   const days=r.d.filter(v=>v!=null).length;
   const tot=r.d.reduce((a,v)=>a+(v||0),0);
-  const avg=days?(tot/days):0;
+  const st=r.st||0;
   const title=r.ch||r.pa;
+  // เก็บล่าสุด: วัน+จำนวนของช่องที่มีข้อมูลตัวสุดท้าย
+  let lastI=-1; for(let i=r.d.length-1;i>=0;i--){ if(r.d[i]!=null){ lastI=i; break; } }
+  const lastTxt = lastI>=0 ? `${fmtDate(EGGS.dates[lastI])} · ${r.d[lastI].toLocaleString()} ฟอง` : '—';
+  // เข้าฟักไปแล้ว (จากผลฟัก onhand) — เฉพาะคู่ที่มี section/family ตรงกัน
+  const batches = (r.sec&&r.fam) ? ONHAND_BY_FAM[r.sec+'|'+r.fam] : null;
+  const setSum = batches ? batches.reduce((a,b)=>a+(b.eggset||0),0) : 0;
+  const chicks = batches ? batches.reduce((a,b)=>a+(b.chick||0),0) : 0;
+  const rounds = batches ? batches.length : 0;
+  const remain = Math.max(0, tot + st - setSum);   // คงเหลือรอเข้าฟัก
+  const foot = batches
+    ? `<div class="hatchfoot" data-hatch="${r.sec}|${r.fam}"><span class="hn">🥚 เข้าฟักแล้ว ${setSum.toLocaleString()} ฟอง → 🐤 ฟักได้ ${chicks.toLocaleString()} ตัว (${rounds} รอบ)</span><span class="arrow">ดูผลฟัก →</span></div>`
+    : `<div class="hatchfoot nolink"><span class="hn" style="color:var(--muted);font-weight:600">ยังไม่มีรอบเข้าฟักที่ผูกกับคู่นี้</span></div>`;
   return `<div class="ecard" id="${eggId(r)}">
     <div class="ehead"><div class="ech">${title}</div><span class="eline" style="background:${hexToRgba(col.replace('#',''),0.95)}">${line}</span></div>
     <div class="epair"><span class="pl">♂ พ่อ:</span> ${r.pa||'—'}<br><span class="pl">♀ แม่:</span> ${r.mo||'—'}</div>
     <div class="emetrics">
-      <div class="em"><div class="v">${tot.toLocaleString()}</div><div class="k">ไข่รวม (ฟอง)</div></div>
-      <div class="em"><div class="v">${avg.toFixed(1)}</div><div class="k">เฉลี่ย/วัน</div></div>
-      <div class="em"><div class="v">${r.st.toLocaleString()}</div><div class="k">สต็อกยกมา</div></div>
-      <div class="em"><div class="v">${days}</div><div class="k">วันที่บันทึก</div></div>
+      <div class="em"><div class="v">${tot.toLocaleString()}</div><div class="k">ไข่เก็บรวม (ฟอง)</div></div>
+      <div class="em"><div class="v">${st.toLocaleString()}</div><div class="k">สต็อกยกมา</div></div>
+      <div class="em"><div class="v">${days}</div><div class="k">ครั้งที่เก็บ</div></div>
     </div>
-    ${sparkHtml(r)}${hatchFootHtml(r)}</div>`;
-}
-function hatchFootHtml(r){
-  if(!r.sec||!r.fam) return '';
-  const batches=ONHAND_BY_FAM[r.sec+'|'+r.fam];
-  if(!batches) return '';
-  const chicks=batches.reduce((a,b)=>a+(b.chick||0),0);
-  return `<div class="hatchfoot" data-hatch="${r.sec}|${r.fam}"><span class="hn">🐤 ฟักได้รวม ${chicks.toLocaleString()} ตัว (${batches.length} รอบ)</span><span class="arrow">ดูผลฟัก →</span></div>`;
+    <div class="elast">เก็บล่าสุด: <b>${lastTxt}</b></div>
+    <div class="eremain"><div><div class="k">🥚 คงเหลือรอเข้าฟัก</div><small>เก็บ ${tot.toLocaleString()} + ยกมา ${st.toLocaleString()} − เข้าฟัก ${setSum.toLocaleString()}</small></div><div class="v">${remain.toLocaleString()}</div></div>
+    ${foot}</div>`;
 }
 function renderEggs(){
-  const list = eggFilter==="ทั้งหมด" ? EGGS.rows : EGGS.rows.filter(r=>eggLineOf(r)===eggFilter);
-  document.getElementById('egggrid').innerHTML = list.map(ecardHtml).join('');
-  let tot=0,days=0,top=null,topv=-1;
+  const list = eggSortedList();                         // กรอง+เรียงใหม่→เก่า
+  // stats จากทั้งหมด (ก่อนแบ่งหน้า)
+  let tot=0,top=null,topv=-1;
   list.forEach(r=>{const t=r.d.reduce((a,v)=>a+(v||0),0); tot+=t; if(t>topv){topv=t;top=r;}});
+  // แบ่งหน้า 20/หน้า · หน้า 1 = ล่าสุด
+  const pages=Math.max(1,Math.ceil(list.length/EGG_PER_PAGE));
+  if(eggPage>=pages) eggPage=0;
+  const slice=list.slice(eggPage*EGG_PER_PAGE,(eggPage+1)*EGG_PER_PAGE);
+  const grid=document.getElementById('egggrid'), tbl=document.getElementById('eggtable');
+  if(eggView==='table'){ grid.style.display='none'; tbl.style.display='block'; renderEggTable(slice); }
+  else { tbl.style.display='none'; grid.style.display=''; grid.innerHTML=slice.map(ecardHtml).join(''); }
+  renderEggNav(pages, list.length);
   document.getElementById('stats-eggs').innerHTML=`
     <div class="stat"><div class="k">คู่ผสม</div><div class="v">${list.length}</div></div>
     <div class="stat"><div class="k">ไข่รวมทั้งหมด</div><div class="v" style="color:var(--accent)">${tot.toLocaleString()} <small>ฟอง</small></div></div>
     <div class="stat"><div class="k">ผลิตมากสุด</div><div class="v">${top?(top.ch||top.pa):'—'} <small>${topv>=0?topv.toLocaleString()+' ฟอง':''}</small></div></div>
     <div class="stat"><div class="k">ช่วงบันทึก</div><div class="v" style="font-size:15px">${fmtDate(EGGS.dates[0])} – ${fmtDate(EGGS.dates[EGGS.dates.length-1])}</div></div>`;
 }
+function renderEggNav(pages, n){
+  const nav=document.getElementById('eggnav'); if(!nav) return;
+  if(pages<=1){ nav.innerHTML=''; return; }
+  const from=eggPage*EGG_PER_PAGE+1, to=Math.min((eggPage+1)*EGG_PER_PAGE, n);
+  let b=`<span style="font-size:12.5px;color:var(--muted);font-weight:600;margin-right:4px;align-self:center">คู่ที่ ${from}–${to} จาก ${n}</span>`;
+  for(let p=0;p<pages;p++) b+=`<button class="cpage${p===eggPage?' active':''}" data-egpage="${p}">หน้า ${p+1}</button>`;
+  nav.innerHTML=b;
+}
+/* ---- ตารางแก้ไขไข่ (คู่ผสม × วัน) — แก้หลายช่อง/ย้อนหลัง แล้วส่งทีเดียว ---- */
+function eggRowSum(r){ return r.d.reduce((a,v)=>a+(v||0),0); }
+function renderEggTable(slice){
+  const dates=EGGS.dates;
+  const head=`<th class="egtcorner">คู่ผสม</th>`
+    +dates.map(d=>`<th>${fmtDate(d)}</th>`).join('')+`<th class="egtsum">รวม</th>`;
+  const body=slice.map(r=>{
+    const cells=dates.map((d,i)=>{
+      const v=r.d[i], val=(v==null?'':v);
+      const key=r.mo+'|'+i, dirty=eggPending[key]?' egtdirty':'';
+      if(isEditor) return `<td><input class="egtcell${dirty}" inputmode="numeric" data-mo="${esc(r.mo)}" data-di="${i}" value="${eggPending[key]?esc(eggPending[key].count):val}"></td>`;
+      return `<td class="egtval${v==null?' nd':''}">${v==null?'·':v}</td>`;
+    }).join('');
+    return `<tr><th class="egtrow" data-mo="${esc(r.mo)}">${esc(r.ch||r.pa||'-')}<small>♀ ${esc(r.mo||'—')}</small></th>${cells}<td class="egtsum" data-sum="${esc(r.mo)}">${eggRowSum(r).toLocaleString()}</td></tr>`;
+  }).join('');
+  const hint = isEditor
+    ? '✏️ คลิกช่องแก้จำนวนไข่ได้ทุกวัน (รวมย้อนหลัง) · เว้นว่าง = ลบค่า · แก้ครบแล้วกด "ส่งข้อมูล" ด้านล่าง'
+    : 'ดูอย่างเดียว · เข้าสู่ระบบเพื่อแก้ไข';
+  document.getElementById('eggtable').innerHTML=
+    `<div class="egthint">${hint}</div><div class="egtwrap"><table class="egt"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+  const wrap=document.querySelector('#eggtable .egtwrap'); if(wrap) wrap.scrollLeft=wrap.scrollWidth;  // เลื่อนไปวันล่าสุด (ขวาสุด)
+}
+// แก้ค่าในช่อง → เก็บลง buffer (ยังไม่ส่ง) + อัปเดตยอดรวมแถวสด
+document.getElementById('eggtable').addEventListener('input',e=>{
+  const inp=e.target.closest('.egtcell'); if(!inp) return;
+  const mo=inp.dataset.mo, di=+inp.dataset.di, key=mo+'|'+di, raw=inp.value.trim();
+  const r=EGGS.rows.find(x=>String(x.mo)===mo);
+  const orig = r ? (r.d[di]==null?'':String(r.d[di])) : '';
+  if(raw===orig){ delete eggPending[key]; inp.classList.remove('egtdirty'); }
+  else { eggPending[key]={mo, di, date:EGGS.dates[di], count:raw}; inp.classList.add('egtdirty'); }
+  // ยอดรวมแถว = ค่าเดิม + ค่าที่กำลังแก้ในแถวนี้
+  if(r){ const tr=inp.closest('tr'); let s=0;
+    tr.querySelectorAll('.egtcell').forEach(c=>{ const n=parseFloat(c.value); if(!isNaN(n)) s+=n; });
+    const sumc=tr.querySelector('.egtsum'); if(sumc) sumc.textContent=s.toLocaleString(); }
+  updateEggBar();
+});
+function updateEggBar(){
+  let bar=document.getElementById('eggbar');
+  const n=Object.keys(eggPending).length;
+  if(!n){ if(bar) bar.remove(); return; }
+  if(!bar){ bar=document.createElement('div'); bar.id='eggbar';
+    bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:60;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:30px;padding:8px 10px 8px 18px;box-shadow:var(--shadow);font-size:13px;font-weight:700;color:var(--ink)';
+    document.body.appendChild(bar); }
+  bar.innerHTML=`<span>📝 แก้ไข่ไว้ <b style="color:var(--accent)">${n}</b> ช่อง (ยังไม่ส่ง)</span>`
+    +`<button id="ebCancel" style="border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:20px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:12.5px">ยกเลิก</button>`
+    +`<button id="ebSubmit" style="border:none;background:var(--primary);color:#fff;border-radius:20px;padding:7px 17px;cursor:pointer;font-weight:800;font-size:13px">📤 ส่งข้อมูล (${n})</button>`;
+  document.getElementById('ebSubmit').onclick=submitEggs;
+  document.getElementById('ebCancel').onclick=cancelEggs;
+}
+async function submitEggs(){
+  const items=Object.values(eggPending); if(!items.length) return;
+  const byDate={};   // จัดกลุ่มตามวัน → ส่ง eggBatch ทีละวัน (chunk 15) เหมือน openEgg
+  items.forEach(it=>{ (byDate[it.date]=byDate[it.date]||[]).push(it); });
+  const btn=document.getElementById('ebSubmit'); if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังส่ง…'; }
+  try{
+    let n=0;
+    for(const date in byDate){
+      const ent=byDate[date];
+      for(let i=0;i<ent.length;i+=15){
+        const v=ent.slice(i,i+15).map(it=>encodeURIComponent(it.mo)+':'+it.count).join(';');
+        const r=await apiWrite({action:'eggBatch', date, v});
+        if(r&&r.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+        if(!r||!r.ok) throw new Error((r&&r.error)||'ส่งไม่สำเร็จ');
+        n+=r.updated||0;
+      }
+    }
+    eggPending={}; updateEggBar();
+    etoast(`✅ ส่งข้อมูลไข่ ${n} ช่องแล้ว`,'ok');
+    loadFromSheet();
+  }catch(e){ etoast('❌ '+e.message,'err'); updateEggBar(); }
+}
+function cancelEggs(){
+  if(!Object.keys(eggPending).length) return;
+  if(!confirm('ยกเลิกการแก้ไข่ที่ยังไม่ส่งทั้งหมด?')) return;
+  eggPending={}; updateEggBar(); renderEggs();
+}
+document.getElementById('eggviewtoggle').addEventListener('click',e=>{
+  const t=e.target.closest('.subtab'); if(!t) return;
+  eggView=t.dataset.eggview;
+  document.querySelectorAll('#eggviewtoggle .subtab').forEach(x=>x.classList.toggle('active',x===t));
+  renderEggs();
+});
 function renderEggFilter(){
   const lines=["ทั้งหมด",...new Set(EGGS.rows.map(eggLineOf))];
   document.getElementById('eggfilter').innerHTML=lines.map(s=>
@@ -863,7 +1003,12 @@ function renderEggFilter(){
 renderEggFilter(); renderEggs();
 document.getElementById('eggfilter').addEventListener('click',e=>{
   const c=e.target.closest('.lbchip'); if(!c)return;
-  eggFilter=c.dataset.line; renderEggFilter(); renderEggs();
+  eggFilter=c.dataset.line; eggPage=0; renderEggFilter(); renderEggs();   // เปลี่ยนฟิลเตอร์ = กลับหน้า 1
+});
+document.getElementById('eggnav').addEventListener('click',e=>{
+  const b=e.target.closest('.cpage'); if(!b)return;
+  eggPage=+b.dataset.egpage; renderEggs();
+  document.getElementById('eggnav').scrollIntoView({behavior:'smooth',block:'start'});
 });
 function switchTab(side){
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.side===side));
@@ -871,9 +1016,13 @@ function switchTab(side){
   document.getElementById(side).classList.add('active');
 }
 function gotoEgg(key){
-  eggFilter="ทั้งหมด"; renderEggFilter(); renderEggs();
+  eggFilter="ทั้งหมด";
+  eggView='card'; document.querySelectorAll('#eggviewtoggle .subtab').forEach(x=>x.classList.toggle('active',x.dataset.eggview==='card'));  // ดูการ์ด
+  const r=EGG_BY_FAM[key];
+  if(r){ const idx=eggSortedList().indexOf(r); if(idx>=0) eggPage=Math.floor(idx/EGG_PER_PAGE); }  // ไปหน้าที่การ์ดนั้นอยู่
+  renderEggFilter(); renderEggs();
   switchTab('eggs');
-  const r=EGG_BY_FAM[key]; if(!r)return;
+  if(!r)return;
   const el=document.getElementById(eggId(r));
   if(el){el.scrollIntoView({behavior:'smooth',block:'center'});
     el.classList.add('hl'); setTimeout(()=>el.classList.remove('hl'),2200);}
@@ -1252,6 +1401,8 @@ document.querySelectorAll('.coop').forEach(coop=>{
   coop.addEventListener('mouseover',e=>{const cg=e.target.closest('.cage'); if(cg){showTip(cg); moveTip(e);}});
   coop.addEventListener('mousemove',e=>{if(e.target.closest('.cage')) moveTip(e);});
   coop.addEventListener('mouseout',e=>{const cg=e.target.closest('.cage'); if(cg && !cg.contains(e.relatedTarget)) tip.classList.remove('show');});
+  // editor คลิกกรง → แก้ไขจำนวน/สายพันธุ์ (คนดูคลิกไม่มีผล)
+  coop.addEventListener('click',e=>{const cg=e.target.closest('.cage'); if(cg && isEditor){ tip.classList.remove('show'); openCage(cg); }});
 });
 
 document.querySelectorAll('.tab').forEach(t=>{t.onclick=()=>{
@@ -1305,17 +1456,17 @@ function reloadAll(data){
   renderCoop('coop-breeder',BREEDER,LEG_BREEDER); renderCoop('coop-grower',GROWER,LEG_GROWER);
   renderStats('stats-breeder',BREEDER); renderStats('stats-grower',GROWER);
   renderLbFilter(); renderLockbook();
-  renderEggFilter(); renderEggs();
+  eggPage=0; renderEggFilter(); renderEggs();   // โหลดข้อมูลใหม่ = กลับหน้า 1 (ล่าสุดก่อน)
   renderOhFilter(); renderOnhand();
   renderMatrix();
 }
 
-// แถบสถานะ + ปุ่มรีเฟรช (ลอยมุมขวาล่าง)
+// แถบสถานะ + ปุ่มรีเฟรช (อยู่มุมขวาบนในแถบหัว คู่กับปุ่มเข้าสู่ระบบ)
 const dataBar=document.createElement('div');
 dataBar.id='databar';
-dataBar.style.cssText='position:fixed;right:16px;bottom:16px;z-index:50;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:30px;padding:7px 9px 7px 15px;box-shadow:var(--shadow);font-size:12.5px;font-weight:600;color:var(--ink)';
-dataBar.innerHTML='<span id="dbdot" style="width:9px;height:9px;border-radius:50%;background:#c4c9cd;flex:none"></span><span id="dbtext">ข้อมูลฝังในไฟล์</span><button id="dbbtn" style="border:none;background:var(--primary);color:#fff;border-radius:20px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:12.5px">↻ รีเฟรช</button>';
-document.body.appendChild(dataBar);
+dataBar.style.cssText='display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:4px 6px 4px 12px;font-size:12px;font-weight:600;color:var(--ink)';
+dataBar.innerHTML='<span id="dbdot" style="width:8px;height:8px;border-radius:50%;background:#c4c9cd;flex:none"></span><span id="dbtext">ข้อมูลฝังในไฟล์</span><button id="dbbtn" style="border:none;background:var(--primary);color:#fff;border-radius:18px;padding:5px 11px;cursor:pointer;font-weight:700;font-size:12px">↻ รีเฟรช</button>';
+(document.getElementById('topright')||document.body).insertBefore(dataBar, document.getElementById('loginbtn'));
 document.getElementById('dbbtn').onclick=loadFromSheet;
 function setStatus(state,msg){
   const dot=document.getElementById('dbdot'), txt=document.getElementById('dbtext');
@@ -1534,6 +1685,120 @@ async function saveBird(getMode){
     }
     closeModal(); loadFromSheet();
   }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 บันทึกเข้าทะเบียน'; }
+}
+/* ---- 🏠 แก้ไขกรง (ผังเล้า) — คลิกกรงในโหมดแก้ไข ---- */
+function cageBreedOptions(side,curColor){
+  const legend = side==='grower'?LEG_GROWER:LEG_BREEDER;
+  let opts='<option value="">— กรงว่าง / ไม่ระบุพันธุ์ —</option>';
+  const seen={};
+  for(const c in legend){ seen[c]=1; opts+=`<option value="${c}"${c===curColor?' selected':''}>${esc(legend[c])} (#${c})</option>`; }
+  if(curColor && !seen[curColor]) opts+=`<option value="${curColor}" selected>สี #${curColor} (ไม่อยู่ในรายการ)</option>`;
+  return opts;
+}
+// normalize สี hex → ตัวพิมพ์ใหญ่ ไม่มี # (รูปแบบเดียวกับที่ชีทเก็บ)
+function normHex(h){ return String(h||'').replace(/^#/,'').trim().toUpperCase(); }
+function openCage(el){
+  if(!isEditor) return;
+  const side=el.dataset.side, row=el.dataset.row, sub=el.dataset.sub||'';
+  const sexTh=el.dataset.sex, sx=sexTh==='เมีย'?'f':'m';
+  const cage=el.dataset.cage, curCount=el.dataset.raw||'', curColor=el.dataset.color||'';
+  openModal('🏠 แก้ไขกรง '+cage+' · '+sexTh+' · แถว '+row,
+    `<div class="eg2">
+       <div><label>จำนวน (ตัว) <small>เว้นว่าง = ไม่ระบุ</small></label><input type="number" id="cgCount" inputmode="numeric" min="0" placeholder="เช่น 80" value="${esc(curCount)}"></div>
+       <div><label>สายพันธุ์ (สีกรง)</label><select id="cgColor">${cageBreedOptions(side,curColor)}</select>
+         <button type="button" id="cgNewToggle" style="margin-top:7px;width:100%;border:1px dashed var(--primary);background:var(--seafoam);color:var(--primary-d);border-radius:9px;padding:8px;font-size:13px;font-weight:700;cursor:pointer">➕ เพิ่มพันธุ์ใหม่ (สีกรงใหม่)</button>
+       </div>
+     </div>
+     <div id="cgNewBox" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--primary);border-radius:10px;background:var(--seafoam)">
+       <div style="font-weight:800;color:var(--primary-d);margin-bottom:8px">➕ พันธุ์ใหม่</div>
+       <label>ชื่อพันธุ์ใหม่ <span class="req">*</span></label><input type="text" id="cgNewName" placeholder="เช่น โรดไอแลนด์ R2">
+       <label style="margin-top:8px;display:block">เลือกสีกรง</label>
+       <input type="color" id="cgNewColor" value="#FFE599" style="width:64px;height:40px;padding:2px;border:1px solid var(--line);border-radius:8px;cursor:pointer">
+       <small style="color:var(--muted);display:block;margin-top:6px">พันธุ์/สีใหม่จะถูกเพิ่มเข้า legend ${side==='grower'?'ไก่รุ่น':'ไก่พันธุ์'} ให้เลือกซ้ำได้ภายหลัง</small>
+     </div>
+     <div style="margin-top:10px;color:var(--muted);font-size:12.5px">ฝั่ง: ${side==='grower'?'ไก่รุ่น':'ไก่พันธุ์'} · กรงที่ ${cage} · ${sexTh}</div>
+     <button class="ebtn" id="cgSave">💾 บันทึกกรง</button>
+     <button class="ebtn" id="cgClear" style="background:#fff;color:#c2454a;border:1px solid #e6b3b5;margin-top:8px;font-size:14px;padding:11px">🗑️ ล้างกรงนี้ (ไม่มีไก่)</button>`);
+  document.getElementById('cgNewToggle').onclick=function(){
+    const box=document.getElementById('cgNewBox'), on=box.style.display!=='block';
+    box.style.display=on?'block':'none';
+    document.getElementById('cgColor').disabled=on;          // โหมดเพิ่มใหม่ → ปิด dropdown ให้ชัด
+    this.textContent=on?'↩ ใช้พันธุ์ที่มีอยู่แล้ว':'➕ เพิ่มพันธุ์ใหม่ (สีกรงใหม่)';
+    if(on) document.getElementById('cgNewName').focus();
+  };
+  document.getElementById('cgSave').onclick=()=>saveCage({side,row,sub,sex:sx,cage},false);
+  document.getElementById('cgClear').onclick=()=>saveCage({side,row,sub,sex:sx,cage},true);
+}
+// แก้กรง = เก็บไว้ในเครื่องก่อน (ยังไม่ส่ง Sheet) → กด "ส่งข้อมูล" ทีเดียวตอนแก้ครบ
+function saveCage(loc,clear){
+  const count = clear?'':document.getElementById('cgCount').value.trim();
+  const newMode = !clear && document.getElementById('cgNewBox').style.display==='block';
+  let color = clear?'':document.getElementById('cgColor').value;
+  let legendName='';
+  if(newMode){                                 // โหมดเพิ่มพันธุ์ใหม่ → กรอกชื่อ + สีเอง
+    legendName=document.getElementById('cgNewName').value.trim();
+    color=normHex(document.getElementById('cgNewColor').value);
+    if(!legendName){ etoast('กรอกชื่อพันธุ์ใหม่ก่อน','err'); return; }
+    if(!color){ etoast('เลือกสีกรงก่อน','err'); return; }
+  }
+  const key=`${loc.side}|${loc.row}|${loc.sex}|${loc.cage}`;
+  cagePending[key]={side:loc.side,row:loc.row,sub:loc.sub,sex:loc.sex,cage:loc.cage,count,color,legendName};
+  applyCageLocal(loc,count,color,legendName);  // อัปเดต model+legend ในหน่วยความจำ ให้เห็นผลทันที
+  rerenderCoopSide(loc.side);
+  updateCageBar();
+  closeModal();
+  etoast(`📝 เตรียมแก้กรง ${loc.cage} ไว้แล้ว · กด "ส่งข้อมูล" เมื่อแก้ครบ`,'ok');
+}
+// อัปเดตข้อมูลในหน่วยความจำ (model + legend) — ยังไม่แตะ Sheet
+function applyCageLocal(loc,count,color,legendName){
+  const model = loc.side==='grower'?GROWER:BREEDER;
+  const legend = loc.side==='grower'?LEG_GROWER:LEG_BREEDER;
+  if(legendName && color) legend[color]=legendName;
+  const r=model.rows.find(x=>String(x.name)===String(loc.row)); if(!r) return;
+  const cages=(loc.sex==='f'?r.female:r.male).cages;
+  const cnum = count===''?'':(isNaN(+count)?count:+count);
+  cages[loc.cage]=[cnum, color||null];
+}
+function rerenderCoopSide(side){
+  const elId='coop-'+side, model=side==='grower'?GROWER:BREEDER, legend=side==='grower'?LEG_GROWER:LEG_BREEDER;
+  renderLegend('leg-'+side,legend); renderCoop(elId,model,legend); renderStats('stats-'+side,model);
+}
+// แถบลอยมุมล่าง: จำนวนกรงที่แก้ค้าง + ปุ่มส่ง/ยกเลิก
+function updateCageBar(){
+  let bar=document.getElementById('cagebar');
+  const n=Object.keys(cagePending).length;
+  if(!n){ if(bar) bar.remove(); return; }
+  if(!bar){
+    bar=document.createElement('div'); bar.id='cagebar';
+    bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:60;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:30px;padding:8px 10px 8px 18px;box-shadow:var(--shadow);font-size:13px;font-weight:700;color:var(--ink)';
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML=`<span>📝 แก้ไว้ <b style="color:var(--accent)">${n}</b> กรง (ยังไม่ส่ง)</span>`
+    +`<button id="cbCancel" style="border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:20px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:12.5px">ยกเลิก</button>`
+    +`<button id="cbSubmit" style="border:none;background:var(--primary);color:#fff;border-radius:20px;padding:7px 17px;cursor:pointer;font-weight:800;font-size:13px">📤 ส่งข้อมูล (${n})</button>`;
+  document.getElementById('cbSubmit').onclick=submitCages;
+  document.getElementById('cbCancel').onclick=cancelCages;
+}
+async function submitCages(){
+  const items=Object.values(cagePending); if(!items.length) return;
+  const btn=document.getElementById('cbSubmit'); if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังส่ง…'; }
+  try{
+    let n=0;
+    for(let i=0;i<items.length;i+=20){      // chunk ละ 20 กัน URL ยาวเกิน
+      const r=await apiWrite({action:'cageBatch', items: JSON.stringify(items.slice(i,i+20))});
+      if(r&&r.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+      if(!r||!r.ok) throw new Error((r&&r.error)||'ส่งไม่สำเร็จ');
+      n+=r.updated||0;
+    }
+    cagePending={}; updateCageBar();
+    etoast(`✅ ส่งข้อมูล ${n} กรงแล้ว`,'ok');
+    loadFromSheet();                         // รีเฟรชครั้งเดียวตอนจบ
+  }catch(e){ etoast('❌ '+e.message,'err'); updateCageBar(); }
+}
+function cancelCages(){
+  if(!Object.keys(cagePending).length) return;
+  if(!confirm('ยกเลิกการแก้ไขที่ยังไม่ส่งทั้งหมด?')) return;
+  cagePending={}; updateCageBar(); loadFromSheet();
 }
 /* ---- ➕ เพิ่มคู่ผสม (แผนทดลอง) ---- */
 // รวมรหัสพ่อ/แม่/ลูกที่เคยใช้จริงในแผน → ใช้เป็นตัวเลือก autocomplete (กันพิมพ์ผิด)

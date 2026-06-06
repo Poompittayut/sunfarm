@@ -165,6 +165,8 @@ function handleAction_(a,e){
     if(a==='addBird')   return act_addBird_(e);
     if(a==='addFamily') return act_addFamily_(e);
     if(a==='updateBird')return act_updateBird_(e);
+    if(a==='updateCage')return act_updateCage_(e);
+    if(a==='cageBatch') return act_cageBatch_(e);
     if(a==='addBreed')  return act_addBreed_(e);
     if(a==='deleteBreed')return act_deleteBreed_(e);
     if(a==='addPlan')   return act_addPlan_(e);
@@ -261,6 +263,93 @@ function act_updateBird_(e){
   }
   writeRow_('Lockbook',[section,family,p.fc||'',p.mc||'',sex,idx,code,band]);  // ไม่เจอ → เพิ่มใหม่
   return {ok:true, updated:1, appended:true};
+}
+
+// เพิ่ม/แก้ชื่อพันธุ์ (สีกรง) ใน legend — breeder→'สีพันธุ์' · grower→'สีรุ่น' (หาแถวจากสี · ไม่เจอ→เพิ่ม)
+function upsertLegend_(side, color, name){
+  if(!color || !name) return;
+  var sheetName = side==='grower' ? 'สีรุ่น' : 'สีพันธุ์';
+  var sh=getSheet_(sheetName); if(!sh) return;
+  var cCol=colIndex_(sh,'color'), nCol=colIndex_(sh,'name');
+  if(cCol<1 || nCol<1) return;
+  var last=sh.getLastRow(), w=Math.max(cCol,nCol);
+  if(last>1){
+    var data=sh.getRange(2,1,last-1,w).getValues();
+    for(var i=0;i<data.length;i++){
+      if(String(data[i][cCol-1])===String(color)){
+        sh.getRange(i+2,nCol).setNumberFormat('@'); sh.getRange(i+2,nCol).setValue(name);
+        return;
+      }
+    }
+  }
+  var rn=sh.getLastRow()+1;
+  sh.getRange(rn,cCol).setNumberFormat('@'); sh.getRange(rn,cCol).setValue(color);
+  sh.getRange(rn,nCol).setNumberFormat('@'); sh.getRange(rn,nCol).setValue(name);
+}
+
+// แก้จำนวน/สีพันธุ์ ของกรง 1 กรงในผังเล้า (หาแถวจาก side+row+sex+cage) — ไม่เจอ → เพิ่มใหม่
+function act_updateCage_(e){
+  var p=e.parameter, sh=getSheet_('ผังเล้า');
+  var side=String(p.side||''), row=String(p.row||''), sub=String(p.sub||''),
+      sex=String(p.sex||'f'), cage=String(p.cage||'');
+  var count=String(p.count||''), color=String(p.color||'');
+  var legendName=String(p.legendName||'');
+  if(legendName && color) upsertLegend_(side, color, legendName);  // เพิ่มพันธุ์ใหม่ลง legend ก่อน
+  var last=sh.getLastRow();
+  // คอลัมน์: 1 side, 2 row, 3 sub, 4 sex, 5 cage, 6 count, 7 color
+  if(last>1){
+    var data=sh.getRange(2,1,last-1,7).getValues();
+    for(var i=0;i<data.length;i++){
+      if(String(data[i][0])===side && String(data[i][1])===row
+         && String(data[i][3])===sex && String(data[i][4])===cage){
+        var rn=i+2;
+        sh.getRange(rn,6,1,2).setNumberFormat('@');
+        sh.getRange(rn,6).setValue(count);
+        sh.getRange(rn,7).setValue(color);
+        return {ok:true, updated:1, row:rn};
+      }
+    }
+  }
+  writeRow_('ผังเล้า',[side,row,sub,sex,cage,count,color]);  // ไม่เจอ → เพิ่มกรงใหม่
+  return {ok:true, updated:1, appended:true};
+}
+
+// แก้หลายกรงทีเดียว (อ่านชีทรอบเดียว → จับคู่ในหน่วยความจำ → เขียนทีละช่อง · ไม่เจอ→ต่อท้าย)
+// items = JSON array ของ {side,row,sub,sex,cage,count,color,legendName}
+function act_cageBatch_(e){
+  var items;
+  try{ items=JSON.parse(e.parameter.items||'[]'); }catch(err){ return {ok:false, error:'payload เสีย: '+err}; }
+  if(!items.length) return {ok:true, updated:0};
+  var sh=getSheet_('ผังเล้า');
+  var last=sh.getLastRow();
+  var data = last>1 ? sh.getRange(2,1,last-1,7).getValues() : [];
+  var idx={};   // side|row|sex|cage → เลขแถวในชีท
+  for(var i=0;i<data.length;i++){
+    idx[ String(data[i][0])+'|'+String(data[i][1])+'|'+String(data[i][3])+'|'+String(data[i][4]) ] = i+2;
+  }
+  var appends=[], n=0;
+  items.forEach(function(it){
+    var side=String(it.side||''), row=String(it.row||''), sub=String(it.sub||''),
+        sex=String(it.sex||'f'), cage=String(it.cage||''),
+        count=(it.count==null?'':String(it.count)), color=String(it.color||''),
+        legendName=String(it.legendName||'');
+    if(legendName && color) upsertLegend_(side, color, legendName);
+    var rn=idx[side+'|'+row+'|'+sex+'|'+cage];
+    if(rn){
+      sh.getRange(rn,6,1,2).setNumberFormat('@');
+      sh.getRange(rn,6).setValue(count);
+      sh.getRange(rn,7).setValue(color);
+    }else{
+      appends.push([side,row,sub,sex,cage,count,color]);
+    }
+    n++;
+  });
+  if(appends.length){
+    var arn=sh.getLastRow()+1;
+    sh.getRange(arn,1,appends.length,7).setNumberFormat('@');
+    sh.getRange(arn,1,appends.length,7).setValues(appends);
+  }
+  return {ok:true, updated:n, appended:appends.length};
 }
 
 // เพิ่มทั้ง Family → แม่หลายตัว (fcodes คั่น ,) + พ่อ 1 ตัว
