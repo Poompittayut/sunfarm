@@ -178,7 +178,8 @@ ws = wb['ชื่อชีท']
 ```
 
 - **3 ฟอร์ม:** 🥚 ไข่รายวัน (เลือกวัน→กรอกจำนวนต่อคู่ผสม, ส่งเป็น chunk ละ 15 ผ่าน `eggBatch`) · 🐤 ผลฟัก (`addHatch` คำนวณ se/sf/dpct ให้) · 📋 เพิ่มไก่/Family (`addBird`/`addFamily`)
-- **Apps Script เขียนกลับ:** `doGet` แตกตาม `action` → `handleAction_` (มี `LockService` กันชนกัน) · actions ทั้งหมด: `ping` (เปิด) · `login` (ตรวจรหัส) · `eggBatch/addHatch/addBird/addFamily/updateBird` · `updateCage/cageBatch` (แก้กรง) · `addBreed/deleteBreed` (สายพันธุ์) · `addPlan/editPlan/deletePlan` (คู่ผสม) — ทุก action เขียนต้องมี `key===WRITE_KEY`
+- **Apps Script เขียนกลับ:** `doGet` แตกตาม `action` → `handleAction_` (มี `LockService` กันชนกัน) · actions ทั้งหมด: `ping` (เปิด) · `login` (ตรวจรหัส) · `eggBatch/addHatch/addBird/addFamily/updateBird` · `addEggPair` (เพิ่มคู่เก็บไข่) · `updateCage/cageBatch` (แก้กรง) · `addBreed/deleteBreed` (สายพันธุ์) · `addPlan/editPlan/deletePlan` (คู่ผสม) — ทุก action เขียนต้องมี `key===WRITE_KEY`
+- **เพิ่มคู่ผสมใหม่เข้าหน้าไข่:** การ์ดหน้าไข่ = 1 แถวในชีท `ไข่รายวัน` (key=`mo` รหัสแม่) · `eggBatch` แก้แถวเดิมเท่านั้น (ไม่เจอ mo = ข้าม) · มี 2 ทางสร้างคู่ใหม่ → (1) **auto:** `addPlan` เรียก `ensureEggRow_(pa,mo,ch)` สร้างแถวไข่ให้อัตโนมัติถ้ายังไม่มี mo นั้น · (2) **manual:** ปุ่ม "➕ เพิ่มคู่เก็บไข่" ในแท็บไข่ (`openEggPair/saveEggPair`→ action `addEggPair`→ `ensureEggRow_`) กรอก pa/mo/ch +sec/fam ระดับ family ได้ · `ensureEggRow_` กัน mo ซ้ำ (คืน `created:false`)
 - `eggBatch` หา row ด้วย `mo` (รหัสแม่ unique) แล้ว set ช่อง daily ตาม index ของวันที่ (เพิ่มวันที่ใหม่ใน `ไข่วันที่` อัตโนมัติ)
 - เขียนผ่าน **JSONP GET** (ไม่ใช่ POST) เพื่อเลี่ยง CORS จาก `file://` · payload เล็ก
 - **แก้ inline ในหน้าดู (CoopModel):** แท็บ Lockbook คลิกแถวไก่ได้เลย → กรอกรหัส/ห่วง → เซฟเข้า Sheet อัตโนมัติ (action `updateBird` หาแถวจาก section+family+sex+idx แล้ว set code/band · ฟังก์ชันฝั่ง HTML: `enterEdit/saveEdit/restoreRow/apiWrite`) — ไม่ต้องเปิดชีท

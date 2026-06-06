@@ -172,6 +172,7 @@ function handleAction_(a,e){
     if(a==='addPlan')   return act_addPlan_(e);
     if(a==='editPlan')  return act_editPlan_(e);
     if(a==='deletePlan')return act_deletePlan_(e);
+    if(a==='addEggPair')return act_addEggPair_(e);
     return {ok:false, error:'ไม่รู้จัก action: '+a};
   }catch(err){ return {ok:false, error:String(err)}; }
   finally{ lock.releaseLock(); }
@@ -432,7 +433,37 @@ function act_addPlan_(e){
   // คอลัมน์: line,pa,mo,ch,nm,nf,nfam,loc,method,batches
   writeRow_('แผนทดลอง',[line,pa,mo,ch,num(p.nm),num(p.nf),num(p.nfam),
     String(p.loc||'').trim(),String(p.method||'').trim(),batches]);
-  return {ok:true, line:line, ch:ch};
+  // auto: สร้างคู่เก็บไข่ในชีท 'ไข่รายวัน' ให้ด้วย (ถ้ายังไม่มีรหัสแม่นี้) → โผล่หน้าไข่ทันที
+  var egg=ensureEggRow_(pa,mo,ch,'','','');
+  return {ok:true, line:line, ch:ch, eggRowCreated:!!(egg&&egg.created)};
+}
+
+// สร้างแถวคู่เก็บไข่ในชีท 'ไข่รายวัน' ถ้ายังไม่มีรหัสแม่ (mo) นี้ · คืน {ok, created}
+function ensureEggRow_(pa,mo,ch,sec,fam,st){
+  mo=String(mo||'').trim(); if(!mo) return {ok:false, error:'ไม่มีรหัสแม่ (mo)'};
+  var es=getSheet_('ไข่รายวัน'); if(!es) return {ok:false, error:'ไม่มีชีทไข่รายวัน'};
+  var moCol=colIndex_(es,'mo'); if(moCol<1) return {ok:false, error:'ไม่พบคอลัมน์ mo'};
+  var last=es.getLastRow();
+  var moVals=(last>1)?es.getRange(2,moCol,last-1,1).getValues().map(function(r){return String(r[0]).trim();}):[];
+  if(moVals.indexOf(mo)>=0) return {ok:true, created:false};   // มีอยู่แล้ว ไม่สร้างซ้ำ
+  var hd=es.getRange(1,1,1,es.getLastColumn()).getValues()[0];
+  function num(x){ if(x===''||x==null) return ''; var v=parseFloat(x); return isNaN(v)?'':v; }
+  var vals={pa:String(pa||'').trim(), mo:mo, ch:String(ch||'').trim(),
+            st:num(st), sec:String(sec||'').trim(), fam:String(fam||'').trim(), daily:''};
+  var row=hd.map(function(h){ var k=String(h); return vals[k]!==undefined?vals[k]:''; });
+  var rn=es.getLastRow()+1;
+  es.getRange(rn,1,1,row.length).setNumberFormat('@');
+  es.getRange(rn,1,1,row.length).setValues([row]);
+  return {ok:true, created:true};
+}
+// เพิ่มคู่เก็บไข่จากเว็บ (ปุ่มในแท็บไข่รายวัน)
+function act_addEggPair_(e){
+  var p=e.parameter;
+  var pa=String(p.pa||'').trim(), mo=String(p.mo||'').trim(), ch=String(p.ch||'').trim();
+  if(!pa||!mo||!ch) return {ok:false, error:'ต้องมี พ่อ × แม่ → ลูก ครบ'};
+  var r=ensureEggRow_(pa,mo,ch,p.sec,p.fam,p.st);
+  if(!r.ok) return r;
+  return {ok:true, created:r.created, mo:mo, ch:ch};
 }
 
 // แปลงดัชนีรายการ (0-based ตาม objsOf_ ที่ข้ามแถวว่าง) → เลขแถวจริงในชีท (1-based)

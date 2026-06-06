@@ -499,7 +499,7 @@
   <!-- ===== ไข่รายวัน ===== -->
   <section class="side" id="eggs">
     <div class="hint" style="margin-bottom:14px">🥚 บันทึก <b>จำนวนไข่รายวันต่อคู่ผสม</b> (พ่อ × แม่ → ลูก) ตั้งแต่ 20 เม.ย. 2026 · <b>เชื่อมกับ Lockbook:</b> รหัสพ่อ/แม่ = ไก่รายตัวใน Lockbook, รหัสลูก = Family รุ่นใหม่ที่จะเข้าตู้ฟัก</div>
-    <div class="filterbar"><div class="lbfilter" id="eggfilter"></div><button class="addbtn editonly" id="addEgg">➕ บันทึกไข่รายวัน</button></div>
+    <div class="filterbar"><div class="lbfilter" id="eggfilter"></div><button class="addbtn alt editonly" id="addEggPair">➕ เพิ่มคู่เก็บไข่</button><button class="addbtn editonly" id="addEgg">➕ บันทึกไข่รายวัน</button></div>
     <div class="subtoggle" id="eggviewtoggle" style="margin-bottom:16px">
       <div class="subtab active" data-eggview="card">📇 การ์ดสรุป</div>
       <div class="subtab" data-eggview="table">📋 ตารางแก้ไข (คู่ × วัน)</div>
@@ -1585,6 +1585,37 @@ async function saveEgg(){
   }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 บันทึกไข่'; }
 }
 
+/* ---- ➕ เพิ่มคู่เก็บไข่ใหม่ (สร้างแถวในชีทไข่รายวัน) ---- */
+function openEggPair(){
+  openModal('➕ เพิ่มคู่เก็บไข่ (ไข่รายวัน)',
+    `<div class="ehint">สร้าง <b>คู่ผสมใหม่สำหรับเก็บไข่</b> · รหัสแม่ (♀) ต้อง <b>ไม่ซ้ำ</b>กับคู่ที่มีอยู่ (ใช้เป็นกุญแจ) · ใส่ section/family ถ้าต้องการให้เชื่อมกับ Lockbook/ผลฟัก</div>
+     <div class="eg3">
+       <div><label>♂ พ่อพันธุ์ <span class="req">*</span></label><input type="text" id="epPa" list="epCodes" autocomplete="off" placeholder="รหัสพ่อ"></div>
+       <div><label>♀ แม่พันธุ์ <span class="req">*</span></label><input type="text" id="epMo" autocomplete="off" placeholder="รหัสแม่ (ห้ามซ้ำ)"></div>
+       <div><label>ลูกที่ได้ <span class="req">*</span></label><input type="text" id="epCh" list="epCodes" autocomplete="off" placeholder="รหัสลูก/Family"></div>
+     </div>
+     <datalist id="epCodes">${planCodeOptions()}</datalist>
+     <div class="eg2">
+       <div><label>Section <small>(เว้นได้)</small></label><input type="text" id="epSec" placeholder="เช่น SB8 44WK"></div>
+       <div><label>Family <small>(เว้นได้)</small></label><input type="text" id="epFam" placeholder="เช่น 1"></div>
+     </div>
+     <label>สต็อกไข่ยกมา <small>(เว้นได้)</small></label><input type="number" id="epSt" inputmode="numeric" placeholder="0">
+     <button class="ebtn" id="epSave">💾 เพิ่มคู่เก็บไข่</button>`);
+  document.getElementById('epSave').onclick=saveEggPair;
+}
+async function saveEggPair(){
+  const g=id=>document.getElementById(id).value.trim();
+  if(!g('epPa')||!g('epMo')||!g('epCh')){ etoast('กรอก พ่อ × แม่ → ลูก ก่อน','err'); return; }
+  const btn=document.getElementById('epSave'); btn.disabled=true; btn.textContent='⏳ กำลังบันทึก…';
+  try{
+    const r=await apiWrite({action:'addEggPair',pa:g('epPa'),mo:g('epMo'),ch:g('epCh'),sec:g('epSec'),fam:g('epFam'),st:g('epSt')});
+    if(r&&r.needKey){ clearKey(); throw new Error('รหัสไม่ถูกต้อง'); }
+    if(!r||!r.ok) throw new Error((r&&r.error)||'บันทึกไม่สำเร็จ');
+    if(r.created===false){ etoast('⚠️ มีคู่ (รหัสแม่นี้) อยู่แล้ว','err'); btn.disabled=false; btn.textContent='💾 เพิ่มคู่เก็บไข่'; return; }
+    etoast('✅ เพิ่มคู่เก็บไข่ '+g('epCh'),'ok'); closeModal(); loadFromSheet();
+  }catch(e){ etoast('❌ '+e.message,'err'); btn.disabled=false; btn.textContent='💾 เพิ่มคู่เก็บไข่'; }
+}
+
 /* ---- 🐤 บันทึกผลฟัก ---- */
 function calcKpi(){
   const g=id=>parseFloat(document.getElementById(id).value)||0;
@@ -2005,6 +2036,7 @@ async function deleteBreed(name){
 }
 document.getElementById('mgBreeds').onclick=openBreeds;
 document.getElementById('addEgg').onclick=openEgg;
+document.getElementById('addEggPair').onclick=openEggPair;
 document.getElementById('addHatch').onclick=openHatch;
 document.getElementById('addBird').onclick=openBird;
 document.getElementById('addPlan').onclick=openPlan;
